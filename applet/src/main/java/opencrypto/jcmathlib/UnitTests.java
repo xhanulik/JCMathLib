@@ -49,6 +49,8 @@ public class UnitTests extends Applet {
     public final static byte INS_BN_SET_VALUE = (byte) 0x28;
     public final static byte INS_BN_SHIFT_LEFT = (byte) 0x29;
 
+    public final static byte INS_BN_CP = (byte) 0x28;
+
     public final static byte INS_BN_ADD_MOD = (byte) 0x30;
     public final static byte INS_BN_SUB_MOD = (byte) 0x31;
     public final static byte INS_BN_MUL_MOD = (byte) 0x32;
@@ -231,6 +233,9 @@ public class UnitTests extends Applet {
                     break;
                 case INS_BN_ADD:
                     testBnAdd(apdu, dataLen);
+                    break;
+                case INS_BN_CP:
+                    testBnCp(apdu, dataLen);
                     break;
                 case INS_BN_SUB:
                     testBnSub(apdu, dataLen);
@@ -478,6 +483,16 @@ public class UnitTests extends Applet {
         bn3.copy(bn1);
         bn3.add(bn2);
         short len = bn3.copyToByteArray(apduBuffer, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, len);
+    }
+    void testBnCp(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
+        bn1.copy(bn2);
+        short len = bn1.copyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
     }
 
