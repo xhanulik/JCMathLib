@@ -138,13 +138,18 @@ public class BigNatInternal {
      */
     public void shrink() {
         short i;
-        for (i = offset; i < value.length; i++) { // Find first non-zero byte
-            if (value[i] != 0) {
-                break;
+        short newSize = (short) value.length;
+        short bogusNewSize = (short) value.length;
+        boolean foundNonZero = false;
+        for (i = 0; i < value.length; i++) { // Find first non-zero byte
+            foundNonZero = foundNonZero || (value[i] != 0);
+            if (foundNonZero) {
+                bogusNewSize -= 1;
+            } else {
+                newSize -= 1;
             }
         }
 
-        short newSize = (short) (value.length - i);
         if (newSize < 0) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDRESIZE);
         }
