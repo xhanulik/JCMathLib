@@ -1,6 +1,7 @@
 package tests.library;
 
 import javacard.framework.ISO7816;
+import javacard.framework.ISOException;
 import javacard.framework.JCSystem;
 import opencrypto.jcmathlib.BigNat;
 import opencrypto.jcmathlib.ResourceManager;
@@ -70,7 +71,7 @@ public class BigNatInternalTest {
     }
 
     @Test
-    public void copy_thisShorter() {
+    public void copy_leadingZeroes() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn1 = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
@@ -83,5 +84,23 @@ public class BigNatInternalTest {
         bn2.resize((short) (data1.length + 3));
 
         bn1.copy(bn2);
+        bn1.shrink();
+        bn2.shrink();
+        Assertions.assertTrue(bn1.equals(bn2));
+    }
+
+    @Test
+    public void copy_thisShorter() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
+        BigNat bn2 = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03, 0x04};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+
+        Assertions.assertThrows(ISOException.class, () -> {bn1.copy(bn2);});
     }
 }
