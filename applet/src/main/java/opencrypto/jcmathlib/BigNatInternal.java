@@ -191,33 +191,29 @@ public class BigNatInternal {
      * Copies a BigNat into this without changing size. May throw an exception if this is too small.
      */
     public void copy(BigNatInternal other) {
-        short thisStart, otherStart, len;
         short diff = (short) (size - other.size);
-        if (diff >= 0) {
-            thisStart = (short) (diff + offset);
-            otherStart = other.offset;
-            len = other.size;
+        short thisStart = diff >= 0 ? (short) (diff + offset) : offset;
+        short otherStart = diff >= 0 ? other.offset : (short) (other.offset - diff);
+        short len = diff >= 0 ? other.size : size;
+        boolean problem = false;
 
-            if (diff > 0) {
-                Util.arrayFillNonAtomic(value, offset, diff, (byte) 0);
-            }
-        } else {
-            thisStart = offset;
-            otherStart = (short) (other.offset - diff);
-            len = size;
-            boolean problem = false;
-            // Verify here that other have leading zeroes up to otherStart
-            for (short i = 0; i < other.value.length; i++) {
-                if (i < otherStart && other.value[i] != 0) {
-                    problem = true;
-                } else {
-                    problem |= problem;
-                }
-            }
-            if (problem) {
-                ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCOPYOTHER);
+        // Verify here that other have leading zeroes up to otherStart
+        for (short i = 0; i < other.value.length; i++) {
+            if (i < otherStart && other.value[i] != 0) {
+                problem = true;
+            } else {
+                problem |= problem;
             }
         }
+
+        if (problem) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCOPYOTHER);
+        }
+
+        if (diff > 0) {
+            Util.arrayFillNonAtomic(value, offset, diff, (byte) 0);
+        }
+
         Util.arrayCopyNonAtomic(other.value, otherStart, value, thisStart, len);
     }
 
