@@ -68,6 +68,9 @@ public class BigNatInternalTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
 
         bn1.copy(bn2);
+        bn1.shrink();
+        bn2.shrink();
+        Assertions.assertTrue(bn1.equals(bn2));
     }
 
     @Test
