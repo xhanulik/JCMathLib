@@ -205,11 +205,17 @@ public class BigNatInternal {
             thisStart = offset;
             otherStart = (short) (other.offset - diff);
             len = size;
+            boolean problem = false;
             // Verify here that other have leading zeroes up to otherStart
-            for (short i = other.offset; i < otherStart; i++) {
-                if (other.value[i] != 0) {
-                    ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCOPYOTHER);
+            for (short i = 0; i < other.value.length; i++) {
+                if (i < otherStart && other.value[i] != 0) {
+                    problem = true;
+                } else {
+                    problem |= problem;
                 }
+            }
+            if (problem) {
+                ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCOPYOTHER);
             }
         }
         Util.arrayCopyNonAtomic(other.value, otherStart, value, thisStart, len);
