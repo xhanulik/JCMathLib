@@ -234,6 +234,31 @@ public class BigNatInternal {
     }
 
     /**
+
+     * Test equality with zero.
+     */
+    public boolean isZero() {
+        boolean zero = true;
+        for (short i = 0; i < value.length; i++) {
+            zero = !(!zero || value[i] != 0);
+        }
+        return zero;
+    }
+
+    /**
+     * Test equality with one.
+     */
+    public boolean isOne() {
+        for (short i = offset; i < (short) (value.length - 1); i++) {
+            if (value[i] != 0) {
+                return false; // CTO
+            }
+        }
+        return value[(short) (value.length - 1)] == (byte) 0x01;
+    }
+
+    /**
+
      * Check if stored BigNat is odd.
      */
     public boolean isOdd() {
