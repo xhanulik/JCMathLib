@@ -70,6 +70,9 @@ public class UnitTests extends Applet {
     public final static byte INS_EC_MUL_ADD = (byte) 0x49;
     public final static byte INS_EC_ENCODE = (byte) 0x4a;
 
+    // other tests
+    public final static byte INS_BIGNAT_LESSER = (byte) 0x50;
+
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
     public final static short SW_Exception                      = (short) 0xff01;
@@ -303,6 +306,9 @@ public class UnitTests extends Applet {
                     testIntMod(apdu, dataLen);
                     break;
 
+                case INS_BIGNAT_LESSER:
+                    testBignatLesser(apdu, dataLen);
+                    break;
                 default:
                     ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
             }
@@ -747,5 +753,16 @@ public class UnitTests extends Applet {
         int1.modulo(int2);
         short len = int1.toByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
+    }
+
+    void testBignatLesser(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
+
+        short lesser = (short) (bn1.isLesser(bn2) ? 1 : 0);
+        apdu.setOutgoingAndSend((short) 0, lesser);
     }
 }
