@@ -249,12 +249,11 @@ public class BigNatInternal {
      * Test equality with one.
      */
     public boolean isOne() {
-        for (short i = offset; i < (short) (value.length - 1); i++) {
-            if (value[i] != 0) {
-                return false; // CTO
-            }
+        boolean upperZero = true;
+        for (short i = 0; i < (short) (value.length - 1); i++) {
+            upperZero = !(!upperZero || value[i] != 0);
         }
-        return value[(short) (value.length - 1)] == (byte) 0x01;
+        return upperZero && (value[(short) (value.length - 1)] == (byte) 0x01);
     }
 
     /**
@@ -277,24 +276,28 @@ public class BigNatInternal {
      */
     private boolean isLesser(BigNatInternal other, short shift, short start) {
         short j = (short) (other.size + shift - size + start + other.offset);
+        boolean lesser = false;
+        boolean lesserSet = false;
 
         for (short i = (short) (start + other.offset); i < j; ++i) {
-            if (other.value[i] != 0) {
-                return true;
+            if (!lesserSet && other.value[i] != 0) {
+                lesser = true;
+                lesserSet = true;
             }
         }
 
         for (short i = (short) (start + offset); i < (short) value.length; i++, j++) {
             short thisValue = (short) (value[i] & DIGIT_MASK);
             short otherValue = (j >= other.offset && j < (short) other.value.length) ? (short) (other.value[j] & DIGIT_MASK) : (short) 0;
-            if (thisValue < otherValue) {
-                return true; // CTO
+            if (!lesserSet && thisValue < otherValue) {
+                lesser = true; // CTO
+                lesserSet = true;
             }
-            if (thisValue > otherValue) {
-                return false;
+            if (!lesserSet && thisValue > otherValue) {
+                lesserSet = true;
             }
         }
-        return false;
+        return lesser;
     }
 
     /**
