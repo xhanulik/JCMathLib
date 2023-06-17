@@ -316,6 +316,7 @@ public class BigNatInternal {
         short copySize = size;
         short iStart = (short) 0;
         short iEnd = (short) 0;
+        boolean isEqual = true;
 
         if (diff < 0) {
             valueOffset = 0;
@@ -332,14 +333,14 @@ public class BigNatInternal {
 
         for (short i = iStart; i < iEnd; ++i) {
             if (diff < 0 && other.value[i] != (byte) 0) {
-                return false;
+                isEqual = false;
             }
             if (diff > 0 && value[i] != (byte) 0) {
-                return false;
+                isEqual = false;
             }
         }
 
-        return Util.arrayCompare(value, valueOffset, other.value, otherOffset, copySize) == 0;
+        return (Util.arrayCompare(value, valueOffset, other.value, otherOffset, copySize) == 0) && isEqual;
     }
 
     /**
