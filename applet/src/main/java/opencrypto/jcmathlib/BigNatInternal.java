@@ -311,29 +311,35 @@ public class BigNatInternal {
      */
     public boolean equals(BigNatInternal other) {
         short diff = (short) (size - other.size);
-
-        if (diff == 0) {
-            return Util.arrayCompare(value, offset, other.value, other.offset, size) == 0;
-        }
-
+        short valueOffset = offset;
+        short otherOffset = other.offset;
+        short copySize = size;
+        short iStart = (short) 0;
+        short iEnd = (short) 0;
 
         if (diff < 0) {
-            short end = (short) (other.offset - diff);
-            for (short i = other.offset; i < end; ++i) {
-                if (other.value[i] != (byte) 0) {
-                    return false;
-                }
-            }
-            return Util.arrayCompare(value, (short) 0, other.value, end, size) == 0;
+            valueOffset = 0;
+            otherOffset = (short) (other.offset - diff);
+            iStart = other.offset;
+            iEnd = (short) (other.offset - diff);
         }
 
-        short end = diff;
-        for (short i = (short) 0; i < end; ++i) {
-            if (value[i] != (byte) 0) {
+        if (diff > 0) {
+            valueOffset = diff;
+            copySize = other.size;
+            iEnd = diff;
+        }
+
+        for (short i = iStart; i < iEnd; ++i) {
+            if (diff < 0 && other.value[i] != (byte) 0) {
+                return false;
+            }
+            if (diff > 0 && value[i] != (byte) 0) {
                 return false;
             }
         }
-        return Util.arrayCompare(value, end, other.value, other.offset, other.size) == 0;
+
+        return Util.arrayCompare(value, valueOffset, other.value, otherOffset, copySize) == 0;
     }
 
     /**
