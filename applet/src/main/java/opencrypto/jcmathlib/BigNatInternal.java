@@ -315,7 +315,7 @@ public class BigNatInternal {
         short otherOffset = other.offset;
         short copySize = size;
         short iStart = (short) 0;
-        short iEnd = (short) 0;
+        short iEnd = (short) value.length;
         boolean isEqual = true;
 
         if (diff < 0) {
