@@ -274,27 +274,30 @@ public class BigNatInternal {
     /**
      * Returns true if this is lesser than other shifted by a given number of digits.
      */
-    private boolean isLesser(BigNatInternal other, short shift, short start) {
+    public boolean isLesser(BigNatInternal other, short shift, short start) {
         short j = (short) (other.size + shift - size + start + other.offset);
         boolean lesser = false;
         boolean lesserSet = false;
 
-        for (short i = (short) (start + other.offset); i < j; ++i) {
-            if (!lesserSet && other.value[i] != 0) {
+        for (short i = 0; i < other.value.length; ++i) {
+            if (!lesserSet && i >= (short) (start + other.offset) && i < j && other.value[i] != 0) {
                 lesser = true;
                 lesserSet = true;
             }
         }
 
-        for (short i = (short) (start + offset); i < (short) value.length; i++, j++) {
+        for (short i = 0; i < (short) value.length; i++) {
             short thisValue = (short) (value[i] & DIGIT_MASK);
             short otherValue = (j >= other.offset && j < (short) other.value.length) ? (short) (other.value[j] & DIGIT_MASK) : (short) 0;
-            if (!lesserSet && thisValue < otherValue) {
-                lesser = true; // CTO
+            if (!lesserSet && i >= (short) (start + offset) && thisValue < otherValue) {
+                lesser = true;
                 lesserSet = true;
-            }
-            if (!lesserSet && thisValue > otherValue) {
+                j++;
+            } else if (!lesserSet && i >= (short) (start + offset) && thisValue > otherValue) {
                 lesserSet = true;
+                j++;
+            } else if (i >= (short) (start + offset)) {
+                j++;
             }
         }
         return lesser;
