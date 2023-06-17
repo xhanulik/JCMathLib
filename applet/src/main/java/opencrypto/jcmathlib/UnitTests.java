@@ -71,7 +71,8 @@ public class UnitTests extends Applet {
     public final static byte INS_EC_ENCODE = (byte) 0x4a;
 
     // other tests
-    public final static byte INS_BIGNAT_LESSER = (byte) 0x50;
+    public final static byte INS_BN_LESSER = (byte) 0x50;
+    public final static byte INS_BN_EQUAL = (byte) 0x51;
 
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
@@ -306,8 +307,11 @@ public class UnitTests extends Applet {
                     testIntMod(apdu, dataLen);
                     break;
 
-                case INS_BIGNAT_LESSER:
-                    testBignatLesser(apdu, dataLen);
+                case INS_BN_LESSER:
+                    testBnLesser(apdu, dataLen);
+                    break;
+                case INS_BN_EQUAL:
+                    testBnEquals(apdu, dataLen);
                     break;
                 default:
                     ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
@@ -755,7 +759,7 @@ public class UnitTests extends Applet {
         apdu.setOutgoingAndSend((short) 0, len);
     }
 
-    void testBignatLesser(APDU apdu, short dataLen) {
+    void testBnLesser(APDU apdu, short dataLen) {
         byte[] apduBuffer = apdu.getBuffer();
         short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
 
@@ -764,5 +768,16 @@ public class UnitTests extends Applet {
 
         short lesser = (short) (bn1.isLesser(bn2) ? 1 : 0);
         apdu.setOutgoingAndSend((short) 0, lesser);
+    }
+
+    void testBnEquals(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
+
+        short isEqual = (short) (bn1.equals(bn2) ? 1 : 0);
+        apdu.setOutgoingAndSend((short) 0, isEqual);
     }
 }
