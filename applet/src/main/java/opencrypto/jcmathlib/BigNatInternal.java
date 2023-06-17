@@ -292,11 +292,11 @@ public class BigNatInternal {
             if (!lesserSet && i >= (short) (start + offset) && thisValue < otherValue) {
                 lesser = true;
                 lesserSet = true;
-                j++;
-            } else if (!lesserSet && i >= (short) (start + offset) && thisValue > otherValue) {
+            }
+            if (!lesserSet && i >= (short) (start + offset) && thisValue > otherValue) {
                 lesserSet = true;
-                j++;
-            } else if (i >= (short) (start + offset)) {
+            }
+            if (i >= (short) (start + offset)) {
                 j++;
             }
         }
