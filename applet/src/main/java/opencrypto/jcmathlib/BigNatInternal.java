@@ -311,36 +311,31 @@ public class BigNatInternal {
      */
     public boolean equals(BigNatInternal other) {
         short diff = (short) (size - other.size);
-        short valueOffset = offset;
-        short otherOffset = other.offset;
-        short copySize = size;
-        short iStart = (short) 0;
-        short iEnd = (short) value.length;
-        boolean isEqual = true;
+        byte[] arrayABuffer = rm.ARRAY_A;
+        byte[] arrayBBuffer = rm.ARRAY_B;
+        rm.lock(arrayABuffer);
+        rm.lock(arrayBBuffer);
+        short len = 0;
 
-        if (diff < 0) {
-            valueOffset = 0;
-            otherOffset = (short) (other.offset - diff);
-            iStart = other.offset;
-            iEnd = (short) (other.offset - diff);
-        }
-
-        if (diff > 0) {
-            valueOffset = diff;
-            copySize = other.size;
-            iEnd = diff;
-        }
-
-        for (short i = iStart; i < iEnd; ++i) {
-            if (diff < 0 && other.value[i] != (byte) 0) {
-                isEqual = false;
-            }
-            if (diff > 0 && value[i] != (byte) 0) {
-                isEqual = false;
+        if (diff == 0) {
+            rm.hashEngine.doFinal(this.value, (short) 0, length(), arrayABuffer, (short) 0);
+            len = rm.hashEngine.doFinal(other.value, (short) 0, other.length(), arrayBBuffer, (short) 0);
+        } else {
+            if (diff < 0) {
+                this.prependZeros(other.length(), arrayABuffer, (short) 0);
+                rm.hashEngine.doFinal(arrayABuffer, (short) 0, other.length(), arrayABuffer, (short) 0);
+                len = rm.hashEngine.doFinal(other.value, other.offset, other.length(), arrayBBuffer, (short) 0);
+            } else {
+                other.prependZeros(this.length(), arrayBBuffer, (short) 0);
+                rm.hashEngine.doFinal(this.value, this.offset, this.length(), arrayABuffer, (short) 0);
+                len = rm.hashEngine.doFinal(arrayBBuffer, (short) 0, this.length(), arrayBBuffer, (short) 0);
             }
         }
+        boolean bResult = Util.arrayCompare(arrayABuffer, (short) 0, arrayBBuffer, (short) 0, len) == 0;
+        rm.unlock(arrayABuffer);
+        rm.unlock(arrayBBuffer);
 
-        return (Util.arrayCompare(value, valueOffset, other.value, otherOffset, copySize) == 0) && isEqual;
+        return bResult;
     }
 
     /**
