@@ -199,7 +199,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x00, 0x01, 0x02, 0x03};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2, (short) 2, (short) 0));
+        Assertions.assertTrue(bn1.isLesser(bn2, (short) 1, (short) 0));
     }
 
     @Test
@@ -214,5 +214,33 @@ public class BigNatInternalTest {
         byte[] data2 = {0x00, 0x01, 0x02, 0x03};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         Assertions.assertTrue(bn1.isLesser(bn2, (short) 0, (short) 1));
+    }
+
+    @Test
+    public void equals_true() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x00, 0x01, 0x02, 0x03};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x02, 0x03};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        Assertions.assertTrue(bn1.equals(bn2));
+    }
+
+    @Test
+    public void equals_false() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x05, 0x02, 0x03};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x05, 0x05, 0x05, 0x05};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        Assertions.assertFalse(bn1.equals(bn2));
     }
 }
