@@ -49,7 +49,6 @@ public class UnitTests extends Applet {
     public final static byte INS_BN_SET_VALUE = (byte) 0x28;
     public final static byte INS_BN_SHIFT_LEFT = (byte) 0x29;
 
-    public final static byte INS_BN_CP = (byte) 0x28;
 
     public final static byte INS_BN_ADD_MOD = (byte) 0x30;
     public final static byte INS_BN_SUB_MOD = (byte) 0x31;
@@ -74,6 +73,8 @@ public class UnitTests extends Applet {
     public final static byte INS_BN_LESSER = (byte) 0x50;
     public final static byte INS_BN_EQUAL = (byte) 0x51;
     public final static byte INS_BN_RESIZE = (byte) 0x52;
+    public final static byte INS_BN_PREPEND = (byte) 0x53;
+    public final static byte INS_BN_CP = (byte) 0x54;
 
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
@@ -239,9 +240,6 @@ public class UnitTests extends Applet {
                 case INS_BN_ADD:
                     testBnAdd(apdu, dataLen);
                     break;
-                case INS_BN_CP:
-                    testBnCp(apdu, dataLen);
-                    break;
                 case INS_BN_SUB:
                     testBnSub(apdu, dataLen);
                     break;
@@ -316,6 +314,12 @@ public class UnitTests extends Applet {
                     break;
                 case INS_BN_RESIZE:
                     testBnResize(apdu, dataLen);
+                    break;
+                case INS_BN_PREPEND:
+                    testBnPrepend(apdu, dataLen);
+                    break;
+                case INS_BN_CP:
+                    testBnCp(apdu, dataLen);
                     break;
                 default:
                     ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
@@ -793,6 +797,22 @@ public class UnitTests extends Applet {
         byte newSize = apduBuffer[(short) (ISO7816.OFFSET_CDATA + p1)];
 
         bn1.resize(newSize);
+        apdu.setOutgoingAndSend((short) 0, (short) 0);
+    }
+
+    void testBnPrepend(APDU apdu, short ignoredDataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        byte[] arrayABuffer = rm.ARRAY_A;
+        rm.lock(arrayABuffer);
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        byte newSize = apduBuffer[(short) (ISO7816.OFFSET_CDATA + p1)];
+        bn1.prependZeros(newSize, arrayABuffer, (short) 0);
+
+        rm.unlock(arrayABuffer);
+
         apdu.setOutgoingAndSend((short) 0, (short) 0);
     }
 }
