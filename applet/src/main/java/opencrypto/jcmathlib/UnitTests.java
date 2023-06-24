@@ -73,6 +73,7 @@ public class UnitTests extends Applet {
     // other tests
     public final static byte INS_BN_LESSER = (byte) 0x50;
     public final static byte INS_BN_EQUAL = (byte) 0x51;
+    public final static byte INS_BN_RESIZE = (byte) 0x52;
 
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
@@ -312,6 +313,9 @@ public class UnitTests extends Applet {
                     break;
                 case INS_BN_EQUAL:
                     testBnEquals(apdu, dataLen);
+                    break;
+                case INS_BN_RESIZE:
+                    testBnResize(apdu, dataLen);
                     break;
                 default:
                     ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
@@ -779,5 +783,16 @@ public class UnitTests extends Applet {
 
         short isEqual = (short) (bn1.equals(bn2) ? 1 : 0);
         apdu.setOutgoingAndSend((short) 0, isEqual);
+    }
+
+    void testBnResize(APDU apdu, short ignoredDataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        byte newSize = apduBuffer[(short) (ISO7816.OFFSET_CDATA + p1)];
+
+        bn1.resize(newSize);
+        apdu.setOutgoingAndSend((short) 0, (short) 0);
     }
 }
