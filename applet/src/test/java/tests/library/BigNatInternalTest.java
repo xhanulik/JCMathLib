@@ -35,6 +35,36 @@ public class BigNatInternalTest {
     }
 
     @Test
+    public void prependZeroes_targetLengthBigger() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
+
+        byte[] data = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+        byte[] out = new byte[10];
+        bn.fromByteArray(data, (short) 0, (short) data.length);
+        bn.prependZeros((short) 10, out, (short) 0);
+        Assertions.assertArrayEquals(
+                new byte[]{0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06},
+                out);
+    }
+
+    @Test
+    public void prependZeroes_targetLengthSmaller() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
+
+        byte[] data = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+        byte[] out = new byte[6];
+        bn.fromByteArray(data, (short) 0, (short) data.length);
+        bn.prependZeros((short) data.length, out, (short) 0);
+        Assertions.assertArrayEquals(
+                data,
+                out);
+    }
+
+    @Test
     public void shrink_biggerThanActual_downsize() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
