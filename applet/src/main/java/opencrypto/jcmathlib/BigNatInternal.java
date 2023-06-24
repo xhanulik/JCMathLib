@@ -139,15 +139,11 @@ public class BigNatInternal {
     public void shrink() {
         short i;
         short newSize = (short) value.length;
-        short bogusNewSize = (short) value.length;
         boolean foundNonZero = false;
-        for (i = 0; i < value.length; i++) { // Find first non-zero byte
-            foundNonZero = foundNonZero || (value[i] != 0);
-            if (foundNonZero) {
-                bogusNewSize -= 1;
-            } else {
-                newSize -= 1;
-            }
+        for (i = 0; i < value.length; i++) { // Compute size of non-zero part
+            foundNonZero = (value[i] != 0) || foundNonZero;
+            short value = foundNonZero ? (short) 0 : (short) 1;
+            newSize -= value;
         }
 
         if (newSize < 0) {
