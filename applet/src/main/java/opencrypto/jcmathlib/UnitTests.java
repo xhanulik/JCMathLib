@@ -507,16 +507,6 @@ public class UnitTests extends Applet {
         short len = bn3.copyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
     }
-    void testBnCp(APDU apdu, short dataLen) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
-        bn1.copy(bn2);
-        short len = bn1.copyToByteArray(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
 
     void testBnSub(APDU apdu, short dataLen) {
         byte[] apduBuffer = apdu.getBuffer();
@@ -826,5 +816,16 @@ public class UnitTests extends Applet {
         bn1.shrink();
 
         apdu.setOutgoingAndSend((short) 0, (short) 0);
+    }
+
+    void testBnCp(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
+        bn1.copy(bn2);
+        short len = bn1.copyToByteArray(apduBuffer, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, len);
     }
 }
