@@ -204,10 +204,7 @@ public class BigNatInternal {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCOPYOTHER);
         }
 
-        if (diff > 0) {
-            Util.arrayFillNonAtomic(value, offset, diff, (byte) 0);
-        }
-
+        Util.arrayFillNonAtomic(value, (short) 0, (short) value.length, (byte) 0);
         Util.arrayCopyNonAtomic(other.value, otherStart, value, thisStart, len);
     }
 
