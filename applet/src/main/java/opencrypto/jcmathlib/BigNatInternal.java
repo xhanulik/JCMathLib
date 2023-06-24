@@ -195,9 +195,9 @@ public class BigNatInternal {
 
         // Verify here that other have leading zeroes up to otherStart
         for (short i = 0; i < other.value.length; i++) {
-            boolean validIndex = i < otherStart;
-            boolean nonZero = other.value[i] != 0;
-            problem = (validIndex && nonZero) || problem;
+            byte validIndex = (byte) (i < otherStart ? 1 : 0);
+            byte nonZero = (byte) (other.value[i] != 0 ? 1 : 0);
+            problem = ((nonZero & validIndex) != 0) || problem;
         }
 
         if (problem) {
