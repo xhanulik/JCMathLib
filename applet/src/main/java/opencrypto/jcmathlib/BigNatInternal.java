@@ -231,7 +231,7 @@ public class BigNatInternal {
     public boolean isZero() {
         boolean zero = true;
         for (short i = 0; i < value.length; i++) {
-            zero = !(!zero || value[i] != 0);
+            zero = !(value[i] != 0 || !zero);
         }
         return zero;
     }
@@ -242,9 +242,9 @@ public class BigNatInternal {
     public boolean isOne() {
         boolean upperZero = true;
         for (short i = 0; i < (short) (value.length - 1); i++) {
-            upperZero = !(!upperZero || value[i] != 0);
+            upperZero = !(value[i] != 0 || !upperZero);
         }
-        return upperZero && (value[(short) (value.length - 1)] == (byte) 0x01);
+        return (value[(short) (value.length - 1)] == (byte) 0x01) && upperZero;
     }
 
     /**
