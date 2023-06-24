@@ -318,7 +318,7 @@ public class BigNatInternal {
         short len = 0;
 
         if (diff == 0) {
-            rm.hashEngine.doFinal(this.value, (short) 0, length(), arrayABuffer, (short) 0);
+            rm.hashEngine.doFinal(this.value, (short) 0, this.length(), arrayABuffer, (short) 0);
             len = rm.hashEngine.doFinal(other.value, (short) 0, other.length(), arrayBBuffer, (short) 0);
         } else {
             if (diff < 0) {
