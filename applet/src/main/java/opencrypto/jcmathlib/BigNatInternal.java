@@ -229,11 +229,12 @@ public class BigNatInternal {
      * Test equality with zero.
      */
     public boolean isZero() {
-        boolean zero = false;
+        short nonZero = 0;
         for (short i = 0; i < value.length; i++) {
-            zero = (value[i] != 0) || zero;
+            short nonZeroValue = (short) (value[i] != 0 ? 1 : 0);
+            nonZero = (short) (nonZeroValue | nonZero);
         }
-        return !zero;
+        return nonZero == 0;
     }
 
     /**
