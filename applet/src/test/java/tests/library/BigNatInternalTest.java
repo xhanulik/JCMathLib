@@ -488,6 +488,20 @@ public class BigNatInternalTest {
     }
 
     @Test
+    public void equals_thisLonger2_false() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data2 = {0x00, 0x00, 0x00, 0x01, 0x05, 0x03, 0x02, 0x03};
+        bn1.fromByteArray(data2, (short) 0, (short) data2.length);
+        byte[] data1 = {0x05, 0x03, 0x02, 0x03};
+        bn2.fromByteArray(data1, (short) 0, (short) data1.length);
+        Assertions.assertFalse(bn1.equals(bn2));
+    }
+
+    @Test
     public void add_noShift() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
