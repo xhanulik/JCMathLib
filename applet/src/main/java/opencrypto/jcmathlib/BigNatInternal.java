@@ -275,31 +275,36 @@ public class BigNatInternal {
      */
     public boolean isLesser(BigNatInternal other, short shift, short start) {
         short j = (short) (other.size + shift - size + start + other.offset);
-        boolean lesser = false;
-        boolean lesserSet = false;
 
+        short otherBigger = 0;
         for (short i = 0; i < other.value.length; ++i) {
-            if (!lesserSet && i >= (short) (start + other.offset) && i < j && other.value[i] != 0) {
-                lesser = true;
-                lesserSet = true;
-            }
+            short validIndex1 = (short) (i >= (short) (start + other.offset) ? 1 : 0);
+            short validIndex2 = (short) (i < j ? 1 : 0);
+            short nonZeroValue = (short) (other.value[i] != 0 ? 1 : 0);
+            otherBigger = (short) ((validIndex1 & validIndex2 & nonZeroValue) | otherBigger);
         }
 
+        short thisLesser = 0;
+        short lesserSet = 1;
         for (short i = 0; i < (short) value.length; i++) {
             short thisValue = (short) (value[i] & DIGIT_MASK);
             short otherValue = (j >= other.offset && j < (short) other.value.length) ? (short) (other.value[j] & DIGIT_MASK) : (short) 0;
-            if (!lesserSet && i >= (short) (start + offset) && thisValue < otherValue) {
-                lesser = true;
-                lesserSet = true;
+            short validIndex = (short) (i >= (short) (start + offset) ? 1 : 0);
+            short thisSmaller = (short) (thisValue < otherValue ? 1 : 0);
+            short thisBigger = (short) (thisValue > otherValue ? 1 : 0);
+            if ((lesserSet & validIndex & thisSmaller) != 0) {
+                thisLesser = 1;
+                lesserSet = 0;
             }
-            if (!lesserSet && i >= (short) (start + offset) && thisValue > otherValue) {
-                lesserSet = true;
+            if ((lesserSet & validIndex & thisBigger) != 0) {
+                lesserSet = 0;
             }
-            if (i >= (short) (start + offset)) {
+            if (validIndex == 1) {
                 j++;
             }
         }
-        return lesser;
+
+        return (otherBigger | thisLesser) != 0;
     }
 
     /**
