@@ -79,6 +79,7 @@ public class UnitTests extends Applet {
     public final static byte INS_BN_CLONE = (byte) 0x56;
     public final static byte INS_BN_ZERO = (byte) 0x57;
     public final static byte INS_BN_ONE = (byte) 0x58;
+    public final static byte INS_BN_EQ = (byte) 0x59;
 
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
@@ -336,6 +337,9 @@ public class UnitTests extends Applet {
                     break;
                 case INS_BN_ONE:
                     testBnOne(apdu, dataLen);
+                    break;
+                case INS_BN_EQ:
+                    testBnEq(apdu, dataLen);
                     break;
                 default:
                     ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
@@ -869,4 +873,15 @@ public class UnitTests extends Applet {
         bn1.isOne();
         apdu.setOutgoingAndSend((short) 0, (short) 0);
     }
+
+    void testBnEq(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
+        bn1.equals(bn2);
+        apdu.setOutgoingAndSend((short) 0, (short) 0);
+    }
+
 }
