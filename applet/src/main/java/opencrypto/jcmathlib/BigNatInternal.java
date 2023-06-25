@@ -309,6 +309,55 @@ public class BigNatInternal {
      * @return true if this and other have the same value, false otherwise.
      */
     public boolean equals(BigNatInternal other) {
+        short diff = (short) (size - other.size);
+        short thisStart = offset;
+        short otherStart = other.offset;;
+        short length = size;
+
+        if (diff == 0) {
+            thisStart = offset;
+            otherStart = other.offset;
+            length = size;
+        }
+
+        if (diff < 0) {
+            thisStart = offset;
+            otherStart = (short) (other.offset - diff);
+            length = size;
+        }
+
+        if (diff > 0) {
+            thisStart = (short) (offset + diff);
+            otherStart = other.offset;
+            length = other.size;
+        }
+
+        short nonZeroPrefixOther = 0;
+        for (short i = 0; i < other.value.length; ++i) {
+            short validIndex1 = (short) (i >= other.offset ? 1 : 0);
+            short validIndex2 = (short) (i < (short) (other.offset - diff) ? 1 : 0);
+            short nonZero = (short) (other.value[i] != (byte) 0 ? 1 : 0);
+            nonZeroPrefixOther = (short) ((validIndex1 & validIndex2 & nonZero) | nonZeroPrefixOther);
+        }
+
+        short nonZeroPrefixThis = 0;
+        for (short i = (short) 0; i < value.length; ++i) {
+            short validIndex1 = (short) (i >= offset ? 1 : 0);
+            short validIndex2 = (short) (i < (short) (offset + diff) ? 1 : 0);
+            short nonZero = (short) (value[i] != (byte) 0 ? 1 : 0);
+            nonZeroPrefixThis = (short) ((validIndex1 & validIndex2 & nonZero) | nonZeroPrefixThis);
+        }
+
+        boolean result = true;
+        if (diff < 0) {
+            result = nonZeroPrefixOther == (short) 0;
+        }
+        if (diff < 0) {
+            result = nonZeroPrefixThis == (short) 0;
+        }
+        return Util.arrayCompare(value, thisStart, other.value, otherStart, length) == 0 && result;
+    }
+    public boolean equals2(BigNatInternal other) {
         // Compute difference in lengths in order to prepend zeroes
         short diff = (short) (size - other.size);
         // Compare using hash of values
