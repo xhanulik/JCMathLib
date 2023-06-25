@@ -229,8 +229,18 @@ public class BigNatInternal {
      * Test equality with zero.
      */
     public boolean isZero() {
+        return isZero((short) 0, (short) value.length);
+    }
+
+    /**
+     * Test quality with zero for given part of number.
+     *
+     * @param offset offset in the byte array, starting index
+     * @param end    ending index
+     */
+    private boolean isZero(short offset, short end) {
         short nonZero = 0;
-        for (short i = 0; i < value.length; i++) {
+        for (short i = offset; i < end; i++) {
             short nonZeroValue = (short) (value[i] != 0 ? 1 : 0);
             nonZero = (short) (nonZeroValue | nonZero);
         }
@@ -241,10 +251,7 @@ public class BigNatInternal {
      * Test equality with one.
      */
     public boolean isOne() {
-        boolean upperZero = true;
-        for (short i = 0; i < (short) (value.length - 1); i++) {
-            upperZero = !(value[i] != 0 || !upperZero);
-        }
+        boolean upperZero = isZero((short) 0, (short) ((short) value.length - 1));
         return (value[(short) (value.length - 1)] == (byte) 0x01) && upperZero;
     }
 
