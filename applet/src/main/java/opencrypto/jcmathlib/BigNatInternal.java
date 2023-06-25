@@ -309,22 +309,27 @@ public class BigNatInternal {
      * @return true if this and other have the same value, false otherwise.
      */
     public boolean equals(BigNatInternal other) {
+        // Compute difference in lengths in order to prepend zeroes
         short diff = (short) (size - other.size);
+        // Compare using hash of values
         byte[] arrayABuffer = rm.ARRAY_A;
         byte[] arrayBBuffer = rm.ARRAY_B;
         rm.lock(arrayABuffer);
         rm.lock(arrayBBuffer);
-        short len = 0;
+        short len;
 
         if (diff == 0) {
-            rm.hashEngine.doFinal(this.value, (short) 0, this.length(), arrayABuffer, (short) 0);
-            len = rm.hashEngine.doFinal(other.value, (short) 0, other.length(), arrayBBuffer, (short) 0);
+            // Same length, hash the values directly
+            rm.hashEngine.doFinal(this.value, this.offset, this.length(), arrayABuffer, (short) 0);
+            len = rm.hashEngine.doFinal(other.value, other.offset, other.length(), arrayBBuffer, (short) 0);
         } else {
             if (diff < 0) {
+                // Other is longer, prepend zeroes to this
                 this.prependZeros(other.length(), arrayABuffer, (short) 0);
                 rm.hashEngine.doFinal(arrayABuffer, (short) 0, other.length(), arrayABuffer, (short) 0);
                 len = rm.hashEngine.doFinal(other.value, other.offset, other.length(), arrayBBuffer, (short) 0);
             } else {
+                // This is longer, prepend zeroes to this
                 other.prependZeros(this.length(), arrayBBuffer, (short) 0);
                 rm.hashEngine.doFinal(this.value, this.offset, this.length(), arrayABuffer, (short) 0);
                 len = rm.hashEngine.doFinal(arrayBBuffer, (short) 0, this.length(), arrayBBuffer, (short) 0);
