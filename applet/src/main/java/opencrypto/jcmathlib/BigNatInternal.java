@@ -352,7 +352,7 @@ public class BigNatInternal {
         if (diff < 0) {
             result = nonZeroPrefixOther == (short) 0;
         }
-        if (diff < 0) {
+        if (diff > 0) {
             result = nonZeroPrefixThis == (short) 0;
         }
         return Util.arrayCompare(value, thisStart, other.value, otherStart, length) == 0 && result;
