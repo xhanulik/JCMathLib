@@ -292,16 +292,11 @@ public class BigNatInternal {
             short validIndex = (short) (i >= (short) (start + offset) ? 1 : 0);
             short thisSmaller = (short) (thisValue < otherValue ? 1 : 0);
             short thisBigger = (short) (thisValue > otherValue ? 1 : 0);
-            if ((lesserSet & validIndex & thisSmaller) != 0) {
-                thisLesser = 1;
-                lesserSet = 0;
-            }
-            if ((lesserSet & validIndex & thisBigger) != 0) {
-                lesserSet = 0;
-            }
-            if (validIndex == 1) {
-                j++;
-            }
+
+            thisLesser = (lesserSet & validIndex & thisSmaller) != 0 ? 1 : thisLesser;
+            lesserSet = (lesserSet & validIndex & thisSmaller) != 0 ? 0 : lesserSet;
+            lesserSet = (lesserSet & validIndex & thisBigger) != 0 ? 0 : lesserSet;
+            j += validIndex;
         }
 
         return (otherBigger | thisLesser) != 0;
