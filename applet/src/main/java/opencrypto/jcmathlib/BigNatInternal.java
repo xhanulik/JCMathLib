@@ -370,38 +370,32 @@ public class BigNatInternal {
         }
         return Util.arrayCompare(value, thisStart, other.value, otherStart, length) == 0 && result;
     }
-    public boolean equals2(BigNatInternal other) {
-        // Compute difference in lengths in order to prepend zeroes
+
+    public boolean equals_original(BigNatInternal other) {
         short diff = (short) (size - other.size);
-        // Compare using hash of values
-        byte[] arrayABuffer = rm.ARRAY_A;
-        byte[] arrayBBuffer = rm.ARRAY_B;
-        rm.lock(arrayABuffer);
-        rm.lock(arrayBBuffer);
-        short len;
 
         if (diff == 0) {
-            // Same length, hash the values directly
-            rm.hashEngine.doFinal(this.value, this.offset, this.length(), arrayABuffer, (short) 0);
-            len = rm.hashEngine.doFinal(other.value, other.offset, other.length(), arrayBBuffer, (short) 0);
-        } else {
-            if (diff < 0) {
-                // Other is longer, prepend zeroes to this
-                this.prependZeros(other.length(), arrayABuffer, (short) 0);
-                rm.hashEngine.doFinal(arrayABuffer, (short) 0, other.length(), arrayABuffer, (short) 0);
-                len = rm.hashEngine.doFinal(other.value, other.offset, other.length(), arrayBBuffer, (short) 0);
-            } else {
-                // This is longer, prepend zeroes to this
-                other.prependZeros(this.length(), arrayBBuffer, (short) 0);
-                rm.hashEngine.doFinal(this.value, this.offset, this.length(), arrayABuffer, (short) 0);
-                len = rm.hashEngine.doFinal(arrayBBuffer, (short) 0, this.length(), arrayBBuffer, (short) 0);
+            return Util.arrayCompare(value, offset, other.value, other.offset, size) == 0;
+        }
+
+
+        if (diff < 0) {
+            short end = (short) (other.offset - diff);
+            for (short i = other.offset; i < end; ++i) {
+                if (other.value[i] != (byte) 0) {
+                    return false;
+                }
+            }
+            return Util.arrayCompare(value, (short) 0, other.value, end, size) == 0;
+        }
+
+        short end = diff;
+        for (short i = (short) 0; i < end; ++i) {
+            if (value[i] != (byte) 0) {
+                return false;
             }
         }
-        boolean bResult = Util.arrayCompare(arrayABuffer, (short) 0, arrayBBuffer, (short) 0, len) == 0;
-        rm.unlock(arrayABuffer);
-        rm.unlock(arrayBBuffer);
-
-        return bResult;
+        return Util.arrayCompare(value, end, other.value, other.offset, other.size) == 0;
     }
 
     /**
