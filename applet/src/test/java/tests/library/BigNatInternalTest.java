@@ -599,4 +599,98 @@ public class BigNatInternalTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.add(bn2);
     }
+
+    @Test
+    public void increment_firstByte_noOverflow() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        bn1.increment();
+
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+        bn2.fromByteArray(new byte[]{0x01, 0x03}, (short) 0, (short) 2);
+        Assertions.assertTrue(bn1.equals_original(bn2));
+    }
+
+    @Test
+    public void increment_firstByte_overflow() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, (byte) 0xff};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        bn1.increment();
+
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+        bn2.fromByteArray(new byte[]{0x02, 0x00}, (short) 0, (short) 2);
+        Assertions.assertTrue(bn1.equals_original(bn2));
+    }
+
+    @Test
+    public void increment_lastByte_overflow() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {(byte) 0xff, (byte) 0xff};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        bn1.increment();
+
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+        bn2.fromByteArray(new byte[]{0x00, 0x00}, (short) 0, (short) 2);
+        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertEquals(2, bn1.length());
+    }
+
+    @Test
+    public void decrement_firstByte_noUnderflow() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {(byte) 0x01, (byte) 0x02};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        bn1.decrement();
+
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+        bn2.fromByteArray(new byte[]{(byte) 0x01, (byte) 0x01}, (short) 0, (short) 2);
+        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertEquals(2, bn1.length());
+    }
+
+    @Test
+    public void decrement_firstByte_underflow() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {(byte) 0x01, (byte) 0x00};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        bn1.decrement();
+
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+        bn2.fromByteArray(new byte[]{(byte) 0x00, (byte) 0xff}, (short) 0, (short) 2);
+        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertEquals(2, bn1.length());
+    }
+
+    @Test
+    public void decrement_lastByte_propagate() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {(byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        bn1.decrement();
+
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+        bn2.fromByteArray(new byte[]{(byte) 0x00, (byte) 0xff, (byte) 0xff, (byte) 0xff}, (short) 0, (short) 4);
+        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertEquals(4, bn1.length());
+    }
 }
