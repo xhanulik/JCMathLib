@@ -280,7 +280,7 @@ public class BigNatInternalTest {
     }
 
     @Test
-    public void isLesser_bigger_noShiftNoStart() {
+    public void isLesser_biggerFirstByte_noShiftNoStart() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn1 = new BigNat((short) 10, memoryType, rm);
@@ -291,6 +291,48 @@ public class BigNatInternalTest {
         byte[] data2 = {0x00, 0x01, 0x02, 0x03};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         Assertions.assertFalse(bn1.isLesser(bn2, (short) 0, (short) 0));
+    }
+
+    @Test
+    public void isLesser_biggerLastByte_noShiftNoStart() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03, 0x04};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x02, 0x03, 0x03};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        Assertions.assertFalse(bn1.isLesser(bn2, (short) 0, (short) 0));
+    }
+
+    @Test
+    public void isLesser_lesserFirstByte_noShiftNoStart() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03, 0x04};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x02, 0x02, 0x03, 0x04};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        Assertions.assertTrue(bn1.isLesser(bn2, (short) 0, (short) 0));
+    }
+
+    @Test
+    public void isLesser_lesserLastByte_noShiftNoStart() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03, 0x03};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x02, 0x03, 0x04};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        Assertions.assertTrue(bn1.isLesser(bn2, (short) 0, (short) 0));
     }
 
     @Test
@@ -308,21 +350,21 @@ public class BigNatInternalTest {
     }
 
     @Test
-    public void isLesser_lesser_noShiftNoStart() {
+    public void isLesser_sameZerosInThis_noShiftNoStart() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn1 = new BigNat((short) 10, memoryType, rm);
         BigNat bn2 = new BigNat((short) 10, memoryType, rm);
 
-        byte[] data1 = {0x01, 0x01, 0x03, 0x04};
+        byte[] data1 = {0x00, 0x00, 0x01, 0x02, 0x03, 0x04};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2, (short) 0, (short) 0));
+        Assertions.assertFalse(bn1.isLesser(bn2, (short) 0, (short) 0));
     }
 
     @Test
-    public void isLesser_same_noShiftStart2() {
+    public void isLesser_sameZerosInOther_noShiftNoStart() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn1 = new BigNat((short) 10, memoryType, rm);
@@ -330,27 +372,13 @@ public class BigNatInternalTest {
 
         byte[] data1 = {0x01, 0x02, 0x03, 0x04};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        byte[] data2 = {0x01, 0x02, 0x03, 0x04};
+        byte[] data2 = {0x00, 0x00, 0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2, (short) 0, (short) 2));
+        Assertions.assertFalse(bn1.isLesser(bn2, (short) 0, (short) 0));
     }
 
     @Test
-    public void isLesser_same_noShiftStart5() {
-        ResourceManager rm = new ResourceManager((short) 256);
-        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
-        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
-
-        byte[] data1 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
-        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
-        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2, (short) 0, (short) 5));
-    }
-
-    @Test
-    public void isLesser_lesser_shiftNoStart() {
+    public void isLesser_lesser_shift1NoStart() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn1 = new BigNat((short) 10, memoryType, rm);
@@ -362,8 +390,23 @@ public class BigNatInternalTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         Assertions.assertTrue(bn1.isLesser(bn2, (short) 1, (short) 0));
     }
+
     @Test
-    public void isLesser_same_shiftNoStart() {
+    public void isLesser_lesser_shift6NoStart() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        Assertions.assertTrue(bn1.isLesser(bn2, (short) 6, (short) 0));
+    }
+
+    @Test
+    public void isLesser_same_shift1NoStart() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn1 = new BigNat((short) 10, memoryType, rm);
@@ -377,7 +420,7 @@ public class BigNatInternalTest {
     }
 
     @Test
-    public void isLesser_lesser2_shiftNoStart() {
+    public void isLesser_lesser_shift2NoStart() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn1 = new BigNat((short) 10, memoryType, rm);
@@ -388,6 +431,48 @@ public class BigNatInternalTest {
         byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         Assertions.assertTrue(bn1.isLesser(bn2, (short) 2, (short) 0));
+    }
+
+    @Test
+    public void isLesser_lesser_shift2Start1() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x00};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        Assertions.assertTrue(bn1.isLesser(bn2, (short) 2, (short) 1));
+    }
+
+    @Test
+    public void isLesser_same_shift2Start5() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x00};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        Assertions.assertFalse(bn1.isLesser(bn2, (short) 2, (short) 5));
+    }
+
+    @Test
+    public void isLesser_lesser_shift2Start4() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x00};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        Assertions.assertTrue(bn1.isLesser(bn2, (short) 2, (short) 4));
     }
 
     @Test
