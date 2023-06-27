@@ -265,6 +265,7 @@ public class BigNatInternal {
 
     /**
      * Returns true if this BigNat is lesser than the other.
+     * @param other Bignat to compare to
      */
     public boolean isLesser(BigNatInternal other) {
         return isLesser(other, (short) 0, (short) 0);
@@ -272,11 +273,19 @@ public class BigNatInternal {
 
     /**
      * Returns true if this is lesser than other shifted by a given number of digits.
+     * @param other Bignat to compare to
+     * @param shift left shift of other before the comparison
+     * @param start digits to skip at the beginning
+     * @return  true if this number is strictly less than the shifted other, false otherwise.
      */
     public boolean isLesser(BigNatInternal other, short shift, short start) {
+        // index, where the byte positions in other corresponding to the positions in this
+        // (after shifting, starting from start index)
         short j = (short) (other.size + shift - size + start + other.offset);
 
         short otherBigger = 0;
+        // check the bytes by which other is longer than this
+        // if they are non-zero, then other is strictly greater than this
         for (short i = 0; i < other.value.length; ++i) {
             short validIndex1 = (short) (i >= (short) (start + other.offset) ? 1 : 0);
             short validIndex2 = (short) (i < j ? 1 : 0);
@@ -286,6 +295,7 @@ public class BigNatInternal {
 
         short thisLesser = 0;
         short lesserSet = 1;
+        // check all bytes at positions that correspond to the number other in this
         for (short i = 0; i < (short) value.length; i++) {
             short thisValue = (short) (value[i] & DIGIT_MASK);
             short otherValue = (j >= other.offset && j < (short) other.value.length) ? (short) (other.value[j] & DIGIT_MASK) : (short) 0;
@@ -293,8 +303,11 @@ public class BigNatInternal {
             short thisSmaller = (short) (thisValue < otherValue ? 1 : 0);
             short thisBigger = (short) (thisValue > otherValue ? 1 : 0);
 
+            // this is lesser, no previous bytes in other were lesser
             thisLesser = (lesserSet & validIndex & thisSmaller) != 0 ? 1 : thisLesser;
+            // first lesser byte seen, do not take next bytes into account
             lesserSet = (lesserSet & validIndex & thisSmaller) != 0 ? 0 : lesserSet;
+            // larger bytes in this observed before any smaller byte, this cannot be smaller than other
             lesserSet = (lesserSet & validIndex & thisBigger) != 0 ? 0 : lesserSet;
             j += validIndex;
         }
