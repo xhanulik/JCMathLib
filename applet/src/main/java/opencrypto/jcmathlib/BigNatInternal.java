@@ -412,28 +412,30 @@ public class BigNatInternal {
 
     /**
      * Increment this BigNat.
+     * @apiNote Does not increase size.
      */
     public void increment() {
-        for (short i = (short) (value.length - 1); i >= offset; i--) {
+        short incrementByte = 1;
+        for (short i = (short) (value.length - 1); i >= 0; i--) {
             short tmp = (short) (value[i] & 0xff);
-            value[i] = (byte) (tmp + 1);
-            if (tmp < 255) {
-                break; // CTO
-            }
+            short validIndex = (short) (i >= offset ? 1 : 0);
+            value[i] = (validIndex & incrementByte) != 0 ? (byte) (tmp + 1) : (byte) tmp;
+            incrementByte = (short) (tmp < 255 ? 0 : incrementByte);
         }
     }
 
     /**
      * Decrement this BigNat.
+     * @apiNote Does not decrease size.
      */
     public void decrement() {
         short tmp;
-        for (short i = (short) (value.length - 1); i >= offset; i--) {
+        short decrementByte = 1;
+        for (short i = (short) (value.length - 1); i >= 0; i--) {
             tmp = (short) (value[i] & 0xff);
-            value[i] = (byte) (tmp - 1);
-            if (tmp != 0) {
-                break; // CTO
-            }
+            short validIndex = (short) (i >= offset ? 1 : 0);
+            value[i] = (validIndex & decrementByte) != 0 ? (byte) (tmp - 1) : (byte) tmp;
+            decrementByte = (short) (tmp != 0 ? 0 : decrementByte);
         }
     }
 
