@@ -435,7 +435,8 @@ public class BigNatInternal {
         for (short i = (short) (value.length - 1); i >= 0; i--) {
             tmp = (short) (value[i] & 0xff);
             short validIndex = (short) (i >= offset ? 1 : 0);
-            value[i] = (validIndex & decrementByte) != 0 ? (byte) (tmp - 1) : (byte) tmp;
+            short newValue = (short) (tmp - 1);
+            value[i] = (validIndex & decrementByte) != 0 ? (byte) newValue : (byte) tmp;
             decrementByte = (short) (tmp != 0 ? 0 : decrementByte);
         }
     }
