@@ -467,12 +467,45 @@ public class BigNatInternal {
     /**
      * Computes other * multiplier, shifts the results by shift and adds it to this.
      * Multiplier must be in range [0; 2^8 - 1].
-     * This must be large enough to fit the results.
+     * Size of this must be large enough to fit the results.
      */
     private byte add(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
+        short otherIndex = (short) (other.value.length - 1);
+
+        for (short index = (short) (this.value.length - 1); index >= 0; index--) {
+            short thisIndex = (short) (index - shift);
+            short validOtherIndex = (short) (otherIndex >= other.offset ? 1 : 0);
+            short validThisIndex = (short) (thisIndex >= offset ? 1 : 0);
+            // add corresponding bytes in this and other
+            short validRange = (short) ((validOtherIndex & validThisIndex) != 0 ? 1 : 0);
+            short newValue = (short) ((short) (value[thisIndex] & DIGIT_MASK) + (short) (multiplier * (other.value[otherIndex] & DIGIT_MASK)));
+            acc += validRange != 0 ? newValue : 0;
+            value[thisIndex] = validRange != 0 ? (byte) (acc & DIGIT_MASK) : value[thisIndex];
+            acc = validRange != 0 ? (short) ((acc >> DIGIT_LEN) & DIGIT_MASK) : acc;
+
+            // add acc to higher bytes in this, when this is longer than other
+            short validAcc = (short) (acc > 0 ? 1 : 0);
+            short invalidOtherIndex = (short) (otherIndex >= other.offset ? 0 : 1);
+            short validUpperThisPart = (short) (validAcc & invalidOtherIndex & validThisIndex);
+            acc += validUpperThisPart != 0 ? (short) (value[thisIndex] & DIGIT_MASK) : 0;
+            value[thisIndex] = validUpperThisPart != 0 ? (byte) (acc & DIGIT_MASK) : value[thisIndex];
+            short shiftAcc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            acc = validUpperThisPart != 0 ? shiftAcc : acc;
+
+            otherIndex -= validRange;
+        }
+
+        // output carry bit if present
+        return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
+    }
+
+
+    private byte add_original(BigNatInternal other, short shift, short multiplier) {
+        short acc = 0;
         short i = (short) (other.size - 1 + other.offset);
         short j = (short) (size - 1 - shift + offset);
+        // add corresponding byte sin this and other
         for (; i >= other.offset && j >= offset; i--, j--) {
             acc += (short) ((short) (value[j] & DIGIT_MASK) + (short) (multiplier * (other.value[i] & DIGIT_MASK)));
 
@@ -480,6 +513,7 @@ public class BigNatInternal {
             acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
         }
 
+        // add acc to higher bytes in this, when this is longer than other
         for (; acc > 0 && j >= offset; --j) {
             acc += (short) (value[j] & DIGIT_MASK);
             value[j] = (byte) (acc & DIGIT_MASK);
