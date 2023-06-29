@@ -541,6 +541,38 @@ public class BigNatInternal {
         short acc = 0;
         short i = (short) (size - 1 - shift + offset);
         short j = (short) (other.size - 1 + other.offset);
+        for (short index = (short) (this.value.length - 1); index >= 0; index--) {
+            short validThisIndex = (short) (index >= offset ? 1 : 0);
+            short validOtherIndex = (short) (j >= other.offset ? 1 : 0);
+            short validRange = (short) ((validThisIndex & validOtherIndex) != 0 ? 1 : 0);
+
+            // computation for corresponding bytes
+            short newValue = (short) (multiplier * (other.value[j] & DIGIT_MASK));
+            acc += validRange != 0 ? newValue : 0;
+            short tmp = (short) ((value[i] & DIGIT_MASK) - (acc & DIGIT_MASK));
+
+            value[i] = (byte) (tmp & DIGIT_MASK);
+            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            acc += tmp < 0 ? 1 : 0;
+
+            // computation for rest of the bytes in this
+            short nonValidOtherIndex = (short) (j < other.offset ? 1 : 0);
+            short validAcc = (short) (acc != 0 ? 1 : 0);
+            short validUpperPart = (short) (nonValidOtherIndex & validAcc & validThisIndex);
+            tmp = (short) ((value[i] & DIGIT_MASK) - (acc & DIGIT_MASK));
+            byte tmpDigit = (byte) (tmp & DIGIT_MASK);
+            value[i] = validUpperPart != 0 ? tmpDigit : value[i];
+            acc = validUpperPart != 0 ? (short) ((acc >> DIGIT_LEN) & DIGIT_MASK) : acc;
+            short validTmp = (short) (tmp < 0 ? 1 : 0);
+            acc += ((validTmp & validUpperPart) != 0) ? 1 : 0;
+            j += validRange;
+        }
+    }
+
+    private void subtract_original(BigNatInternal other, short shift, short multiplier) {
+        short acc = 0;
+        short i = (short) (size - 1 - shift + offset);
+        short j = (short) (other.size - 1 + other.offset);
         for (; i >= offset && j >= other.offset; i--, j--) {
             acc += (short) (multiplier * (other.value[j] & DIGIT_MASK));
             short tmp = (short) ((value[i] & DIGIT_MASK) - (acc & DIGIT_MASK));
