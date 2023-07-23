@@ -3,6 +3,7 @@ package tests.library;
 import javacard.framework.ISOException;
 import javacard.framework.JCSystem;
 import opencrypto.jcmathlib.BigNat;
+import opencrypto.jcmathlib.BigNatInternal;
 import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -828,6 +829,158 @@ public class BigNatInternalTest {
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x00, 0x06};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void subtract_sameLength_noShift_noMultiplier() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x03, 0x02};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x01};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.subtract(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {0x02, 0x01};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void subtract_otherBigger_noShift_noMultiplier() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x03, 0x02};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x00, 0x01, 0x01};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.subtract(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {0x02, 0x01};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void subtract_thisBigger_noShift_noMultiplier() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x03, 0x03, 0x02};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x01};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.subtract(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {0x03, 0x02, 0x01};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void subtract_underflow1_noShift_noMultiplier() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x00, 0x02};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x01};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.subtract(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {(byte) 0xff, 0x01};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void subtract_underflow2_noShift_noMultiplier() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x00, 0x01};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x02};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.subtract(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {(byte) 0xfe, (byte) 0xff};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void subtract_noShift_multiplier() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x05, 0x08};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x02};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.subtract(bn2, (short) 0, (short) 2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {(byte) 0x03, (byte) 0x04};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void subtract_shift2_noMultiplier() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x05, 0x08};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x02};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.subtract(bn2, (short) 2, (short) 0);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {0x05, 0x08};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void subtract_shift1_noMultiplier() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x05, 0x08};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01, 0x02};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.subtract(bn2, (short) 1, (short) 1);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {0x03, 0x08};
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
         Assertions.assertTrue(bn1.equals(bn3));
     }
