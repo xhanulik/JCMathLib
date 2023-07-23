@@ -645,8 +645,8 @@ public class BigNatInternal {
     protected void shiftRight(short bits, short carry) {
         // assumes 0 <= bits < 8
         short mask = (short) ((short) (1 << bits) - 1); // lowest `bits` bits set to 1
-        for (short i = offset; i < (short) value.length; i++) {
-            short current = (short) (value[i] & 0xff);
+        for (short i = 0; i < (short) value.length; i++) {
+            short current = i >= offset ? (short) (value[i] & 0xff) : 0;
             short previous = current;
             current >>= bits;
             value[i] = (byte) (current | carry);
