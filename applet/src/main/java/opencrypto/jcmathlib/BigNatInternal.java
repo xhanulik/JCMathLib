@@ -474,7 +474,7 @@ public class BigNatInternal {
         short otherIndex = (short) (other.value.length - 1);
 
         for (short index = (short) (this.value.length - 1); index >= 0; index--) {
-            short thisIndex = (short) (index - shift);
+            short thisIndex = (short) (index - shift) >= 0 ? (short) (index - shift) : 0;
             short validOtherIndex = (short) (otherIndex >= other.offset ? 1 : 0);
             short validThisIndex = (short) (thisIndex >= offset ? 1 : 0);
             // add corresponding bytes in this and other
