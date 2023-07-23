@@ -612,6 +612,30 @@ public class BigNatInternal {
         tmp.unlock();
     }
 
+    public void mult2(BigNatInternal other) {
+        BigNatInternal tmp = rm.BN_F;
+        tmp.lock();
+        tmp.clone(this);
+        setSizeToMax(true);
+
+        short over = 0;
+        short thisStart = (short) (this.value.length - 1);
+        for (short otherIndex = (short) (other.value.length - 1); otherIndex >= 0; otherIndex--) {
+            short multiplier = other.value[otherIndex];
+            short tmpIndex = (short) (tmp.value.length - 1);
+            for (short thisIndex = thisStart; thisIndex >= 0; thisIndex--) {
+                short newValue = (short) ((short) (tmp.value[tmpIndex] & DIGIT_MASK) * multiplier);
+                over += newValue;
+                value[thisIndex] += (byte) (over & DIGIT_MASK);
+                over = (short) ((over >> DIGIT_LEN) & DIGIT_MASK);
+                tmpIndex--;
+            }
+            thisStart--;
+        }
+        shrink();
+        tmp.unlock();
+    }
+
     /**
      * Right bit shift with carry
      *
