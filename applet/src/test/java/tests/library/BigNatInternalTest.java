@@ -1032,4 +1032,23 @@ public class BigNatInternalTest {
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
         Assertions.assertTrue(bn1.equals(bn3));
     }
+
+    @Test
+    public void remainderDivide() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x19};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x05};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.remainderDivide(bn2, null);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {0x00, (byte) 0x80};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
 }
