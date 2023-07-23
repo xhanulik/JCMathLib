@@ -766,13 +766,14 @@ public class BigNatInternal {
      * Get the index of the highest bit set to 1. Used in remainderDivide.
      */
     private static short highestOneBit(short x) {
+        short foundIndex = DOUBLE_DIGIT_LEN;
         for (short i = 0; i < DOUBLE_DIGIT_LEN; ++i) {
             if (x < 0) {
-                return i;
+                foundIndex = i;
             }
             x <<= 1;
         }
-        return DOUBLE_DIGIT_LEN;
+        return foundIndex;
     }
 
     /**
