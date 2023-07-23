@@ -984,4 +984,52 @@ public class BigNatInternalTest {
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
         Assertions.assertTrue(bn1.equals(bn3));
     }
+
+    @Test
+    public void shiftRight_0() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x05, 0x08};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        bn1.shiftRight((short) 0);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {0x05, 0x08};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void shiftRight_1() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x05, 0x08};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        bn1.shiftRight((short) 1);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {0x02, (byte) 0x84};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void shiftRight_7() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x40, 0x00};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        bn1.shiftRight((short) 7);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {0x00, (byte) 0x80};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
 }
