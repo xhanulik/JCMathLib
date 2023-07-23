@@ -604,8 +604,9 @@ public class BigNatInternal {
         tmp.lock();
         tmp.clone(this);
         setSizeToMax(true);
-        for (short i = (short) (other.value.length - 1); i >= other.offset; i--) {
-            add(tmp, (short) (other.value.length - 1 - i), (short) (other.value[i] & DIGIT_MASK));
+        for (short i = (short) (other.value.length - 1); i >= 0; i--) {
+            short otherIndex = i >= other.offset ? i : 0;
+            add(tmp, (short) (other.value.length - 1 - otherIndex), (short) (other.value[otherIndex] & DIGIT_MASK));
         }
         shrink();
         tmp.unlock();
