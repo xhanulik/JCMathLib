@@ -834,6 +834,25 @@ public class BigNatInternalTest {
     }
 
     @Test
+    public void add_bigShift_noOverflow() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 5, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 5, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x01};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.add(bn2, (short) 7, (short) 1);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
     public void subtract_sameLength_noShift_noMultiplier() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
