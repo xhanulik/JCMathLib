@@ -557,6 +557,16 @@ public class BigNatInternal {
     }
 
     /**
+     * Refactored method, only for add operation.
+     */
+    public byte add3(BigNatInternal other) {
+        short acc = 0;
+        // TBD
+        // output carry bit if present
+        return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
+    }
+
+    /**
      * Original implementation. Leaking data size-offset.
      */
     public byte add_original(BigNatInternal other, short shift, short multiplier) {
