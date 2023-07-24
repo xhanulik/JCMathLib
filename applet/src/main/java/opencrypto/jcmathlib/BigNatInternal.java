@@ -469,6 +469,11 @@ public class BigNatInternal {
      * Multiplier must be in range [0; 2^8 - 1].
      * Size of this must be large enough to fit the results.
      */
+    /**
+     * Refactored method, shift and multiplier are adding complexity.
+     * Computation only inside of valid indexes in values.
+     * Slight leaking for number size.
+     */
     public byte add(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
@@ -511,6 +516,11 @@ public class BigNatInternal {
         return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
     }
 
+    /**
+     * Refactored method, shift and multiplier are adding complexity.
+     * Using also invalid indexes outside of this and other offset.
+     * Slight leaking for number size.
+     */
     public byte add2(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
@@ -546,6 +556,9 @@ public class BigNatInternal {
         return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
     }
 
+    /**
+     * Original implementation. Leaking data size-offset.
+     */
     public byte add_original(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
         short i = (short) (other.size - 1 + other.offset);
