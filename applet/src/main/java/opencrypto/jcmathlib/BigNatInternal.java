@@ -474,7 +474,8 @@ public class BigNatInternal {
         short otherIndex = (short) (other.value.length - 1);
 
         for (short index = (short) (this.value.length - 1); index >= 0; index--) {
-            short thisIndex = (short) (index - shift) >= 0 ? (short) (index - shift) : 0;
+            short shiftedIndex = (short) (index - shift);
+            short thisIndex = shiftedIndex >= 0 ? shiftedIndex : 0;
             // When shift is too big, do not do addition
             short thisIndexNonNegative = (short) (((short) (index - shift) >= 0) ? 1 : 0);
             // thisIndex must be offset <= thisIndex <= this.value.length
@@ -485,8 +486,13 @@ public class BigNatInternal {
             short validRange = (short) ((validOtherIndex & thisIndexInRange & thisIndexNonNegative) != 0 ? 1 : 0);
             short newValue = (short) ((short) (value[thisIndex] & DIGIT_MASK) + (short) (multiplier * (other.value[otherIndex] & DIGIT_MASK)));
             acc += validRange != 0 ? newValue : 0;
-            value[thisIndex] = validRange != 0 ? (byte) (acc & DIGIT_MASK) : value[thisIndex];
-            acc = validRange != 0 ? (short) ((acc >> DIGIT_LEN) & DIGIT_MASK) : acc;
+
+            byte accMasked = (byte) (acc & DIGIT_MASK);
+            byte currentValue = value[thisIndex];
+            value[thisIndex] = validRange != 0 ? accMasked : currentValue;
+
+            short newAcc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            acc = validRange != 0 ? newAcc : acc;
 
             // add acc to higher bytes in this, when this is longer than other
             short validAcc = (short) (acc > 0 ? 1 : 0);
