@@ -461,7 +461,7 @@ public class BigNatInternal {
      * @return true if carry occurs, false otherwise
      */
     public byte add(BigNatInternal other) {
-        return add(other, (short) 0, (short) 1);
+        return add2(other, (short) 0, (short) 1);
     }
 
     /**
@@ -511,6 +511,40 @@ public class BigNatInternal {
         return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
     }
 
+    public byte add2(BigNatInternal other, short shift, short multiplier) {
+        short acc = 0;
+        short otherIndex = (short) (other.value.length - 1);
+
+        for (short i = (short) (this.value.length - 1); i >= 0; i--) {
+            short thisShiftedIndex = (short) (i - shift);
+
+            // shifted index must be in range of this number
+            short thisIndexNonNegative = (short) (thisShiftedIndex >= 0 ? 1 : 0);
+            short thisShiftedIndexInRange = (short) (thisShiftedIndex >= offset ? 1 : 0);
+            short thisValidRange = (short) ((thisIndexNonNegative & thisShiftedIndexInRange) != 0 ? 1 : 0);
+            short thisIndex = thisValidRange != 0 ? thisShiftedIndex : 0;
+
+            // index in other should be in range
+            short otherValidRange = (short) (otherIndex >= 0 ? 1 : 0);
+            short _otherIndex = otherValidRange != 0 ? otherIndex : 0;
+
+            // get value from other - if out of other bounds, use 0
+            short otherValueMultiplied = (short) (multiplier * (other.value[_otherIndex] & DIGIT_MASK));
+            short otherValue = otherValidRange != 0 ? otherValueMultiplied : 0;
+
+            // compute and store new value into this
+            short newValue = (short) ((short) (value[thisIndex] & DIGIT_MASK) + otherValue);
+            acc += thisValidRange != 0 ? newValue : 0;
+            byte valueToSet = (byte) (acc & DIGIT_MASK);
+            this.value[thisIndex] = thisValidRange != 0 ? valueToSet : this.value[thisIndex];
+
+            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            otherIndex--;
+        }
+
+        // output carry bit if present
+        return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
+    }
 
     public byte add_original(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
@@ -552,11 +586,12 @@ public class BigNatInternal {
         short acc = 0;
         short otherIndex = (short) (other.size - 1 + other.offset);
         for (short index = (short) (this.value.length - 1); index >= 0; index--) {
-            short thisIndex = (short) (index - shift) >= 0 ? (short) (index - shift) : 0;
-            short nonnegativeThisIndex = (short) (thisIndex >= 0 ? 1 : 0);
+            short shiftedIndex = (short) (index - shift);
+            short thisIndex = shiftedIndex >= 0 ? shiftedIndex : 0;
+            short nonNegativeThisIndex = (short) (shiftedIndex >= 0 ? 1 : 0);
             short validThisIndex = (short) (thisIndex >= offset ? 1 : 0);
             short validOtherIndex = (short) (otherIndex >= other.offset ? 1 : 0);
-            short validRange = (short) ((nonnegativeThisIndex & validThisIndex & validOtherIndex) != 0 ? 1 : 0);
+            short validRange = (short) ((nonNegativeThisIndex & validThisIndex & validOtherIndex) != 0 ? 1 : 0);
 
             // computation for corresponding bytes
             short newValue = (short) (multiplier * (other.value[otherIndex] & DIGIT_MASK));
