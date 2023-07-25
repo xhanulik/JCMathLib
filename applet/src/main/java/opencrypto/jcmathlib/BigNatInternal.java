@@ -461,7 +461,7 @@ public class BigNatInternal {
      * @return true if carry occurs, false otherwise
      */
     public byte add(BigNatInternal other) {
-        return add2(other, (short) 0, (short) 1);
+        return add3(other);
     }
 
     /**
@@ -561,7 +561,29 @@ public class BigNatInternal {
      */
     public byte add3(BigNatInternal other) {
         short acc = 0;
-        // TBD
+        short otherIndex = (short) (other.value.length - 1);
+
+        for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--) {
+            // shifted index must be in range of this number
+            short thisValidRange = (short) (thisIndex >= offset ? 1 : 0);
+
+            // index in other should be in range
+            short otherValidRange = (short) (otherIndex >= 0 ? 1 : 0);
+            short _otherIndex = otherValidRange != 0 ? otherIndex : 0;
+
+            // get value from other - if out of other bounds, use 0
+            short valueToAdd = (short) (other.value[_otherIndex] & DIGIT_MASK);
+            short otherValue = otherValidRange != 0 ? valueToAdd : 0;
+
+            // compute and store new value into this
+            short newValue = (short) ((short) (value[thisIndex] & DIGIT_MASK) + otherValue);
+            acc += thisValidRange != 0 ? newValue : 0;
+            byte valueToSet = (byte) (acc & DIGIT_MASK);
+            this.value[thisIndex] = thisValidRange != 0 ? valueToSet : this.value[thisIndex];
+
+            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            otherIndex--;
+        }
         // output carry bit if present
         return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
     }
@@ -667,8 +689,9 @@ public class BigNatInternal {
 
     /**
      * Multiplies this and other using software multiplications and stores results into this.
+     * Refactored method, cycle over all other values.
      */
-    public void mult(BigNatInternal other) {
+    public void mul2(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
         tmp.clone(this);
@@ -681,6 +704,10 @@ public class BigNatInternal {
         tmp.unlock();
     }
 
+    /**
+     * Refactored method, cycle over all other values.
+     * Optimized adding.
+     */
     public void mult2(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
@@ -693,6 +720,7 @@ public class BigNatInternal {
             short multiplier = other.value[otherIndex];
             short tmpIndex = (short) (tmp.value.length - 1);
             for (short thisIndex = thisStart; thisIndex >= 0; thisIndex--) {
+                // TBD
                 short newValue = (short) ((short) (tmp.value[tmpIndex] & DIGIT_MASK) * multiplier);
                 over += newValue;
                 value[thisIndex] += (byte) (over & DIGIT_MASK);
