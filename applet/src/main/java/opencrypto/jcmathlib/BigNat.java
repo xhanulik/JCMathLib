@@ -80,7 +80,7 @@ public class BigNat extends BigNatInternal {
             tmp.lock();
             tmp.setSize(length());
             tmp.copy(this);
-            super.mult(tmp);
+            super.mul2(tmp);
             return;
         }
         if ((short) (rm.MAX_SQ_LENGTH - 1) < (short) (2 * length())) {
@@ -117,7 +117,7 @@ public class BigNat extends BigNatInternal {
             return;
         }
         if (!OperationSupport.getInstance().RSA_SQ || length() <= (short) 16) {
-            super.mult(other);
+            super.mul2(other);
             return;
         }
 
