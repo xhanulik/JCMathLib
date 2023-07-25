@@ -368,7 +368,8 @@ public class BigNatInternal {
         if (diff > 0) {
             result = nonZeroPrefixThis == (short) 0;
         }
-        return Util.arrayCompare(value, thisStart, other.value, otherStart, length) == 0 && result;
+        boolean val = Util.arrayCompare(value, thisStart, other.value, otherStart, length) == 0;
+        return val && result;
     }
 
     public boolean equals_original(BigNatInternal other) {
@@ -620,12 +621,15 @@ public class BigNatInternal {
      * @param other BigNat to be subtracted from this
      */
     public void subtract(BigNatInternal other) {
-        subtract(other, (short) 0, (short) 1);
+        subtract2(other);
     }
 
     /**
      * Computes other * multiplier, shifts the results by shift and subtract it from this.
      * Multiplier must be in range [0; 2^8 - 1].
+     */
+    /**
+     * Refactored, computes over only valid indexes inside offsets.
      */
     public void subtract(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
@@ -658,6 +662,33 @@ public class BigNatInternal {
             short validTmp = (short) (tmp < 0 ? 1 : 0);
             acc += ((validTmp & validUpperPart) != 0) ? 1 : 0;
             otherIndex -= validRange;
+        }
+    }
+
+    /**
+     * Refactored, computes over all indexes in values, without shift and multiplier.
+     */
+    public void subtract2(BigNatInternal other) {
+        short acc = 0;
+        short otherIndex = (short) (other.value.length - 1);
+        for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--) {
+            short validThisIndex = (short) (thisIndex >= offset ? 1 : 0);
+            // check non-negative other index or set to 0
+            short validOtherIndex = (short) (otherIndex >= 0 ? 1 : 0);
+            short _otherIndex = validOtherIndex != 0 ? otherIndex : 0;
+
+            // add value to acc and subtract
+            short newValue = (short) (other.value[_otherIndex] & DIGIT_MASK);
+            acc += (validThisIndex & validOtherIndex) != 0 ? newValue : 0;
+            short tmp = (short) ((value[thisIndex] & DIGIT_MASK) - (acc & DIGIT_MASK));
+
+            // set new value
+            value[thisIndex] = (byte) (tmp & DIGIT_MASK);
+
+            // update acc
+            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            acc += tmp < 0 ? 1 : 0;
+            otherIndex--;
         }
     }
 
