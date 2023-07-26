@@ -720,16 +720,33 @@ public class BigNatInternal {
 
     /**
      * Multiplies this and other using software multiplications and stores results into this.
-     * Refactored method, cycle over all other values.
+     * Original version, not time-constant.
      */
-    public void mul2(BigNatInternal other) {
+    public void mult_original(BigNatInternal other) {
+        BigNatInternal tmp = rm.BN_F;
+        tmp.lock();
+        tmp.clone(this);
+        setSizeToMax(true);
+        for (short i = (short) (other.value.length - 1); i >= other.offset; i--) {
+            add_original(tmp, (short) (other.value.length - 1 - i), (short) (other.value[i] & DIGIT_MASK));
+        }
+        shrink();
+        tmp.unlock();
+    }
+
+    /**
+     * Multiplies this and other using software multiplications and stores results into this.
+     * Refactored method, using refactored and reimplemented add2().
+     * Goes through whole other.value array.
+     */
+    public void mult(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
         tmp.clone(this);
         setSizeToMax(true);
         for (short i = (short) (other.value.length - 1); i >= 0; i--) {
             short otherIndex = i >= other.offset ? i : 0;
-            add(tmp, (short) (other.value.length - 1 - otherIndex), (short) (other.value[otherIndex] & DIGIT_MASK));
+            add2(tmp, (short) (other.value.length - 1 - otherIndex), (short) (other.value[otherIndex] & DIGIT_MASK));
         }
         shrink();
         tmp.unlock();
@@ -737,7 +754,7 @@ public class BigNatInternal {
 
     /**
      * Refactored method, cycle over all other values.
-     * Optimized adding.
+     * Adding done in place.
      */
     public void mult2(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
