@@ -765,15 +765,25 @@ public class BigNatInternal {
         short over = 0;
         short thisStart = (short) (this.value.length - 1);
         for (short otherIndex = (short) (other.value.length - 1); otherIndex >= 0; otherIndex--) {
-            short multiplier = other.value[otherIndex];
+            short multiplier = (short) (other.value[otherIndex] & DIGIT_MASK);
             short tmpIndex = (short) (tmp.value.length - 1);
-            for (short thisIndex = thisStart; thisIndex >= 0; thisIndex--) {
-                // TBD
-                short newValue = (short) ((short) (tmp.value[tmpIndex] & DIGIT_MASK) * multiplier);
-                over += newValue;
-                value[thisIndex] += (byte) (over & DIGIT_MASK);
+            for (short i = (short) (this.value.length - 1); i >= 0; i--) {
+                // check valid index in this
+                short validIndex = (short) (i <= thisStart ? 1 : 0);
+                // if index is invalid, use 0 value to ensure, that something from array is always read
+                short thisValue = validIndex != 0 ? (short) (value[i] & DIGIT_MASK) : (short) (value[0] & DIGIT_MASK);
+                thisValue = validIndex != 0 ? thisValue : 0;
+                // check index in tmp, set bogus value if needed
+                short tmpValidIndex = (short) (tmpIndex >= 0 ? 1 : 0);
+                short tmpValue = tmpValidIndex != 0 ? tmp.value[tmpIndex] : tmp.value[0];
+                tmpValue = (validIndex & tmpValidIndex) != 0 ? tmpValue : 0;
+                // compute
+                over += (short) (thisValue + (short) (tmpValue & DIGIT_MASK) * multiplier);
+                // store byte
+                byte overLowerByte = (byte) (over & DIGIT_MASK);
+                value[i] = validIndex != 0 ? overLowerByte : value[i];
                 over = (short) ((over >> DIGIT_LEN) & DIGIT_MASK);
-                tmpIndex--;
+                tmpIndex -= validIndex;
             }
             thisStart--;
         }
