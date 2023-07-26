@@ -117,7 +117,7 @@ public class BigNat extends BigNatInternal {
             return;
         }
         if (!OperationSupport.getInstance().RSA_SQ || length() <= (short) 16) {
-            super.mult(other);
+            super.mult2(other);
             return;
         }
 
