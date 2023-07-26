@@ -1,5 +1,6 @@
 package tests.library;
 
+import com.licel.jcardsim.bouncycastle.util.encoders.Hex;
 import javacard.framework.ISOException;
 import javacard.framework.JCSystem;
 import opencrypto.jcmathlib.BigNat;
@@ -1152,6 +1153,158 @@ public class BigNatInternalTest {
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x01, 0x01, 0x01, 0x01, 0x00, 0x00};
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void mult_1digit_1() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 5, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 2, memoryType, rm);
+
+        byte[] data1 = Hex.decode("1234");
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = Hex.decode("01");
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.mult2(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = Hex.decode("1234");
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void mult_1digit_10() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 5, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 3, memoryType, rm);
+
+        byte[] data1 = Hex.decode("1234");
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = Hex.decode("10");
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.mult2(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = Hex.decode("012340");
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void mult_1digit_EA() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 5, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 2, memoryType, rm);
+
+        byte[] data1 = Hex.decode("1234");
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = Hex.decode("EA");
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.mult2(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = Hex.decode("10A388");
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void mult_1digit_F1() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 5, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 2, memoryType, rm);
+
+        byte[] data1 = Hex.decode("1234");
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = Hex.decode("F1");
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.mult2(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = Hex.decode("1122F4");
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void mult_2digit_1234() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 5, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 4, memoryType, rm);
+
+        byte[] data1 = Hex.decode("1234");
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = Hex.decode("1234");
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.mult2(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = Hex.decode("014B5A90");
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void mult_3digit_123456() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 5, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 3, memoryType, rm);
+
+        byte[] data1 = Hex.decode("F1");
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = Hex.decode("123456");
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.mult2(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = Hex.decode("112344F6");
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void mult_2digit_1234_2() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 5, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 3, memoryType, rm);
+
+        byte[] data1 = Hex.decode("F1");
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = Hex.decode("1234");
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.mult2(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = Hex.decode("1122F4");
+        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
+        Assertions.assertTrue(bn1.equals(bn3));
+    }
+
+    @Test
+    public void mult_4digit_123456() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 5, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 4, memoryType, rm);
+
+        byte[] data1 = Hex.decode("F1");
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = Hex.decode("12345678");
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        bn1.mult2(bn2);
+
+        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
+        byte[] data3 = Hex.decode("11234566F8");
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
         Assertions.assertTrue(bn1.equals(bn3));
     }
