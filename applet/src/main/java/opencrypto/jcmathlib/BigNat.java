@@ -80,7 +80,7 @@ public class BigNat extends BigNatInternal {
             tmp.lock();
             tmp.setSize(length());
             tmp.copy(this);
-            super.mult(tmp);
+            super.mult2(tmp);
             return;
         }
         if ((short) (rm.MAX_SQ_LENGTH - 1) < (short) (2 * length())) {
