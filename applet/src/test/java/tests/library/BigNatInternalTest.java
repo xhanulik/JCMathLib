@@ -1168,7 +1168,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = Hex.decode("01");
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.mult2(bn2);
+        bn1.mult(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = Hex.decode("1234");
@@ -1187,7 +1187,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = Hex.decode("10");
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.mult2(bn2);
+        bn1.mult(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = Hex.decode("012340");
@@ -1206,7 +1206,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = Hex.decode("EA");
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.mult2(bn2);
+        bn1.mult(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = Hex.decode("10A388");
@@ -1225,7 +1225,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = Hex.decode("F1");
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.mult2(bn2);
+        bn1.mult(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = Hex.decode("1122F4");
@@ -1244,7 +1244,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = Hex.decode("1234");
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.mult2(bn2);
+        bn1.mult(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = Hex.decode("014B5A90");
@@ -1263,7 +1263,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = Hex.decode("123456");
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.mult2(bn2);
+        bn1.mult(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = Hex.decode("112344F6");
@@ -1282,7 +1282,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = Hex.decode("1234");
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.mult2(bn2);
+        bn1.mult(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = Hex.decode("1122F4");
@@ -1301,7 +1301,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = Hex.decode("12345678");
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.mult2(bn2);
+        bn1.mult(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = Hex.decode("11234566F8");
