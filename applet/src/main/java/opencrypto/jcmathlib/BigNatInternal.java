@@ -653,19 +653,37 @@ public class BigNatInternal {
         return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
     }
 
-    /**
-     * Subtract provided other BigNat from this BigNat.
-     *
-     * @param other BigNat to be subtracted from this
-     */
-    public void subtract(BigNatInternal other) {
-        subtract2(other);
-    }
 
     /**
      * Computes other * multiplier, shifts the results by shift and subtract it from this.
      * Multiplier must be in range [0; 2^8 - 1].
      */
+    public void subtract_original(BigNatInternal other, short shift, short multiplier) {
+        short acc = 0;
+        short i = (short) (size - 1 - shift + offset);
+        short j = (short) (other.size - 1 + other.offset);
+        for (; i >= offset && j >= other.offset; i--, j--) {
+            acc += (short) (multiplier * (other.value[j] & DIGIT_MASK));
+            short tmp = (short) ((value[i] & DIGIT_MASK) - (acc & DIGIT_MASK));
+
+            value[i] = (byte) (tmp & DIGIT_MASK);
+            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            if (tmp < 0) {
+                acc++;
+            }
+        }
+
+        // deal with carry as long as there are digits left in this
+        for (; i >= offset && acc != 0; --i) {
+            short tmp = (short) ((value[i] & DIGIT_MASK) - (acc & DIGIT_MASK));
+            value[i] = (byte) (tmp & DIGIT_MASK);
+            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            if (tmp < 0) {
+                acc++;
+            }
+        }
+    }
+
     /**
      * Refactored, computes over only valid indexes inside offsets.
      */
@@ -704,9 +722,12 @@ public class BigNatInternal {
     }
 
     /**
+     * Subtract provided other BigNat from this BigNat.
      * Refactored, computes over all indexes in values, without shift and multiplier.
+     *
+     * @param other BigNat to be subtracted from this
      */
-    public void subtract2(BigNatInternal other) {
+    public void subtract(BigNatInternal other) {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
         for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--) {
@@ -727,32 +748,6 @@ public class BigNatInternal {
             acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
             acc += tmp < 0 ? 1 : 0;
             otherIndex--;
-        }
-    }
-
-    public void subtract_original(BigNatInternal other, short shift, short multiplier) {
-        short acc = 0;
-        short i = (short) (size - 1 - shift + offset);
-        short j = (short) (other.size - 1 + other.offset);
-        for (; i >= offset && j >= other.offset; i--, j--) {
-            acc += (short) (multiplier * (other.value[j] & DIGIT_MASK));
-            short tmp = (short) ((value[i] & DIGIT_MASK) - (acc & DIGIT_MASK));
-
-            value[i] = (byte) (tmp & DIGIT_MASK);
-            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            if (tmp < 0) {
-                acc++;
-            }
-        }
-
-        // deal with carry as long as there are digits left in this
-        for (; i >= offset && acc != 0; --i) {
-            short tmp = (short) ((value[i] & DIGIT_MASK) - (acc & DIGIT_MASK));
-            value[i] = (byte) (tmp & DIGIT_MASK);
-            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            if (tmp < 0) {
-                acc++;
-            }
         }
     }
 
