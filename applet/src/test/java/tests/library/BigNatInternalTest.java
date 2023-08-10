@@ -864,7 +864,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.add(bn2, (short) 7, (short) 1);
+        bn1.add_shift(bn2, (short) 7, (short) 1);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01};

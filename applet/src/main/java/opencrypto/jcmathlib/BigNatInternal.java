@@ -500,16 +500,6 @@ public class BigNatInternal {
     }
 
     /**
-     * Adds other to this. Outputs carry bit.
-     *
-     * @param other BigNat to add
-     * @return true if carry occurs, false otherwise
-     */
-    public byte add(BigNatInternal other) {
-        return add3(other);
-    }
-
-    /**
      * Computes other * multiplier, shifts the results by shift and adds it to this.
      * Multiplier must be in range [0; 2^8 - 1].
      * Size of this must be large enough to fit the results.
@@ -519,7 +509,7 @@ public class BigNatInternal {
      * Computation only inside of valid indexes in values.
      * Slight leaking for number size.
      */
-    public byte add(BigNatInternal other, short shift, short multiplier) {
+    public byte add_refactorerd(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
 
@@ -566,7 +556,7 @@ public class BigNatInternal {
      * Using also invalid indexes outside of this and other offset.
      * Slight leaking for number size.
      */
-    public byte add2(BigNatInternal other, short shift, short multiplier) {
+    public byte add_shift(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
 
@@ -602,9 +592,13 @@ public class BigNatInternal {
     }
 
     /**
-     * Refactored method, only for add operation.
+     * Adds other to this. Outputs carry bit.
+     * Refactored method.
+     *
+     * @param other BigNat to add
+     * @return true if carry occurs, false otherwise
      */
-    public byte add3(BigNatInternal other) {
+    public byte add(BigNatInternal other) {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
 
@@ -790,7 +784,7 @@ public class BigNatInternal {
         setSizeToMax(true);
         for (short i = (short) (other.value.length - 1); i >= 0; i--) {
             short otherIndex = i >= other.offset ? i : 0;
-            add2(tmp, (short) (other.value.length - 1 - otherIndex), (short) (other.value[otherIndex] & DIGIT_MASK));
+            add_shift(tmp, (short) (other.value.length - 1 - otherIndex), (short) (other.value[otherIndex] & DIGIT_MASK));
         }
         shrink();
         tmp.unlock();
