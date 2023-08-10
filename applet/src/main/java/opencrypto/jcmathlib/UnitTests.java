@@ -83,6 +83,7 @@ public class UnitTests extends Applet {
     public final static byte INS_BN_INC = (byte) 0x5A;
     public final static byte INS_BN_DEC = (byte) 0x5B;
     public final static byte INS_BN_DIV = (byte) 0x5C;
+    public final static byte INS_BN_NEG_MOD = (byte) 0x5D;
 
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
@@ -352,6 +353,8 @@ public class UnitTests extends Applet {
                     break;
                 case INS_BN_DIV:
                     testBnDiv(apdu, dataLen);
+                case INS_BN_NEG_MOD:
+                    testBnNegMod(apdu, dataLen);
                 default:
                     ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
             }
@@ -919,5 +922,16 @@ public class UnitTests extends Applet {
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
         bn1.remainderDivide(bn2, null);
         apdu.setOutgoingAndSend((short) 0, (short) 0);
+    }
+
+    void testBnNegMod(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
+        bn1.modNegate(bn2);
+        short len = bn1.copyToByteArray(apduBuffer, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, len);
     }
 }
