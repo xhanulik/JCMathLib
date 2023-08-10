@@ -136,6 +136,23 @@ public class BigNatInternal {
     /**
      * Remove leading zeroes from this BigNat and decrease its byte size accordingly.
      */
+    public void shrink_original() {
+        short i;
+        for (i = offset; i < value.length; i++) { // Find first non-zero byte
+            if (value[i] != 0) {
+                break;
+            }
+        }
+        short newSize = (short) (value.length - i);
+        if (newSize < 0) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDRESIZE);
+        }
+        resize(newSize);
+    }
+
+    /**
+     * Refactored, not leaking offset position.
+     */
     public void shrink() {
         short i;
         short newSize = (short) value.length;
@@ -186,21 +203,48 @@ public class BigNatInternal {
     /**
      * Copies a BigNat into this without changing size. May throw an exception if this is too small.
      */
+    public void copy_original(BigNatInternal other) {
+        short thisStart, otherStart, len;
+        short diff = (short) (size - other.size);
+        if (diff >= 0) {
+            thisStart = (short) (diff + offset);
+            otherStart = other.offset;
+            len = other.size;
+            if (diff > 0) {
+                Util.arrayFillNonAtomic(value, offset, diff, (byte) 0);
+            }
+        } else {
+            thisStart = offset;
+            otherStart = (short) (other.offset - diff);
+            len = size;
+            // Verify here that other have leading zeroes up to otherStart
+            for (short i = other.offset; i < otherStart; i++) {
+                if (other.value[i] != 0) {
+                    ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCOPYOTHER);
+                }
+            }
+        }
+        Util.arrayCopyNonAtomic(other.value, otherStart, value, thisStart, len);
+    }
+
+    /**
+     * Refactored copy
+     */
     public void copy(BigNatInternal other) {
         short diff = (short) (size - other.size);
         short thisStart = diff >= 0 ? (short) (diff + offset) : offset;
         short otherStart = diff >= 0 ? other.offset : (short) (other.offset - diff);
         short len = diff >= 0 ? other.size : size;
-        boolean problem = false;
+        short problem = 0;
 
         // Verify here that other have leading zeroes up to otherStart
         for (short i = 0; i < other.value.length; i++) {
             byte validIndex = (byte) (i < otherStart ? 1 : 0);
             byte nonZero = (byte) (other.value[i] != 0 ? 1 : 0);
-            problem = ((nonZero & validIndex) != 0) || problem;
+            problem = (short) ((nonZero & validIndex) | problem);
         }
 
-        if (problem) {
+        if (problem == 1) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCOPYOTHER);
         }
 
@@ -739,7 +783,7 @@ public class BigNatInternal {
      * Refactored method, using refactored and reimplemented add2().
      * Goes through whole other.value array.
      */
-    public void mult(BigNatInternal other) {
+    public void mult_refactored(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
         tmp.clone(this);
@@ -754,9 +798,9 @@ public class BigNatInternal {
 
     /**
      * Refactored method, cycle over all other values.
-     * Adding done in place.
+     * Adding done directly.
      */
-    public void mult2(BigNatInternal other) {
+    public void mult(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
         tmp.clone(this);
@@ -776,7 +820,7 @@ public class BigNatInternal {
                 // check index in tmp, set bogus value if needed
                 short tmpValidIndex = (short) (tmpIndex >= 0 ? 1 : 0);
                 short tmpValue = tmpValidIndex != 0 ? tmp.value[tmpIndex] : tmp.value[0];
-                tmpValue = (validIndex & tmpValidIndex) != 0 ? tmpValue : 0;
+                tmpValue = (validIndex & tmpValidIndex) != 0 ? tmpValue : (short) 0;
                 // compute
                 over += (short) (thisValue + (short) (tmpValue & DIGIT_MASK) * multiplier);
                 // store byte
