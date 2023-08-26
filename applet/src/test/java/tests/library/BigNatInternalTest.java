@@ -1035,7 +1035,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2, (short) 0, (short) 2);
+        bn1.subtract_refactored(bn2, (short) 0, (short) 2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {(byte) 0x03, (byte) 0x04};
@@ -1054,7 +1054,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2, (short) 2, (short) 0);
+        bn1.subtract_refactored(bn2, (short) 2, (short) 0);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x05, 0x08};
@@ -1073,7 +1073,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2, (short) 1, (short) 1);
+        bn1.subtract_refactored(bn2, (short) 1, (short) 1);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x03, 0x08};
@@ -1092,7 +1092,7 @@ public class BigNatInternalTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2, (short) 7, (short) 1);
+        bn1.subtract_refactored(bn2, (short) 7, (short) 1);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
