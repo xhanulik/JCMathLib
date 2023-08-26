@@ -689,7 +689,7 @@ public class BigNatInternal {
     /**
      * Refactored, computes over only valid indexes inside offsets.
      */
-    public void subtract(BigNatInternal other, short shift, short multiplier) {
+    public void subtract_refactored(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
         short otherIndex = (short) (other.size - 1 + other.offset);
         for (short index = (short) (this.value.length - 1); index >= 0; index--) {
@@ -732,8 +732,10 @@ public class BigNatInternal {
     public void subtract(BigNatInternal other) {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
-        for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--) {
+        for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
+            // compute only on valid this indexes
             short validThisIndex = (short) (thisIndex >= offset ? 1 : 0);
+
             // check non-negative other index or set to 0
             short validOtherIndex = (short) (otherIndex >= 0 ? 1 : 0);
             short _otherIndex = validOtherIndex != 0 ? otherIndex : 0;
@@ -749,7 +751,6 @@ public class BigNatInternal {
             // update acc
             acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
             acc += tmp < 0 ? 1 : 0;
-            otherIndex--;
         }
     }
 
@@ -939,7 +940,7 @@ public class BigNatInternal {
                     multiple = 1;
                 }
 
-                subtract(divisor, divisorShift, multiple);
+                subtract_original(divisor, divisorShift, multiple);
 
                 if (quotient != null) {
                     short divisorShiftOffset = (short) (divisorShift - quotient.offset);
