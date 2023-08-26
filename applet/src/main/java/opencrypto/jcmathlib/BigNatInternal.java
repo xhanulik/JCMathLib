@@ -503,13 +503,11 @@ public class BigNatInternal {
      * Computes other * multiplier, shifts the results by shift and adds it to this.
      * Multiplier must be in range [0; 2^8 - 1].
      * Size of this must be large enough to fit the results.
-     */
-    /**
      * Refactored method, shift and multiplier are adding complexity.
      * Computation only inside of valid indexes in values.
      * Slight leaking for number size.
      */
-    public byte add_refactorerd(BigNatInternal other, short shift, short multiplier) {
+    public byte add_refactored(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
 
@@ -596,45 +594,49 @@ public class BigNatInternal {
      * Refactored method.
      *
      * @param other BigNat to add
-     * @return true if carry occurs, false otherwise
+     * @return outputs carry bit if present
      */
     public byte add(BigNatInternal other) {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
 
-        for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--) {
-            // shifted index must be in range of this number
+        for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
+            // index must be in range of this number
             short thisValidRange = (short) (thisIndex >= offset ? 1 : 0);
 
             // index in other should be in range
             short otherValidRange = (short) (otherIndex >= 0 ? 1 : 0);
-            short _otherIndex = otherValidRange != 0 ? otherIndex : 0;
+            short newOtherIndex = otherValidRange != 0 ? otherIndex : 0;
 
             // get value from other - if out of other bounds, use 0
-            short valueToAdd = (short) (other.value[_otherIndex] & DIGIT_MASK);
+            short valueToAdd = (short) (other.value[newOtherIndex] & DIGIT_MASK);
             short otherValue = otherValidRange != 0 ? valueToAdd : 0;
 
-            // compute and store new value into this
+            // compute new value
             short newValue = (short) ((short) (value[thisIndex] & DIGIT_MASK) + otherValue);
             acc += thisValidRange != 0 ? newValue : 0;
+
+            // set new value into this if in valid range
             byte valueToSet = (byte) (acc & DIGIT_MASK);
             this.value[thisIndex] = thisValidRange != 0 ? valueToSet : this.value[thisIndex];
 
             acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            otherIndex--;
         }
         // output carry bit if present
         return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
     }
 
     /**
+     * Computes other * multiplier, shifts the results by shift and adds it to this.
+     * Multiplier must be in range [0; 2^8 - 1].
+     * Size of this must be large enough to fit the results.
      * Original implementation. Leaking data size-offset.
      */
     public byte add_original(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
         short i = (short) (other.size - 1 + other.offset);
         short j = (short) (size - 1 - shift + offset);
-        // add corresponding byte sin this and other
+        // add corresponding bytes in this and other
         for (; i >= other.offset && j >= offset; i--, j--) {
             acc += (short) ((short) (value[j] & DIGIT_MASK) + (short) (multiplier * (other.value[i] & DIGIT_MASK)));
 
