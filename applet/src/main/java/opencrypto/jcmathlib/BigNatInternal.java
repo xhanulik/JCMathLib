@@ -241,7 +241,8 @@ public class BigNatInternal {
         for (short i = 0; i < other.value.length; i++) {
             byte validIndex = (byte) (i < otherStart ? 1 : 0);
             byte nonZero = (byte) (other.value[i] != 0 ? 1 : 0);
-            problem = (short) ((nonZero & validIndex) | problem);
+            byte otherLonger = (byte) (diff < 0 ? 1 : 0);
+            problem = (short) ((nonZero & validIndex & otherLonger) | problem);
         }
 
         if (problem == 1) {
