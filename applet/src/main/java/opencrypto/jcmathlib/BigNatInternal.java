@@ -262,10 +262,8 @@ public class BigNatInternal {
         }
 
         short diff = (short) ((short) value.length - other.size);
+        zero();
         other.copyToByteArray(value, diff);
-        if (diff > 0) {
-            Util.arrayFillNonAtomic(value, (short) 0, diff, (byte) 0);
-        }
         setSize(other.size);
     }
 
