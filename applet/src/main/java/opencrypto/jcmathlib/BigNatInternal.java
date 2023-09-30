@@ -348,6 +348,28 @@ public class BigNatInternal {
      * @param start digits to skip at the beginning
      * @return  true if this number is strictly less than the shifted other, false otherwise.
      */
+    public boolean isLesser_original(BigNatInternal other, short shift, short start) {
+        short j = (short) (other.size + shift - size + start + other.offset);
+
+        for (short i = (short) (start + other.offset); i < j; ++i) {
+            if (other.value[i] != 0) {
+                return true;
+            }
+        }
+
+        for (short i = (short) (start + offset); i < (short) value.length; i++, j++) {
+            short thisValue = (short) (value[i] & DIGIT_MASK);
+            short otherValue = (j >= other.offset && j < (short) other.value.length) ? (short) (other.value[j] & DIGIT_MASK) : (short) 0;
+            if (thisValue < otherValue) {
+                return true; // CTO
+            }
+            if (thisValue > otherValue) {
+                return false;
+            }
+        }
+        return false;
+    }
+
     public boolean isLesser(BigNatInternal other, short shift, short start) {
         // index, where the byte positions in other corresponding to the positions in this
         // (after shifting, starting from start index)
@@ -357,10 +379,10 @@ public class BigNatInternal {
         // check the bytes by which other is longer than this
         // if they are non-zero, then other is strictly greater than this
         for (short i = 0; i < other.value.length; ++i) {
-            short validIndex1 = (short) (i >= (short) (start + other.offset) ? 1 : 0);
-            short validIndex2 = (short) (i < j ? 1 : 0);
+            short validIndexLower = (short) (i >= (short) (start + other.offset) ? 1 : 0);
+            short validIndexHigher = (short) (i < j ? 1 : 0);
             short nonZeroValue = (short) (other.value[i] != 0 ? 1 : 0);
-            otherBigger = (short) ((validIndex1 & validIndex2 & nonZeroValue) | otherBigger);
+            otherBigger = (short) ((validIndexLower & validIndexHigher & nonZeroValue) | otherBigger);
         }
 
         short thisLesser = 0;
@@ -368,7 +390,11 @@ public class BigNatInternal {
         // check all bytes at positions that correspond to the number other in this
         for (short i = 0; i < (short) value.length; i++) {
             short thisValue = (short) (value[i] & DIGIT_MASK);
-            short otherValue = (j >= other.offset && j < (short) other.value.length) ? (short) (other.value[j] & DIGIT_MASK) : (short) 0;
+            short validOtherIndexLower = (short) (j >= other.offset ? 1 : 0);
+            short validOtherIndexHigher = (short) (j < (short) other.value.length ? 1 : 0);
+            short otherValue = (validOtherIndexLower & validOtherIndexHigher) != 0
+                    ? (short) (other.value[j] & DIGIT_MASK)
+                    : (short) 0;
             short validIndex = (short) (i >= (short) (start + offset) ? 1 : 0);
             short thisSmaller = (short) (thisValue < otherValue ? 1 : 0);
             short thisBigger = (short) (thisValue > otherValue ? 1 : 0);
