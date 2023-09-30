@@ -94,15 +94,28 @@ public class BigNatInternal {
      *
      * @param newSize new size in bytes
      */
+    public void resize_original(short newSize) {
+        if (newSize > (short) value.length) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_REALLOCATIONNOTALLOWED);
+        }
+
+        short diff = (short) (newSize - size);
+        setSize(newSize);
+        if (diff > 0) {
+            Util.arrayFillNonAtomic(value, offset, diff, (byte) 0);
+        }
+    }
+
     public void resize(short newSize) {
         if (newSize > (short) value.length) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_REALLOCATIONNOTALLOWED);
         }
 
         short diff = (short) (newSize - size);
+        // take the rightmost offset to zero rest of the number
         short rightOffset = diff > 0 ? offset : (short) (value.length - newSize);
         setSize(newSize);
-        Util.arrayFillNonAtomic(value, (short) 0, (short) (size - rightOffset), (byte) 0);
+        Util.arrayFillNonAtomic(value, (short) 0, rightOffset, (byte) 0);
     }
 
     /**
