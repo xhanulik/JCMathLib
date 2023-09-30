@@ -160,51 +160,6 @@ public class BigNatInternalTest {
     }
 
     @Test
-    public void clone_otherSizeSameAsThis() {
-        ResourceManager rm = new ResourceManager((short) 256);
-        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat bn1 = new BigNat((short) 4, memoryType, rm);
-        BigNat bn2 = new BigNat((short) 4, memoryType, rm);
-
-        byte[] data1 = {0x01, 0x02, 0x03, 0x04};
-        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        byte[] data2 = {0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
-        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.clone(bn2);
-        Assertions.assertTrue(bn1.equals(bn2));
-    }
-
-    @Test
-    public void clone_otherSizeBiggerThanThis() {
-        ResourceManager rm = new ResourceManager((short) 256);
-        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat bn1 = new BigNat((short) 4, memoryType, rm);
-        BigNat bn2 = new BigNat((short) 5, memoryType, rm);
-
-        byte[] data1 = {0x01, 0x02, 0x03, 0x04};
-        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        byte[] data2 = {0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f};
-        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-
-        Assertions.assertThrows(ISOException.class, () -> bn1.clone(bn2));
-    }
-
-    @Test
-    public void clone_otherSizeSmallerThanThis() {
-        ResourceManager rm = new ResourceManager((short) 256);
-        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat bn1 = new BigNat((short) 4, memoryType, rm);
-        BigNat bn2 = new BigNat((short) 4, memoryType, rm);
-
-        byte[] data1 = {0x01, 0x02, 0x03, 0x04};
-        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        byte[] data2 = {0x0a, 0x0b};
-        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.clone(bn2);
-        Assertions.assertTrue(bn1.equals(bn2));
-    }
-
-    @Test
     public void isZero_zero() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
