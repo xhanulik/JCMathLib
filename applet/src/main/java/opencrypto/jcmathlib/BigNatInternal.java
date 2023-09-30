@@ -255,6 +255,19 @@ public class BigNatInternal {
     /**
      * Copies a BigNat into this including its size. May require reallocation.
      */
+    public void clone_original(BigNatInternal other) {
+        if (other.size > (short) value.length) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_REALLOCATIONNOTALLOWED);
+        }
+
+        short diff = (short) ((short) value.length - other.size);
+        other.copyToByteArray(value, diff);
+        if (diff > 0) {
+            Util.arrayFillNonAtomic(value, (short) 0, diff, (byte) 0);
+        }
+        setSize(other.size);
+    }
+
     public void clone(BigNatInternal other) {
         if (other.size > (short) value.length) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_REALLOCATIONNOTALLOWED);
