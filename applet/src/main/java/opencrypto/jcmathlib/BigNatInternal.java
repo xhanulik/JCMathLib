@@ -643,6 +643,9 @@ public class BigNatInternal {
 
     /**
      * Adds other to this. Outputs carry bit.
+     * Size of this must be large enough to fit the results.
+     * Bytes before offset are expected to be zeroes
+     * .
      * Refactored method.
      *
      * @param other BigNat to add
