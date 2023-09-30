@@ -100,10 +100,9 @@ public class BigNatInternal {
         }
 
         short diff = (short) (newSize - size);
+        short rightOffset = diff > 0 ? offset : (short) (value.length - newSize);
         setSize(newSize);
-        if (diff > 0) {
-            Util.arrayFillNonAtomic(value, offset, diff, (byte) 0);
-        }
+        Util.arrayFillNonAtomic(value, (short) 0, (short) (size - rightOffset), (byte) 0);
     }
 
     /**
