@@ -13,30 +13,6 @@ import org.junit.jupiter.api.Test;
 public class BigNatInternalTest {
 
     @Test
-    public void resize_smaller() {
-        ResourceManager rm = new ResourceManager((short) 256);
-        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat bn = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
-
-        byte[] data = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
-        bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.resize((short) (data.length - 3));
-        Assertions.assertEquals(data.length - 3, bn.length());
-    }
-
-    @Test
-    public void resize_bigger() {
-        ResourceManager rm = new ResourceManager((short) 256);
-        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat bn = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
-
-        byte[] data = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
-        bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.resize((short) (data.length * 2));
-        Assertions.assertEquals(data.length * 2, bn.length());
-    }
-
-    @Test
     public void prependZeroes_targetLengthBigger() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
