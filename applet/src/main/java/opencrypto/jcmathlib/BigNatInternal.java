@@ -113,9 +113,11 @@ public class BigNatInternal {
 
         short diff = (short) (newSize - size);
         // take the rightmost offset to zero rest of the number
-        short rightOffset = diff > 0 ? offset : (short) (value.length - newSize);
+        short newOffset = (short) (value.length - newSize);
+        short rightOffset = diff > 0 ? offset : newOffset;
+        short leftOffset = diff > 0 ? newOffset : offset;
         setSize(newSize);
-        Util.arrayFillNonAtomic(value, (short) 0, rightOffset, (byte) 0);
+        Util.arrayFillNonAtomic(value, leftOffset, (short) (rightOffset - leftOffset), (byte) 0);
     }
 
     /**
