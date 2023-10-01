@@ -715,6 +715,17 @@ public class BigNatInternal {
         return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
     }
 
+    /**
+     * Subtract short value to this BigNat
+     *
+     * @param other short value to subtract
+     */
+    public void subtract(short other) {
+        rm.BN_WORD.lock();
+        rm.BN_WORD.setValue(other);
+        subtract(rm.BN_WORD);
+        rm.BN_WORD.unlock();
+    }
 
     /**
      * Computes other * multiplier, shifts the results by shift and subtract it from this.
