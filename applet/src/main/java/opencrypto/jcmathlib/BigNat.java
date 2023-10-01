@@ -189,6 +189,7 @@ public class BigNat extends BigNatInternal {
             tmp.subtract(mod);
         }
         setSize(mod.length());
+        tmp.unlock();
     }
 
     /**
