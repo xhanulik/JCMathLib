@@ -610,7 +610,7 @@ public class BigNatInternal {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
 
-        for (short i = (short) (this.value.length - 1); i >= 0; i--) {
+        for (short i = (short) (this.value.length - 1); i >= 0; i--, otherIndex--) {
             short thisShiftedIndex = (short) (i - shift);
 
             // shifted index must be in range of this number
@@ -633,8 +633,8 @@ public class BigNatInternal {
             byte valueToSet = (byte) (acc & DIGIT_MASK);
             this.value[thisIndex] = thisValidRange != 0 ? valueToSet : this.value[thisIndex];
 
-            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            otherIndex--;
+            // preserve acc from last valid byte in this
+            acc = thisValidRange != 0 ? (short) ((acc >> DIGIT_LEN) & DIGIT_MASK) : acc;
         }
 
         // output carry bit if present
@@ -656,26 +656,29 @@ public class BigNatInternal {
         short otherIndex = (short) (other.value.length - 1);
 
         for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
-            // index must be in range of this number
+            // index must be in range of size of this number
             short thisValidRange = (short) (thisIndex >= offset ? 1 : 0);
 
-            // index in other should be in range
+            // index in other should be in bounds of other.value
             short otherValidRange = (short) (otherIndex >= 0 ? 1 : 0);
+            // prepare index for other - valid or bogus (just for some reading)
             short newOtherIndex = otherValidRange != 0 ? otherIndex : 0;
-
+            // always read something from other
+            short otherBogusValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
             // get value from other - if out of other bounds, use 0
-            short valueToAdd = (short) (other.value[newOtherIndex] & DIGIT_MASK);
-            short otherValue = otherValidRange != 0 ? valueToAdd : 0;
+            short otherValue = otherValidRange != 0 ? otherBogusValue : 0;
 
             // compute new value
-            short newValue = (short) ((short) (value[thisIndex] & DIGIT_MASK) + otherValue);
+            short thisValue = (short) (value[thisIndex] & DIGIT_MASK);
+            short newValue = (short) (thisValue + otherValue);
+            // if we are out of size for this, add only 0
             acc += thisValidRange != 0 ? newValue : 0;
 
             // set new value into this if in valid range
-            byte valueToSet = (byte) (acc & DIGIT_MASK);
-            this.value[thisIndex] = thisValidRange != 0 ? valueToSet : this.value[thisIndex];
+            this.value[thisIndex] = thisValidRange != 0 ? (byte) (acc & DIGIT_MASK) : (byte) thisValue;
 
-            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            // preserve acc from last valid byte in this
+            acc = thisValidRange != 0 ? (short) ((acc >> DIGIT_LEN) & DIGIT_MASK) : acc;
         }
         // output carry bit if present
         return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
