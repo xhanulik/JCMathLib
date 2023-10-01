@@ -658,9 +658,11 @@ public class BigNatInternal {
         for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
             // index must be in range of size of this number
             short thisValidRange = (short) (thisIndex >= offset ? 1 : 0);
+            // short thisValidRange = (short) ((short) ((offset - thisIndex - 1) >>> 15) & 1);
 
             // index in other should be in bounds of other.value
             short otherValidRange = (short) (otherIndex >= 0 ? 1 : 0);
+            // short otherInvalidRange = (short) ((short) (otherIndex >>> 15) & 1);
             // prepare index for other - valid or bogus (just for some reading)
             short newOtherIndex = otherValidRange != 0 ? otherIndex : 0;
             // always read something from other
