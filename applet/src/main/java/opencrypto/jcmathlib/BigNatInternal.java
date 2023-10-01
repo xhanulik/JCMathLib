@@ -677,10 +677,12 @@ public class BigNatInternal {
             acc += thisValidRange != 0 ? newValue : 0;
 
             // set new value into this if in valid range
-            this.value[thisIndex] = thisValidRange != 0 ? (byte) (acc & DIGIT_MASK) : (byte) thisValue;
+            short tmp = (byte) (acc & DIGIT_MASK);
+            this.value[thisIndex] = thisValidRange != 0 ? (byte) tmp : (byte) thisValue;
 
             // preserve acc from last valid byte in this
-            acc = thisValidRange != 0 ? (short) ((acc >> DIGIT_LEN) & DIGIT_MASK) : acc;
+            tmp = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            acc = thisValidRange != 0 ? tmp : acc;
         }
         // output carry bit if present
         return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
