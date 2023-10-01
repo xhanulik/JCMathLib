@@ -786,6 +786,7 @@ public class BigNatInternal {
     /**
      * Subtract provided other BigNat from this BigNat.
      * Refactored, computes over all indexes in values, without shift and multiplier.
+     * All bytes before offset are assumed to be zeroes.
      *
      * @param other BigNat to be subtracted from this
      */
@@ -798,10 +799,10 @@ public class BigNatInternal {
 
             // check non-negative other index or set to 0
             short validOtherIndex = (short) (otherIndex >= 0 ? 1 : 0);
-            short _otherIndex = validOtherIndex != 0 ? otherIndex : 0;
+            short newOtherIndex = validOtherIndex != 0 ? otherIndex : 0;
 
             // add value to acc and subtract
-            short newValue = (short) (other.value[_otherIndex] & DIGIT_MASK);
+            short newValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
             acc += (validThisIndex & validOtherIndex) != 0 ? newValue : 0;
             short tmp = (short) ((value[thisIndex] & DIGIT_MASK) - (acc & DIGIT_MASK));
 
@@ -810,7 +811,7 @@ public class BigNatInternal {
 
             // update acc
             acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            acc += tmp < 0 ? 1 : 0;
+            acc += (tmp >> 15) & 1;
         }
     }
 
