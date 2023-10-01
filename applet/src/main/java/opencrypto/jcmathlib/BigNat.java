@@ -177,8 +177,11 @@ public class BigNat extends BigNatInternal {
     public void modAdd(BigNat other, BigNat mod) {
         resize((short) (mod.length() + 1));
         add(other);
-        if (!isLesser(mod)) {
+        boolean isLesser = isLesser(mod);
+        if (!isLesser) {
             subtract(mod);
+        } else {
+            subtract((short) 0);
         }
         setSize(mod.length());
     }
