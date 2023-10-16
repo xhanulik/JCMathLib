@@ -175,21 +175,25 @@ public class BigNat extends BigNatInternal {
      * Modular addition of a BigNat to this.
      */
     public void modAdd(BigNat other, BigNat mod) {
-        BigNat tmp = rm.BN_B;
-        tmp.lock();
+        BigNat tmp1 = rm.BN_B;
+        BigNat tmp2 = rm.BN_C;
+        tmp1.lock();
+        tmp2.lock();
 
         resize((short) (mod.length() + 1));
         add(other);
-        tmp.clone(this);
+        tmp1.clone(this);
+        tmp2.clone(this);
 
-        boolean isLesser = isLesser(mod);
-        if (!isLesser) {
-            subtract(mod);
+        if (!isLesser(mod)) {
+            tmp1.subtract(mod);
         } else {
-            tmp.subtract(mod);
+            tmp2.subtract(mod);
         }
+        copy(tmp1);
         setSize(mod.length());
-        tmp.unlock();
+        tmp1.unlock();
+        tmp2.unlock();
     }
 
     /**
