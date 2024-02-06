@@ -3,6 +3,8 @@ package opencrypto.jcmathlib;
 import javacard.framework.ISOException;
 import javacard.framework.Util;
 
+import static opencrypto.jcmathlib.ConstantTime.*;
+
 /**
  * Based on BigNat library from <a href="https://ovchip.cs.ru.nl/OV-chip_2.0">OV-chip project.</a> by Radboud University Nijmegen
  *
@@ -299,7 +301,7 @@ public class BigNatInternal {
      * Test equality with zero.
      */
     public boolean isZero() {
-        return isZero((short) 0, (short) value.length);
+        return isZero((short) offset, (short) value.length);
     }
 
     /**
@@ -308,13 +310,13 @@ public class BigNatInternal {
      * @param offset offset in the byte array, starting index
      * @param end    ending index
      */
-    private boolean isZero(short offset, short end) {
-        short nonZero = 0;
-        for (short i = offset; i < end; i++) {
-            short nonZeroValue = (short) (value[i] != 0 ? 1 : 0);
-            nonZero = (short) (nonZeroValue | nonZero);
+    public boolean isZero(short offset, short end) {
+        byte good = (byte) 0xff;
+        for (short i = 0; i < value.length; i++) {
+            byte validIndex = (byte) ((ctGreaterOrEqual(i, offset) & ctLessThan(i, end)) & 0xff);
+            good &= (ctIsZero(value[i]) & validIndex) | ~validIndex;
         }
-        return nonZero == 0;
+        return (0xff & good) == 0xff;
     }
 
     /**
