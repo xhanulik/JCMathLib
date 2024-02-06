@@ -7,6 +7,24 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class IsLesserTest {
+    private static void printBits(short value) {
+        System.out.println("Short value: " + value);
+
+        for (int i = 15; i >= 0; i--) {
+            int bit = (value >> i) & 1;
+            System.out.print(bit);
+        }
+
+        System.out.println();
+    }
+
+    static short ct_negative(short a) {
+        return (short) ((a & (1 << 15)) >> 15);
+    }
+    @Test
+    public void test() {
+        printBits((short) ct_negative((short) -2));
+    }
     // no shifts, other.size > this.size, same memory
     @Test
     public void isLesser_otherLonger_true() {
@@ -223,6 +241,7 @@ public class IsLesserTest {
         Assertions.assertTrue(bn1.isLesser(bn2));
     }
 
+    // problem
     @Test
     public void isLesser_thisLonger_differentMemory_false() {
         ResourceManager rm = new ResourceManager((short) 256);
