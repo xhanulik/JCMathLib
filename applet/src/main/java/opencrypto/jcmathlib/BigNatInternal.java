@@ -172,10 +172,11 @@ public class BigNatInternal {
     public void shrink() {
         short i;
         short newSize = (short) value.length;
-        boolean foundNonZero = false;
+        byte foundNonZero = 0x00;
         for (i = 0; i < value.length; i++) { // Compute size of non-zero part
-            foundNonZero = (value[i] != 0) || foundNonZero;
-            short value = foundNonZero ? (short) 0 : (short) 1;
+            byte isNonZeroValue = (byte) ~ConstantTime.ctIsZero(value[i]);
+            foundNonZero = (byte) (isNonZeroValue | foundNonZero);
+            short value = ConstantTime.ctSelect(foundNonZero, (short) 0, (short) 1);
             newSize -= value;
         }
 
