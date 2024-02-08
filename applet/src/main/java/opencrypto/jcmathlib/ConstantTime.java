@@ -38,7 +38,7 @@ public class ConstantTime {
      * @return      (short) 65535 if zero, 0 otherwise
      */
     public static short ctIsZero(short a){
-        return ctMsb((byte) (~a & ((0xffff & a) - 1)));
+        return ctMsb((short) (~a & ((0xffff & a) - 1)));
     }
 
     /**
@@ -126,5 +126,65 @@ public class ConstantTime {
     }
     public static short ctSelect(byte mask, short a, short b) {
         return (short) ((mask & a) | (~mask & b));
+    }
+
+    /**
+     * Check whether the given number is positive
+     * [1, 32767]
+     *
+     * @param a value to check for positivity
+     * @return 0xff if a is positive, 0 otherwise
+     */
+    public static byte ctIsPositive(byte a) {
+        return (byte) (ctLessThan(a, (byte) 0b10000000) & ~ctIsZero(a));
+    }
+
+    public static short ctIsPositive(short a) {
+        return (short) (ctLessThan(a, (short) 0b1000000000000000) & ~ctIsZero(a));
+    }
+
+    /**
+     * Check whether the given number is negative
+     * [-32768, -1]
+     *
+     * @param a value to check for negativity
+     * @return 0xff if a is positive, 0 otherwise
+     */
+    public static byte ctIsNegative(byte a) {
+        return ctGreaterOrEqual(a, (byte) 0b10000000);
+    }
+
+    public static short ctIsNegative(short a) {
+        return ctGreaterOrEqual(a, (short) 0b1000000000000000);
+    }
+
+    /**
+     * Check whether the given number is non-negative
+     * [0, 32767]
+     *
+     * @param a value to check for non-negativity
+     * @return 0xff if a is positive, 0 otherwise
+     */
+    public static byte ctIsNonNegative(byte a) {
+        return (byte) (ctLessThan(a, (byte) 0b10000000) | ctIsZero(a));
+    }
+
+    public static short ctIsNonNegative(short a) {
+        return (short) (ctLessThan(a, (short) 0b1000000000000000) | ctIsZero(a));
+    }
+
+    /**
+     * Check whether the given number is non-positive
+     * [-32768, 0]
+     *
+     * @param a value to check for non-positivity
+     * @return 0xff if a is positive, 0 otherwise
+     */
+    public static byte ctIsNonPositive(byte a) {
+        return (byte) (ctGreaterOrEqual(a, (byte) 0b10000000) | ctIsZero(a));
+    }
+
+    public static short ctIsNonPositive(short a) {
+        return (short) (ctGreaterOrEqual(a, (short) 0b10000000) | ctIsZero(a));
     }
 }
