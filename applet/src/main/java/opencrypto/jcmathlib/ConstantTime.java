@@ -118,7 +118,7 @@ public class ConstantTime {
     public static byte ctSelect(byte mask, byte a, byte b) {
         return (byte) ((mask & a) | (~mask & b));
     }
-    public static short ctSelect(short mask, byte a, byte b) {
+    public static byte ctSelect(short mask, byte a, byte b) {
         return (byte) ((mask & a) | (~mask & b));
     }
     public static short ctSelect(short mask, short a, short b) {
