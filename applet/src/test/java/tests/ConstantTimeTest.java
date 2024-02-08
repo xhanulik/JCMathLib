@@ -41,6 +41,9 @@ public class ConstantTimeTest {
     public void ctMsb_one_32768() {
         short resultShort = ConstantTime.ctMsb((short) 32768);
         Assertions.assertEquals(0b1111111111111111, resultShort & 0xffff);
+
+        resultShort = ConstantTime.ctMsb((short) -32768);
+        Assertions.assertEquals(0b1111111111111111, resultShort & 0xffff);
     }
 
     /* ctIsZero tests */
@@ -50,6 +53,7 @@ public class ConstantTimeTest {
         Assertions.assertEquals((byte) 0, ConstantTime.ctIsZero((byte) 255));
         Assertions.assertEquals((short) 0, ConstantTime.ctIsZero((short) 1));
         Assertions.assertEquals((short) 0, ConstantTime.ctIsZero((short) 65535));
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsZero((short) -32768));
     }
 
     @Test
@@ -137,5 +141,101 @@ public class ConstantTimeTest {
 
         Assertions.assertEquals((byte) 254, ConstantTime.ctSelect((byte) 0, (byte) 255, (byte) 254));
         Assertions.assertEquals((short) 65534, ConstantTime.ctSelect((short) 0, (short) 65535, (short) 65534));
+    }
+
+    /* ctIsPositive tests */
+    @Test
+    public void ctIsPositive_true() {
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsPositive((byte) 1));
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsPositive((byte) 100));
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsPositive((byte) 127));
+
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsPositive((short) 1));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsPositive((short) 100));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsPositive((short) 32767));
+    }
+
+    @Test
+    public void ctIsPositive_false() {
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsPositive((byte) 0));
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsPositive((byte) -1));
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsPositive((byte) -100));
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsPositive((byte) -128));
+
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsPositive((short) 0));
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsPositive((short) -1));
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsPositive((short) -100));
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsPositive((short) -32768));
+    }
+
+    /* csIsNegative tests */
+    @Test
+    public void ctIsNegative_false() {
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsNegative((byte) 0));
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsNegative((byte) 100));
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsNegative((byte) 127));
+
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsNegative((short) 0));
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsNegative((short) 100));
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsNegative((short) 32767));
+    }
+
+    @Test
+    public void ctIsNegative_true() {
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNegative((byte) -1));
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNegative((byte) -100));
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNegative((byte) -128));
+
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNegative((short) -1));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNegative((short) -100));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNegative((short) -32768));
+    }
+
+    /* ctIsNonNegative tests */
+    @Test
+    public void ctIsNonNegative_true() {
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNonNegative((byte) 0));
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNonNegative((byte) 1));
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNonNegative((byte) 100));
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNonNegative((byte) 127));
+
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNonNegative((short) 0));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNonNegative((short) 1));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNonNegative((short) 100));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNonNegative((short) 32767));
+    }
+
+    @Test
+    public void ctIsNonNegative_false() {
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsNonNegative((byte) -1));
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsNonNegative((byte) -100));
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsNonNegative((byte) -128));
+
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsNonNegative((short) -1));
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsNonNegative((short) -100));
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsNonNegative((short) -32768));
+    }
+
+    /* csIsNonPositive tests */
+    @Test
+    public void csIsNonPositive_false() {
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsNegative((byte) 100));
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsNegative((byte) 127));
+
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsNegative((short) 100));
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsNegative((short) 32767));
+    }
+
+    @Test
+    public void csIsNonPositive_true() {
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsNegative((byte) 0));
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNegative((byte) -1));
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNegative((byte) -100));
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNegative((byte) -128));
+
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsNegative((short) 0));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNegative((short) -1));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNegative((short) -100));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNegative((short) -32768));
     }
 }
