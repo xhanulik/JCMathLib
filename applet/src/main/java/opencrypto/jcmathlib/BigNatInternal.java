@@ -129,9 +129,33 @@ public class BigNatInternal {
      * @param outBuffer    output buffer for value with appended zeroes
      * @param outOffset    start offset inside outBuffer for write
      */
-    public void appendZeros(short targetLength, byte[] outBuffer, short outOffset) {
+    public void appendZeros_original(short targetLength, byte[] outBuffer, short outOffset) {
         Util.arrayCopyNonAtomic(value, offset, outBuffer, outOffset, size);
         Util.arrayFillNonAtomic(outBuffer, (short) (outOffset + size), (short) (targetLength - size), (byte) 0);
+    }
+
+    /**
+     * Constant-time implementation, dependent on the length of output buffer
+     */
+    public void appendZeros(short targetLength, byte[] outBuffer, short outOffset) {
+        short j = 0;
+        for (short i = 0; i < outBuffer.length; i++) {
+            short before = ConstantTime.ctLessThan(i, outOffset);
+            short after = ConstantTime.ctGreaterOrEqual(i, (short) (outOffset + size));
+            short in = (short) (~before & ~after);
+            short zeroes = (short) (after & ConstantTime.ctLessThan(i, (short) (outOffset + targetLength)));
+
+            short thisIndex = ConstantTime.ctSelect(ctLessThan(j, size), j, (short) 0);
+            byte thisValue = value[offset + thisIndex];
+
+            /* Copy bytes from this value */
+            byte outBufferValue = outBuffer[i];
+            outBuffer[i] = ConstantTime.ctSelect(in, thisValue, outBufferValue);
+            /* Append zeroes after value to get target length */
+            outBufferValue = outBuffer[i];
+            outBuffer[i] = ConstantTime.ctSelect(zeroes, (byte) 0, outBufferValue);
+            j += ConstantTime.ctSelect(in, (short) 1, (short) 0);
+        }
     }
 
     /**
@@ -141,12 +165,34 @@ public class BigNatInternal {
      * @param outBuffer    output buffer for value with prepended zeroes
      * @param outOffset    start offset inside outBuffer for write
      */
-    public void prependZeros(short targetLength, byte[] outBuffer, short outOffset) {
+    public void prependZeros_original(short targetLength, byte[] outBuffer, short outOffset) {
         short start = (short) (targetLength - size);
         if (start > 0) {
             Util.arrayFillNonAtomic(outBuffer, outOffset, start, (byte) 0);
         }
         Util.arrayCopyNonAtomic(value, offset, outBuffer, (short) (outOffset + start), size);
+    }
+
+    public void prependZeros(short targetLength, byte[] outBuffer, short outOffset) {
+        short start = (short) (targetLength - size);
+        short j = 0;
+        for (short i = 0; i < outBuffer.length; i++) {
+            short before = ConstantTime.ctLessThan(i, outOffset);
+            short zeroes = (short) (ConstantTime.ctGreaterOrEqual(i, outOffset) & ConstantTime.ctLessThan(i, (short) (outOffset + start)));
+            short after = ConstantTime.ctGreaterOrEqual(i, (short) (outOffset + targetLength));
+            short in = (short) (~before & ~after & ~zeroes);
+
+            short thisIndex = ConstantTime.ctSelect(ctLessThan(j, size), j, (short) 0);
+            byte thisValue = value[offset + thisIndex];
+
+            /* Copy bytes from this value */
+            byte outBufferValue = outBuffer[i];
+            outBuffer[i] = ConstantTime.ctSelect(in, thisValue, outBufferValue);
+            /* Append zeroes after value to get target length */
+            outBufferValue = outBuffer[i];
+            outBuffer[i] = ConstantTime.ctSelect(zeroes, (byte) 0, outBufferValue);
+            j += ConstantTime.ctSelect(in, (short) 1, (short) 0);
+        }
     }
 
     /**
