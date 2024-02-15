@@ -60,4 +60,38 @@ public class AppendZerosTest {
         bn1.appendZeros((short) 10, outBuffer, (short) 1);
         Assertions.assertArrayEquals(rBuffer, outBuffer);
     }
+
+    @Test
+    public void fromStartFullBuffer() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+
+        byte[] outBuffer = new byte[10];
+        Arrays.fill(outBuffer, (byte) 0xff);
+        byte[] rBuffer = new byte[] {0x01, 0x02, 0x03, 0, 0, 0, 0, 0, 0, 0};
+
+        bn1.appendZeros((short) 10, outBuffer, (short) 0);
+        Assertions.assertArrayEquals(rBuffer, outBuffer);
+    }
+
+    @Test
+    public void fromStartOneByteFullBuffer() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+
+        byte[] outBuffer = new byte[10];
+        Arrays.fill(outBuffer, (byte) 0xff);
+        byte[] rBuffer = new byte[] {0x01, 0x02, 0x03, 0, 0, 0, 0, 0, 0, (byte) 0xff};
+
+        bn1.appendZeros((short) 9, outBuffer, (short) 0);
+        Assertions.assertArrayEquals(rBuffer, outBuffer);
+    }
 }
