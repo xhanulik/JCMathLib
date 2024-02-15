@@ -164,6 +164,8 @@ public class BigNatInternal {
      * @param targetLength required length including prepended zeroes
      * @param outBuffer    output buffer for value with prepended zeroes
      * @param outOffset    start offset inside outBuffer for write
+     * @implNote if targetLength < size, then start is negative, undefined behaviours
+     * @implNote not checking whether target length suites into output buffer
      */
     public void prependZeros_original(short targetLength, byte[] outBuffer, short outOffset) {
         short start = (short) (targetLength - size);
@@ -173,6 +175,10 @@ public class BigNatInternal {
         Util.arrayCopyNonAtomic(value, offset, outBuffer, (short) (outOffset + start), size);
     }
 
+    /**
+     * @implNote if targetLength < size, then start is negative, undefined behaviours
+     * @implNote not checking whether target length suites into output buffer
+     */
     public void prependZeros(short targetLength, byte[] outBuffer, short outOffset) {
         short start = (short) (targetLength - size);
         short j = 0;
