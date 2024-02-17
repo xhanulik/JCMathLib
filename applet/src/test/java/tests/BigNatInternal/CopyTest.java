@@ -7,6 +7,8 @@ import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
 public class CopyTest {
     @Test
     public void copy_empty() {
@@ -15,14 +17,21 @@ public class CopyTest {
         BigNat bn1 = new BigNat((short) 10, memoryType, rm);
         BigNat bn2 = new BigNat((short) 10, memoryType, rm);
 
+        /* This */
         byte[] data1 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        byte[] data2 = {};
-        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        /* Other */
+        bn2.fromByteArray(new byte[]{}, (short) 0, (short) 0);
 
         bn1.copy(bn2);
-        bn1.shrink_original();
-        Assertions.assertTrue(bn1.equals_original(bn2));
+
+        byte[] actualResult = new byte[6];
+        Arrays.fill(actualResult, (byte) 0xff);
+        short resultSize = bn1.copyToByteArray(actualResult, (short) 0);
+        /* Should be empty */
+        Assertions.assertEquals(6, resultSize);
+        /* Output buffer not changed */
+        Assertions.assertArrayEquals(new byte[] {0, 0, 0, 0, 0, 0}, actualResult);
     }
 
     @Test
@@ -38,8 +47,14 @@ public class CopyTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
 
         bn1.copy(bn2);
-        bn1.shrink_original();
-        Assertions.assertTrue(bn1.equals_original(bn2));
+        
+        byte[] expectedResult = {0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
+        byte[] actualResult = new byte[6];
+        short resultSize = bn1.copyToByteArray(actualResult, (short) 0);
+        /* Should be empty */
+        Assertions.assertEquals(6, resultSize);
+        /* Output buffer not changed */
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -53,10 +68,16 @@ public class CopyTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x00, 0x00, 0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+
         bn1.copy(bn2);
-        bn1.shrink_original();
-        bn2.shrink_original();
-        Assertions.assertTrue(bn1.equals_original(bn2));
+
+        byte[] expectedResult = {0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
+        byte[] actualResult = new byte[6];
+        short resultSize = bn1.copyToByteArray(actualResult, (short) 0);
+        /* Should be empty */
+        Assertions.assertEquals(6, resultSize);
+        /* Output buffer not changed */
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -70,10 +91,16 @@ public class CopyTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x00, 0x00, 0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+
         bn1.copy(bn2);
-        bn1.shrink_original();
-        bn2.shrink_original();
-        Assertions.assertTrue(bn1.equals_original(bn2));
+
+        byte[] expectedResult = {0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
+        byte[] actualResult = new byte[5];
+        short resultSize = bn1.copyToByteArray(actualResult, (short) 0);
+        /* Should be empty */
+        Assertions.assertEquals(5, resultSize);
+        /* Output buffer not changed */
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
