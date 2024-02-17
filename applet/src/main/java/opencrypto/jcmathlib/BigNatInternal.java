@@ -301,25 +301,42 @@ public class BigNatInternal {
      */
     public void copy(BigNatInternal other) {
         short diff = (short) (size - other.size);
-        short thisStart = diff >= 0 ? (short) (diff + offset) : offset;
-        short otherStart = diff >= 0 ? other.offset : (short) (other.offset - diff);
+        short movedThisOffset = (short) (diff + offset);
+        short movedOtherOffset = (short) (other.offset - diff);
+        short thisStart = ConstantTime.ctSelect(ConstantTime.ctIsNonNegative(diff), movedThisOffset, offset);
+        short otherStart = ConstantTime.ctSelect(ConstantTime.ctIsNonNegative(diff), other.offset, movedOtherOffset);
         short len = diff >= 0 ? other.size : size;
         short problem = 0;
 
         // Verify here that other have leading zeroes up to otherStart
         for (short i = 0; i < other.value.length; i++) {
-            byte validIndex = (byte) (i < otherStart ? 1 : 0);
-            byte nonZero = (byte) (other.value[i] != 0 ? 1 : 0);
-            byte otherLonger = (byte) (diff < 0 ? 1 : 0);
+            short validIndex = ConstantTime.ctLessThan(i, otherStart);
+            short nonZero = (short) ~ConstantTime._ctIsZero(other.value[i]);
+            short otherLonger = ConstantTime.ctIsNegative(diff);
             problem = (short) ((nonZero & validIndex & otherLonger) | problem);
         }
 
-        if (problem == 1) {
-            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCOPYOTHER);
+        short otherIndex = otherStart;
+        short copiedBytes = 0;
+        for (short thisIndex = 0; thisIndex < value.length; thisIndex++) {
+            /* Check whether index is in this area for copied bytes */
+            short isInThisValue = ConstantTime.ctGreaterOrEqual(thisIndex, thisStart);
+            isInThisValue = (short) (ConstantTime.ctLessThan(copiedBytes, len) & isInThisValue & ~problem);
+            /* Read bytes from other array */
+            short tmpOtherIndex = ConstantTime.ctSelect(ctLessThan(otherIndex, (short) other.value.length), otherIndex, (short)0);
+            byte otherValue = other.value[tmpOtherIndex];
+            byte thisValue = this.value[thisIndex];
+            thisValue = ConstantTime.ctSelect((byte) problem, thisValue, (byte) 0);
+            /* Store byte into index */
+            value[thisIndex] = ConstantTime.ctSelect(isInThisValue, otherValue, thisValue);
+            /* Increment index in other */
+            short incr = ConstantTime.ctSelect((byte) isInThisValue, (byte) 1, (byte) 0);
+            otherIndex += incr;
         }
 
-        Util.arrayFillNonAtomic(value, (short) 0, (short) value.length, (byte) 0);
-        Util.arrayCopyNonAtomic(other.value, otherStart, value, thisStart, len);
+        if ((problem & 0xffff) == 0xffff) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCOPYOTHER);
+        }
     }
 
     /**
