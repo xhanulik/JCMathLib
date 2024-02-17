@@ -41,6 +41,10 @@ public class ConstantTime {
         return ctMsb((short) (~a & ((0xffff & a) - 1)));
     }
 
+    public static short _ctIsZero(byte a){
+        return ctMsb((short) (~((short) a) & ((0xffff & ((short) a)) - 1)));
+    }
+
     /**
      * Compares two byte values for the first value being less than the second value.
      *
