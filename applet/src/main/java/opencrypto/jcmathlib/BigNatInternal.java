@@ -291,10 +291,27 @@ public class BigNatInternal {
     }
 
     /**
+     * Keep values before offset
+     */
+    public void ctZero() {
+        for (short i = 0; i < value.length; i++) {
+            short validIndex = ConstantTime.ctGreaterOrEqual(i, offset);
+            byte thisValue = value[i];
+            value[i] = ConstantTime.ctSelect(validIndex, (byte) 0, thisValue);
+        }
+    }
+
+    /**
      * Erase the internal array of this BigNat.
      */
     public void erase() {
         Util.arrayFillNonAtomic(value, (short) 0, (short) value.length, (byte) 0);
+    }
+
+    public void ctErase() {
+        for (short i = 0; i < value.length; i++) {
+            value[i] = 0;
+        }
     }
 
     /**
@@ -344,7 +361,7 @@ public class BigNatInternal {
     /**
      * Refactored copy
      */
-    public void copy(BigNatInternal other) {
+    public void ctCopy(BigNatInternal other) {
         short diff = (short) (size - other.size);
         short movedThisOffset = (short) (diff + offset);
         short movedOtherOffset = (short) (other.offset - diff);
