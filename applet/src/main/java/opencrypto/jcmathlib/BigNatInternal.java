@@ -436,7 +436,16 @@ public class BigNatInternal {
      * Test equality with zero.
      */
     public boolean isZero() {
-        return isZero((short) offset, (short) value.length);
+        for (short i = offset; i < value.length; i++) {
+            if (value[i] != 0) {
+                return false; // CTO
+            }
+        }
+        return true;
+    }
+
+    public boolean ctIsZero() {
+        return ctIsZero(offset, (short) value.length);
     }
 
     /**
@@ -445,11 +454,11 @@ public class BigNatInternal {
      * @param offset offset in the byte array, starting index
      * @param end    ending index
      */
-    public boolean isZero(short offset, short end) {
+    public boolean ctIsZero(short offset, short end) {
         byte good = (byte) 0xff;
         for (short i = 0; i < value.length; i++) {
             byte validIndex = (byte) ((ctGreaterOrEqual(i, offset) & ctLessThan(i, end)) & 0xff);
-            good &= (ctIsZero(value[i]) & validIndex) | ~validIndex;
+            good &= (ConstantTime.ctIsZero(value[i]) & validIndex) | ~validIndex;
         }
         return (0xff & good) == 0xff;
     }
@@ -458,7 +467,7 @@ public class BigNatInternal {
      * Test equality with one.
      */
     public boolean isOne() {
-        boolean upperZero = isZero((short) 0, (short) ((short) value.length - 1));
+        boolean upperZero = ctIsZero((short) 0, (short) ((short) value.length - 1));
         return (value[(short) (value.length - 1)] == (byte) 0x01) && upperZero;
     }
 
