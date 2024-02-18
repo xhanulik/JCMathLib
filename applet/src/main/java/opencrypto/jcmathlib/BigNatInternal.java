@@ -404,7 +404,7 @@ public class BigNatInternal {
     /**
      * Copies a BigNat into this including its size. May require reallocation.
      */
-    public void clone_original(BigNatInternal other) {
+    public void clone(BigNatInternal other) {
         if (other.size > (short) value.length) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_REALLOCATIONNOTALLOWED);
         }
@@ -417,14 +417,17 @@ public class BigNatInternal {
         setSize(other.size);
     }
 
-    public void clone(BigNatInternal other) {
+    /**
+     * Other must have non-zero size
+     */
+    public void ctClone(BigNatInternal other) {
         if (other.size > (short) value.length) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_REALLOCATIONNOTALLOWED);
         }
 
         short diff = (short) ((short) value.length - other.size);
-        zero();
-        other.copyToByteArray(value, diff);
+        ctZero();
+        other.ctCopyToByteArray(value, diff);
         setSize(other.size);
     }
 
@@ -969,7 +972,7 @@ public class BigNatInternal {
     public void mult_original(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
-        tmp.clone(this);
+        tmp.ctClone(this);
         setSizeToMax(true);
         for (short i = (short) (other.value.length - 1); i >= other.offset; i--) {
             add_original(tmp, (short) (other.value.length - 1 - i), (short) (other.value[i] & DIGIT_MASK));
@@ -986,7 +989,7 @@ public class BigNatInternal {
     public void mult_refactored(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
-        tmp.clone(this);
+        tmp.ctClone(this);
         setSizeToMax(true);
         for (short i = (short) (other.value.length - 1); i >= 0; i--) {
             short otherIndex = i >= other.offset ? i : 0;
@@ -1003,7 +1006,7 @@ public class BigNatInternal {
     public void mult(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
-        tmp.clone(this);
+        tmp.ctClone(this);
         setSizeToMax(true);
 
         short over = 0;
