@@ -44,6 +44,23 @@ public class BigNatInternal {
     }
 
     /**
+     * Cannot be used for empty source array
+     */
+    public short ctFromByteArray(byte[] source, short sourceOffset, short length) {
+        short lengthFit = ConstantTime.ctGreaterOrEqual((short) value.length, length);
+        short read = ConstantTime.ctSelect(lengthFit, length, (short) value.length);
+        setSize(read);
+        short sourceIndex = sourceOffset;
+        for (short i = 0; i < value.length; i++) {
+            short validIndex = ConstantTime.ctGreaterOrEqual(i, offset);
+            byte sourceValue = source[sourceIndex];
+            value[i] = ConstantTime.ctSelect(validIndex, sourceValue, (byte) 0);
+            sourceIndex += ConstantTime.ctSelect(validIndex, (short) 1, (short) 0);
+        }
+        return size;
+    }
+
+    /**
      * Serialize this BigNat value into a provided byte array.
      *
      * @param dst the byte array
