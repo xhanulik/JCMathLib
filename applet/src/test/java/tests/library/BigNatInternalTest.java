@@ -4,7 +4,6 @@ import com.licel.jcardsim.bouncycastle.util.encoders.Hex;
 import javacard.framework.ISOException;
 import javacard.framework.JCSystem;
 import opencrypto.jcmathlib.BigNat;
-import opencrypto.jcmathlib.BigNatInternal;
 import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

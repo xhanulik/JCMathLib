@@ -23,7 +23,7 @@ public class AppendZerosTest {
         Arrays.fill(outBuffer, (byte) 0xff);
         byte[] rBuffer = new byte[] {(byte) 0xff, (byte) 0xff, 0x01, 0x02, 0x03, 0, 0, 0, 0, 0};
 
-        bn1.appendZeros((short) 8, outBuffer, (short) 2);
+        bn1.ctAppendZeros((short) 8, outBuffer, (short) 2);
         Assertions.assertArrayEquals(rBuffer, outBuffer);
     }
 
@@ -40,7 +40,7 @@ public class AppendZerosTest {
         Arrays.fill(outBuffer, (byte) 0xff);
         byte[] rBuffer = new byte[] {(byte) 0xff, 0x01, 0x02, 0x03, 0, 0, 0, 0, 0, (byte) 0xff};
 
-        bn1.appendZeros((short) 8, outBuffer, (short) 1);
+        bn1.ctAppendZeros((short) 8, outBuffer, (short) 1);
         Assertions.assertArrayEquals(rBuffer, outBuffer);
     }
 
@@ -57,7 +57,7 @@ public class AppendZerosTest {
         Arrays.fill(outBuffer, (byte) 0xff);
         byte[] rBuffer = new byte[] {(byte) 0xff, 0x01, 0x02, 0x03, 0, 0, 0, 0, 0, 0};
 
-        bn1.appendZeros((short) 10, outBuffer, (short) 1);
+        bn1.ctAppendZeros((short) 10, outBuffer, (short) 1);
         Assertions.assertArrayEquals(rBuffer, outBuffer);
     }
 
@@ -74,7 +74,7 @@ public class AppendZerosTest {
         Arrays.fill(outBuffer, (byte) 0xff);
         byte[] rBuffer = new byte[] {0x01, 0x02, 0x03, 0, 0, 0, 0, 0, 0, 0};
 
-        bn1.appendZeros((short) 10, outBuffer, (short) 0);
+        bn1.ctAppendZeros((short) 10, outBuffer, (short) 0);
         Assertions.assertArrayEquals(rBuffer, outBuffer);
     }
 
@@ -91,7 +91,7 @@ public class AppendZerosTest {
         Arrays.fill(outBuffer, (byte) 0xff);
         byte[] rBuffer = new byte[] {0x01, 0x02, 0x03, 0, 0, 0, 0, 0, 0, (byte) 0xff};
 
-        bn1.appendZeros((short) 9, outBuffer, (short) 0);
+        bn1.ctAppendZeros((short) 9, outBuffer, (short) 0);
         Assertions.assertArrayEquals(rBuffer, outBuffer);
     }
 }
