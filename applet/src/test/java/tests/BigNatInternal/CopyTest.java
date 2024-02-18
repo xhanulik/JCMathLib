@@ -23,7 +23,7 @@ public class CopyTest {
         /* Other */
         bn2.fromByteArray(new byte[]{}, (short) 0, (short) 0);
 
-        bn1.copy(bn2);
+        bn1.ctCopy(bn2);
 
         byte[] actualResult = new byte[6];
         Arrays.fill(actualResult, (byte) 0xff);
@@ -46,7 +46,7 @@ public class CopyTest {
         byte[] data2 = {0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
 
-        bn1.copy(bn2);
+        bn1.ctCopy(bn2);
         
         byte[] expectedResult = {0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         byte[] actualResult = new byte[6];
@@ -69,7 +69,7 @@ public class CopyTest {
         byte[] data2 = {0x00, 0x00, 0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
 
-        bn1.copy(bn2);
+        bn1.ctCopy(bn2);
 
         byte[] expectedResult = {0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         byte[] actualResult = new byte[6];
@@ -92,7 +92,7 @@ public class CopyTest {
         byte[] data2 = {0x00, 0x00, 0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
 
-        bn1.copy(bn2);
+        bn1.ctCopy(bn2);
 
         byte[] expectedResult = {0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         byte[] actualResult = new byte[5];
@@ -115,6 +115,6 @@ public class CopyTest {
         byte[] data2 = {0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
 
-        Assertions.assertThrows(ISOException.class, () -> bn1.copy(bn2));
+        Assertions.assertThrows(ISOException.class, () -> bn1.ctCopy(bn2));
     }
 }

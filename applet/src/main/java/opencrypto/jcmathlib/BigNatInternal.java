@@ -334,7 +334,7 @@ public class BigNatInternal {
     /**
      * Copies a BigNat into this without changing size. May throw an exception if this is too small.
      */
-    public void copy_original(BigNatInternal other) {
+    public void copy(BigNatInternal other) {
         short thisStart, otherStart, len;
         short diff = (short) (size - other.size);
         if (diff >= 0) {
