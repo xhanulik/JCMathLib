@@ -18,7 +18,7 @@ public class FromByteArrayTest {
         bn1.ctFromByteArray(data1, (short) 0, (short) data1.length);
 
         byte[] actualDst = new byte[10];
-        bn1.copyToByteArray_original(actualDst, (short) 0);
+        bn1.copyToByteArray(actualDst, (short) 0);
 
         byte[] expectedDst = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0, 0, 0, 0};
         Assertions.assertArrayEquals(expectedDst, actualDst);
@@ -44,7 +44,7 @@ public class FromByteArrayTest {
         bn1.ctFromByteArray(data1, (short) 0, (short) data1.length);
 
         byte[] actualDst = new byte[10];
-        bn1.copyToByteArray_original(actualDst, (short) 0);
+        bn1.copyToByteArray(actualDst, (short) 0);
 
         byte[] expectedDst = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0, 0, 0, 0};
         Assertions.assertArrayEquals(expectedDst, actualDst);
@@ -60,7 +60,7 @@ public class FromByteArrayTest {
         bn1.ctFromByteArray(data1, (short) 0, (short) data1.length);
 
         byte[] actualDst = new byte[10];
-        bn1.copyToByteArray_original(actualDst, (short) 0);
+        bn1.copyToByteArray(actualDst, (short) 0);
 
         byte[] expectedDst = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0, 0, 0};
         Assertions.assertArrayEquals(expectedDst, actualDst);

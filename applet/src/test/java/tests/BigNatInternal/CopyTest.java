@@ -27,7 +27,7 @@ public class CopyTest {
 
         byte[] actualResult = new byte[6];
         Arrays.fill(actualResult, (byte) 0xff);
-        short resultSize = bn1.copyToByteArray_original(actualResult, (short) 0);
+        short resultSize = bn1.copyToByteArray(actualResult, (short) 0);
         /* Should be empty */
         Assertions.assertEquals(6, resultSize);
         /* Output buffer not changed */
@@ -50,7 +50,7 @@ public class CopyTest {
         
         byte[] expectedResult = {0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         byte[] actualResult = new byte[6];
-        short resultSize = bn1.copyToByteArray_original(actualResult, (short) 0);
+        short resultSize = bn1.copyToByteArray(actualResult, (short) 0);
         /* Should be empty */
         Assertions.assertEquals(6, resultSize);
         /* Output buffer not changed */
@@ -73,7 +73,7 @@ public class CopyTest {
 
         byte[] expectedResult = {0x00, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         byte[] actualResult = new byte[6];
-        short resultSize = bn1.copyToByteArray_original(actualResult, (short) 0);
+        short resultSize = bn1.copyToByteArray(actualResult, (short) 0);
         /* Should be empty */
         Assertions.assertEquals(6, resultSize);
         /* Output buffer not changed */
@@ -96,7 +96,7 @@ public class CopyTest {
 
         byte[] expectedResult = {0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         byte[] actualResult = new byte[5];
-        short resultSize = bn1.copyToByteArray_original(actualResult, (short) 0);
+        short resultSize = bn1.copyToByteArray(actualResult, (short) 0);
         /* Should be empty */
         Assertions.assertEquals(5, resultSize);
         /* Output buffer not changed */
