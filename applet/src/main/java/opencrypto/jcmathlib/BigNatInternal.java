@@ -212,7 +212,7 @@ public class BigNatInternal {
      * @implNote if targetLength < size, then start is negative, undefined behaviours
      * @implNote not checking whether target length suites into output buffer
      */
-    public void prependZeros_original(short targetLength, byte[] outBuffer, short outOffset) {
+    public void prependZeros(short targetLength, byte[] outBuffer, short outOffset) {
         short start = (short) (targetLength - size);
         if (start > 0) {
             Util.arrayFillNonAtomic(outBuffer, outOffset, start, (byte) 0);
@@ -224,7 +224,7 @@ public class BigNatInternal {
      * @implNote if targetLength < size, then start is negative, undefined behaviours
      * @implNote not checking whether target length suites into output buffer
      */
-    public void prependZeros(short targetLength, byte[] outBuffer, short outOffset) {
+    public void ctPrependZeros(short targetLength, byte[] outBuffer, short outOffset) {
         short start = (short) (targetLength - size);
         short j = 0;
         for (short i = 0; i < outBuffer.length; i++) {

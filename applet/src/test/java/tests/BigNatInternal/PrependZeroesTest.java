@@ -22,7 +22,7 @@ public class PrependZeroesTest {
         Arrays.fill(outBuffer, (byte) 0xff);
         byte[] rBuffer = new byte[] {(byte) 0xff, (byte) 0xff, 0, 0, 0, 0, 0, 0x01, 0x02, 0x03};
 
-        bn1.prependZeros((short) 8, outBuffer, (short) 2);
+        bn1.ctPrependZeros((short) 8, outBuffer, (short) 2);
         Assertions.assertArrayEquals(rBuffer, outBuffer);
     }
 
@@ -39,7 +39,7 @@ public class PrependZeroesTest {
         Arrays.fill(outBuffer, (byte) 0xff);
         byte[] rBuffer = new byte[] {(byte) 0xff, (byte) 0xff, 0, 0, 0, 0, 0x01, 0x02, 0x03, (byte) 0xff};
 
-        bn1.prependZeros((short) 7, outBuffer, (short) 2);
+        bn1.ctPrependZeros((short) 7, outBuffer, (short) 2);
         Assertions.assertArrayEquals(rBuffer, outBuffer);
     }
 
@@ -56,7 +56,7 @@ public class PrependZeroesTest {
         Arrays.fill(outBuffer, (byte) 0xff);
         byte[] rBuffer = new byte[] {(byte) 0xff, 0, 0, 0, 0, 0x01, 0x02, 0x03, (byte) 0xff, (byte) 0xff};
 
-        bn1.prependZeros((short) 7, outBuffer, (short) 1);
+        bn1.ctPrependZeros((short) 7, outBuffer, (short) 1);
         Assertions.assertArrayEquals(rBuffer, outBuffer);
     }
 
@@ -73,7 +73,7 @@ public class PrependZeroesTest {
         Arrays.fill(outBuffer, (byte) 0xff);
         byte[] rBuffer = new byte[] {0, 0, 0, 0, 0x01, 0x02, 0x03, (byte) 0xff, (byte) 0xff, (byte) 0xff};
 
-        bn1.prependZeros((short) 7, outBuffer, (short) 0);
+        bn1.ctPrependZeros((short) 7, outBuffer, (short) 0);
         Assertions.assertArrayEquals(rBuffer, outBuffer);
     }
 
@@ -90,7 +90,7 @@ public class PrependZeroesTest {
         Arrays.fill(outBuffer, (byte) 0xff);
         byte[] rBuffer = new byte[] {0, 0, 0, 0, 0, 0, 0, 0x01, 0x02, 0x03};
 
-        bn1.prependZeros((short) 10, outBuffer, (short) 0);
+        bn1.ctPrependZeros((short) 10, outBuffer, (short) 0);
         Assertions.assertArrayEquals(rBuffer, outBuffer);
     }
 
@@ -107,7 +107,7 @@ public class PrependZeroesTest {
         Arrays.fill(outBuffer, (byte) 0xff);
         byte[] rBuffer = new byte[] {0, 0, 0, 0, 0, 0, 0x01, 0x02, 0x03, (byte) 0xff};
 
-        bn1.prependZeros((short) 9, outBuffer, (short) 0);
+        bn1.ctPrependZeros((short) 9, outBuffer, (short) 0);
         Assertions.assertArrayEquals(rBuffer, outBuffer);
     }
 }
