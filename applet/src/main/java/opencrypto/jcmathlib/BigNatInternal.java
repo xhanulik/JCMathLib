@@ -67,7 +67,7 @@ public class BigNatInternal {
      * @param dstOffset offset in the byte array
      * @return number of bytes written
      */
-    public short copyToByteArray_original(byte[] dst, short dstOffset) {
+    public short copyToByteArray(byte[] dst, short dstOffset) {
         Util.arrayCopyNonAtomic(value, offset, dst, dstOffset, size);
         return size;
     }
@@ -75,7 +75,7 @@ public class BigNatInternal {
     /**
      * Constant time implementation regarding the length of this.value
      */
-    public short copyToByteArray(byte[] dst, short dstOffset) {
+    public short ctCopyToByteArray(byte[] dst, short dstOffset) {
         if (dst.length == 0)
             throw new ArrayIndexOutOfBoundsException();
         short actualDstLength = (short) (dst.length - dstOffset);
