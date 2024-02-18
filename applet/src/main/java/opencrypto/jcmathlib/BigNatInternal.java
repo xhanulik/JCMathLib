@@ -249,7 +249,7 @@ public class BigNatInternal {
     /**
      * Remove leading zeroes from this BigNat and decrease its byte size accordingly.
      */
-    public void shrink_original() {
+    public void shrink() {
         short i;
         for (i = offset; i < value.length; i++) { // Find first non-zero byte
             if (value[i] != 0) {
@@ -266,7 +266,7 @@ public class BigNatInternal {
     /**
      * Refactored, not leaking offset position.
      */
-    public void shrink() {
+    public void ctShrink() {
         short i;
         short newSize = (short) value.length;
         byte foundNonZero = 0x00;
@@ -957,7 +957,7 @@ public class BigNatInternal {
         for (short i = (short) (other.value.length - 1); i >= other.offset; i--) {
             add_original(tmp, (short) (other.value.length - 1 - i), (short) (other.value[i] & DIGIT_MASK));
         }
-        shrink();
+        ctShrink();
         tmp.unlock();
     }
 
@@ -975,7 +975,7 @@ public class BigNatInternal {
             short otherIndex = i >= other.offset ? i : 0;
             add_shift(tmp, (short) (other.value.length - 1 - otherIndex), (short) (other.value[otherIndex] & DIGIT_MASK));
         }
-        shrink();
+        ctShrink();
         tmp.unlock();
     }
 
@@ -1014,7 +1014,7 @@ public class BigNatInternal {
             }
             thisStart--;
         }
-        shrink();
+        ctShrink();
         tmp.unlock();
     }
 
