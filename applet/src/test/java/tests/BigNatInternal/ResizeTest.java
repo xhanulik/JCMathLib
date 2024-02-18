@@ -13,10 +13,20 @@ public class ResizeTest {
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
 
-        byte[] data = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        byte[] data = {0x01, 0x02, 0x03, 0x01, 0x05, 0x06};
         bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.resize((short) (data.length - 3));
+
+        /* First resize to truncate */
+        bn.ctResize((short) (data.length - 3));
         Assertions.assertEquals(data.length - 3, bn.length());
+
+        /* Check that truncation ~ filling with zeroes */
+        bn.ctResize((short) (data.length));
+        Assertions.assertEquals(data.length, bn.length());
+        byte[] expectedResult = {0, 0, 0, 0x01, 0x05, 0x06};
+        byte[] actualResult = new byte[6];
+        bn.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -25,42 +35,15 @@ public class ResizeTest {
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
 
-        byte[] data = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.resize((short) (data.length * 2));
-        Assertions.assertEquals(data.length * 2, bn.length());
-    }
-
-    @Test
-    public void resize_smallerLength_truncateNumber() {
-        ResourceManager rm = new ResourceManager((short) 256);
-        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat bn = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
-        BigNat bn_result = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
-
-        byte[] data = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
-        bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.resize((short) (data.length - 3));
-        Assertions.assertEquals(data.length - 3, bn.length());
-
-        bn_result.fromByteArray(new byte[]{0x04, 0x05, 0x06}, (short) 0, (short) 3);
-        Assertions.assertTrue(bn.equals_original(bn_result));
-    }
-
-    @Test
-    public void resize_smallerLength_enlargeNumber() {
-        ResourceManager rm = new ResourceManager((short) 256);
-        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat bn = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
-        BigNat bn_result = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
-
-        byte[] data = {0x01, 0x02, 0x03};
+        byte[] data = {0x01, 0x02, 0x03, 0x01, 0x05, 0x06};
         bn.fromByteArray(data, (short) 0, (short) data.length);
         bn.resize((short) (data.length + 3));
-        Assertions.assertEquals(data.length + 3, bn.length());
+        Assertions.assertEquals(data.length  + 3, bn.length());
 
-        bn_result.fromByteArray(new byte[]{0x00, 0x00, 0x00, 0x01, 0x02, 0x03}, (short) 0, (short) 6);
-        Assertions.assertTrue(bn.equals_original(bn_result));
+        byte[] expectedResult = {0, 0, 0, 0x01, 0x02, 0x03, 0x01, 0x05, 0x06};
+        byte[] actualResult = new byte[9];
+        bn.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -68,15 +51,16 @@ public class ResizeTest {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
-        BigNat bn_result = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
 
         byte[] data = {0x01, 0x02, 0x03};
         bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.resize((short) data.length);
-        Assertions.assertEquals(data.length, bn.length());
+        bn.ctResize((short) data.length);
+        Assertions.assertEquals(data.length, data.length);
 
-        bn_result.fromByteArray(new byte[]{0x01, 0x02, 0x03}, (short) 0, (short) 3);
-        Assertions.assertTrue(bn.equals_original(bn_result));
+        byte[] expectedResult = {0x01, 0x02, 0x03};
+        byte[] actualResult = new byte[3];
+        bn.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -84,14 +68,12 @@ public class ResizeTest {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
-        BigNat bn_result = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
 
         byte[] data = {0x01, 0x02, 0x03};
         bn.fromByteArray(data, (short) 0, (short) 3);
         bn.resize((short) 0);
         Assertions.assertEquals(0, bn.length());
-
-        bn_result.fromByteArray(new byte[]{}, (short) 0, (short) 0);
-        Assertions.assertTrue(bn.equals_original(bn_result));
+        /* No exception */
+        bn.copyToByteArray(new byte[] {}, (short) 0);
     }
 }
