@@ -2,7 +2,6 @@ package tests.BigNatInternal;
 
 import javacard.framework.JCSystem;
 import opencrypto.jcmathlib.BigNat;
-import opencrypto.jcmathlib.BigNatInternal;
 import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,7 @@ public class ShrinkTest {
 
         byte[] data = {0x00, 0x00, 0x00, 0x01, 0x02, 0x03};
         bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.shrink();
+        bn.ctShrink();
         Assertions.assertEquals(3, bn.length());
     }
 
@@ -28,7 +27,7 @@ public class ShrinkTest {
 
         byte[] data = {0x01, 0x02, 0x03};
         bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.shrink();
+        bn.ctShrink();
         Assertions.assertEquals(3, bn.length());
     }
 }
