@@ -174,7 +174,7 @@ public class BigNatInternal {
      * @param outBuffer    output buffer for value with appended zeroes
      * @param outOffset    start offset inside outBuffer for write
      */
-    public void appendZeros_original(short targetLength, byte[] outBuffer, short outOffset) {
+    public void appendZeros(short targetLength, byte[] outBuffer, short outOffset) {
         Util.arrayCopyNonAtomic(value, offset, outBuffer, outOffset, size);
         Util.arrayFillNonAtomic(outBuffer, (short) (outOffset + size), (short) (targetLength - size), (byte) 0);
     }
@@ -182,7 +182,7 @@ public class BigNatInternal {
     /**
      * Constant-time implementation, dependent on the length of output buffer
      */
-    public void appendZeros(short targetLength, byte[] outBuffer, short outOffset) {
+    public void ctAppendZeros(short targetLength, byte[] outBuffer, short outOffset) {
         short j = 0;
         for (short i = 0; i < outBuffer.length; i++) {
             short before = ConstantTime.ctLessThan(i, outOffset);
