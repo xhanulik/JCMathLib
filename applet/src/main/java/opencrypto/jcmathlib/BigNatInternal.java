@@ -132,10 +132,11 @@ public class BigNatInternal {
 
     /**
      * Resize this BigNat value to given size in bytes. May result in truncation.
+     * When value is truncated, difference is filled with zeroes.
      *
      * @param newSize new size in bytes
      */
-    public void resize_original(short newSize) {
+    public void resize(short newSize) {
         if (newSize > (short) value.length) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_REALLOCATIONNOTALLOWED);
         }
@@ -147,7 +148,7 @@ public class BigNatInternal {
         }
     }
 
-    public void resize(short newSize) {
+    public void ctResize(short newSize) {
         if (newSize > (short) value.length) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_REALLOCATIONNOTALLOWED);
         }
@@ -155,10 +156,15 @@ public class BigNatInternal {
         short diff = (short) (newSize - size);
         // take the rightmost offset to zero rest of the number
         short newOffset = (short) (value.length - newSize);
-        short rightOffset = diff > 0 ? offset : newOffset;
-        short leftOffset = diff > 0 ? newOffset : offset;
+        short rightOffset = ConstantTime.ctSelect(ConstantTime.ctIsPositive(diff), offset, newOffset);
+        short leftOffset = ConstantTime.ctSelect(ConstantTime.ctIsPositive(diff), newOffset, offset);
         setSize(newSize);
         Util.arrayFillNonAtomic(value, leftOffset, (short) (rightOffset - leftOffset), (byte) 0);
+        for (short i = 0; i < value.length; i++) {
+            short validIndex = (short) (ConstantTime.ctGreaterOrEqual(i, leftOffset) & ConstantTime.ctLessThan(i, rightOffset));
+            byte thisValue = value[i];
+            value[i] = ConstantTime.ctSelect(validIndex, (byte) 0, thisValue);
+        }
     }
 
     /**
