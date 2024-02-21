@@ -7,24 +7,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class IsLesserTest {
-    private static void printBits(short value) {
-        System.out.println("Short value: " + value);
-
-        for (int i = 15; i >= 0; i--) {
-            int bit = (value >> i) & 1;
-            System.out.print(bit);
-        }
-
-        System.out.println();
-    }
-
-    static short ct_negative(short a) {
-        return (short) ((a & (1 << 15)) >> 15);
-    }
-    @Test
-    public void test() {
-        printBits((short) ct_negative((short) -2));
-    }
     // no shifts, other.size > this.size, same memory
     @Test
     public void isLesser_otherLonger_true() {
@@ -37,7 +19,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2));
     }
 
     @Test
@@ -51,7 +33,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x00, 0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0x00, bn1.ctIsLesser(bn2));
     }
 
     @Test
@@ -65,7 +47,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x00, 0x00, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0x00, bn1.ctIsLesser(bn2));
     }
 
     // no shifts, other.size > this.size, different memory
@@ -80,7 +62,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2));
     }
 
     @Test
@@ -94,7 +76,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2));
     }
 
     // no shifts, same length, same memory
@@ -102,14 +84,14 @@ public class IsLesserTest {
     public void isLesser_sameLength_true() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
-        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn1 = new BigNat((short) 3, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 3, memoryType, rm);
 
         byte[] data1 = {0x01, 0x02, 0x03, 0x03};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2));
     }
 
     @Test
@@ -123,7 +105,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2));
     }
 
     @Test
@@ -137,7 +119,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x03};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0x00, bn1.ctIsLesser(bn2));
     }
 
     @Test
@@ -151,7 +133,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x00, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0x00, bn1.ctIsLesser(bn2));
     }
 
     // no shifts, same length, different memory
@@ -160,13 +142,13 @@ public class IsLesserTest {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn1 = new BigNat((short) 3, memoryType, rm);
-        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 5, memoryType, rm);
 
         byte[] data1 = {0x01, 0x02, 0x03, 0x03};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2));
     }
 
     // no shifts, other.size < this.size, same memory
@@ -181,7 +163,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2));
     }
 
     @Test
@@ -195,7 +177,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2));
     }
 
     @Test
@@ -209,7 +191,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0x00, bn1.ctIsLesser(bn2));
     }
 
     @Test
@@ -223,7 +205,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0x00, bn1.ctIsLesser(bn2));
     }
 
     // no shifts, other.size < this.size, different memory
@@ -238,7 +220,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2));
     }
 
     // problem
@@ -253,7 +235,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2));
+        Assertions.assertEquals((short) 0x00, bn1.ctIsLesser(bn2));
     }
 
     // shifts
@@ -268,7 +250,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2, (short) 1, (short) 0));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2, (short) 1, (short) 0));
     }
 
     @Test
@@ -282,7 +264,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2, (short) 3, (short) 0));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2, (short) 3, (short) 0));
     }
 
     @Test
@@ -296,7 +278,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2, (short) 1, (short) 0));
+        Assertions.assertEquals((short) 0x00, bn1.ctIsLesser(bn2, (short) 1, (short) 0));
     }
 
     // start
@@ -311,7 +293,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2, (short) 0, (short) 1));
+        Assertions.assertEquals((short) 0x00, bn1.ctIsLesser(bn2, (short) 0, (short) 1));
     }
 
     @Test
@@ -325,7 +307,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x00, 0x02, 0x03, 0x04, 0x05};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2, (short) 0, (short) 1));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2, (short) 0, (short) 1));
     }
 
     @Test
@@ -339,7 +321,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 =  {0x01, 0x00, 0x03, 0x04, 0x05};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2, (short) 0, (short) 1));
+        Assertions.assertEquals((short) 0x00, bn1.ctIsLesser(bn2, (short) 0, (short) 1));
     }
 
     // start & shift
@@ -354,7 +336,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2, (short) 2, (short) 1));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2, (short) 2, (short) 1));
     }
 
     @Test
@@ -368,7 +350,7 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertFalse(bn1.isLesser(bn2, (short) 2, (short) 5));
+        Assertions.assertEquals((short) 0x00, bn1.ctIsLesser(bn2, (short) 2, (short) 5));
     }
 
     @Test
@@ -382,6 +364,6 @@ public class IsLesserTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03, 0x04, 0x05};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        Assertions.assertTrue(bn1.isLesser(bn2, (short) 2, (short) 4));
+        Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2, (short) 2, (short) 4));
     }
 }
