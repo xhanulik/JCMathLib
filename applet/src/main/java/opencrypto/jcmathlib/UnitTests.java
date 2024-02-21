@@ -798,7 +798,7 @@ public class UnitTests extends Applet {
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
 
-        short lesser = (short) (bn1.isLesser_original(bn2, (short) 0, (short) 0) ? 1 : 0);
+        short lesser = bn1.ctIsLesser(bn2, (short) 0, (short) 0);
         apdu.setOutgoingAndSend((short) 0, lesser);
     }
 
