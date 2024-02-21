@@ -46,6 +46,26 @@ public class ConstantTime {
     }
 
     /**
+     * Constant time check for non-zero byte value.
+     *
+     * @param  a    value to be checked
+     * @return      (byte) 255 if zero, 0 otherwise
+     */
+    public static byte ctIsNonZero(byte a){
+        return (byte) ~ctMsb((byte) (~a & ((0xff & a) - 1)));
+    }
+
+    /**
+     * Constant time check for non-zero short value.
+     *
+     * @param  a    value to be checked
+     * @return      (short) 65535 if zero, 0 otherwise
+     */
+    public static short ctIsNonZero(short a){
+        return (short) ~ctMsb((short) (~a & ((0xffff & a) - 1)));
+    }
+
+    /**
      * Compares two byte values for the first value being less than the second value.
      *
      * @param a the first byte value to compare
