@@ -432,7 +432,6 @@ public class BigNatInternal {
     }
 
     /**
-
      * Test equality with zero.
      */
     public boolean isZero() {
