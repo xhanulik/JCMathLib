@@ -466,6 +466,15 @@ public class BigNatInternal {
      * Test equality with one.
      */
     public boolean isOne() {
+        for (short i = offset; i < (short) (value.length - 1); i++) {
+            if (value[i] != 0) {
+                return false; // CTO
+            }
+        }
+        return value[(short) (value.length - 1)] == (byte) 0x01;
+    }
+
+    public boolean ctIsOne() {
         boolean upperZero = ctIsZero((short) 0, (short) ((short) value.length - 1));
         return (value[(short) (value.length - 1)] == (byte) 0x01) && upperZero;
     }
