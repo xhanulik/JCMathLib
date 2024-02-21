@@ -62,6 +62,22 @@ public class ConstantTimeTest {
         Assertions.assertEquals((short) 65535, ConstantTime.ctIsZero((short) 0));
     }
 
+    /* ctIsNonZero tests */
+    @Test
+    public void ctIsNonZero_true() {
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNonZero((byte) 1));
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNonZero((byte) 255));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNonZero((short) 1));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNonZero((short) 65535));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsNonZero((short) -32768));
+    }
+
+    @Test
+    public void ctIsNonZero_false() {
+        Assertions.assertEquals((byte) 0, ConstantTime.ctIsNonZero((byte) 0));
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsNonZero((short) 0));
+    }
+
     /* ctLessThan tests */
     @Test
     public void ctLessThan_false() {
@@ -218,7 +234,7 @@ public class ConstantTimeTest {
 
     /* csIsNonPositive tests */
     @Test
-    public void csIsNonPositive_false() {
+    public void ctIsNonPositive_false() {
         Assertions.assertEquals((byte) 0, ConstantTime.ctIsNegative((byte) 100));
         Assertions.assertEquals((byte) 0, ConstantTime.ctIsNegative((byte) 127));
 
@@ -227,7 +243,7 @@ public class ConstantTimeTest {
     }
 
     @Test
-    public void csIsNonPositive_true() {
+    public void ctIsNonPositive_true() {
         Assertions.assertEquals((byte) 0, ConstantTime.ctIsNegative((byte) 0));
         Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNegative((byte) -1));
         Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsNegative((byte) -100));
