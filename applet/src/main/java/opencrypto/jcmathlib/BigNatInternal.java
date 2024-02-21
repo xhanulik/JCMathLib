@@ -502,7 +502,7 @@ public class BigNatInternal {
      * @param start digits to skip at the beginning
      * @return  true if this number is strictly less than the shifted other, false otherwise.
      */
-    public boolean isLesser_original(BigNatInternal other, short shift, short start) {
+    public boolean isLesser(BigNatInternal other, short shift, short start) {
         short j = (short) (other.size + shift - size + start + other.offset);
 
         for (short i = (short) (start + other.offset); i < j; ++i) {
@@ -524,45 +524,51 @@ public class BigNatInternal {
         return false;
     }
 
-    public boolean isLesser(BigNatInternal other, short shift, short start) {
+    public short ctIsLesser(BigNatInternal other) {
+        return ctIsLesser(other, (short) 0, (short) 0);
+    }
+
+    public short ctIsLesser(BigNatInternal other, short shift, short start) {
         // index, where the byte positions in other corresponding to the positions in this
         // (after shifting, starting from start index)
+        // j can be negative
         short j = (short) (other.size + shift - size + start + other.offset);
 
         short otherBigger = 0;
         // check the bytes by which other is longer than this
         // if they are non-zero, then other is strictly greater than this
         for (short i = 0; i < other.value.length; ++i) {
-            short validIndexLower = (short) (i >= (short) (start + other.offset) ? 1 : 0);
-            short validIndexHigher = (short) (i < j ? 1 : 0);
-            short nonZeroValue = (short) (other.value[i] != 0 ? 1 : 0);
-            otherBigger = (short) ((validIndexLower & validIndexHigher & nonZeroValue) | otherBigger);
+            short nonZeroValue = ConstantTime.ctGreaterOrEqual(i, (short) (start + other.offset)); // lower index in range
+            nonZeroValue &= (short) (ConstantTime.ctLessThan(i, j) & ConstantTime.ctIsNonNegative(j)); // upper index in range
+            nonZeroValue &= ConstantTime.ctIsNonZero(other.value[i]); // non-zero value
+            otherBigger = (short) (nonZeroValue | otherBigger);
         }
 
-        short thisLesser = 0;
-        short lesserSet = 1;
+        short thisLesser = 0x00;
+        short lesserNotSeenYet = (short) 0xffff;
         // check all bytes at positions that correspond to the number other in this
         for (short i = 0; i < (short) value.length; i++) {
             short thisValue = (short) (value[i] & DIGIT_MASK);
-            short validOtherIndexLower = (short) (j >= other.offset ? 1 : 0);
-            short validOtherIndexHigher = (short) (j < (short) other.value.length ? 1 : 0);
-            short otherValue = (validOtherIndexLower & validOtherIndexHigher) != 0
-                    ? (short) (other.value[j] & DIGIT_MASK)
-                    : (short) 0;
-            short validIndex = (short) (i >= (short) (start + offset) ? 1 : 0);
-            short thisSmaller = (short) (thisValue < otherValue ? 1 : 0);
-            short thisBigger = (short) (thisValue > otherValue ? 1 : 0);
+            short validThisIndex = ConstantTime.ctGreaterOrEqual (i, (short) (start + offset));
+
+            short validOtherIndex = (short) (ConstantTime.ctGreaterOrEqual(j, other.offset) & ConstantTime.ctIsNonNegative(j)); // lower
+            validOtherIndex &= (short) (ConstantTime.ctLessThan(j, (short) other.value.length) & ConstantTime.ctIsNonNegative(j)); // upper
+            short otherIndex = ConstantTime.ctSelect(validOtherIndex, j, (short) 0); // substitute bogus index when negative
+            short otherValue = ConstantTime.ctSelect(validOtherIndex, (short) (other.value[otherIndex] & DIGIT_MASK), (short) 0);
+
+            short thisSmaller = (short) (ConstantTime.ctLessThan(thisValue, otherValue) & validThisIndex & validOtherIndex);
+            short thisBigger = (short) (ConstantTime.ctLessThan(otherValue, thisValue) & validThisIndex & validOtherIndex);
 
             // this is lesser, no previous bytes in other were lesser
-            thisLesser = (lesserSet & validIndex & thisSmaller) != 0 ? 1 : thisLesser;
+            thisLesser = ConstantTime.ctSelect((short) (lesserNotSeenYet & thisSmaller), (short) 0xffff, thisLesser);
             // first lesser byte seen, do not take next bytes into account
-            lesserSet = (lesserSet & validIndex & thisSmaller) != 0 ? 0 : lesserSet;
+            lesserNotSeenYet = ConstantTime.ctSelect((short) (lesserNotSeenYet & thisSmaller), (short) 0x00, lesserNotSeenYet);
             // larger bytes in this observed before any smaller byte, this cannot be smaller than other
-            lesserSet = (lesserSet & validIndex & thisBigger) != 0 ? 0 : lesserSet;
-            j += validIndex;
+            lesserNotSeenYet = ConstantTime.ctSelect((short) (lesserNotSeenYet & thisBigger), (short) 0x00, lesserNotSeenYet);
+            j += ConstantTime.ctSelect(validThisIndex, (short) 1, (short) 0);
         }
 
-        return (otherBigger | thisLesser) != 0;
+        return (short) (otherBigger | thisLesser);
     }
 
     /**
