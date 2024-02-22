@@ -20,7 +20,7 @@ public class CloneTest {
         byte[] data2 = {0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.clone(bn2);
-        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertTrue(bn1.equals(bn2));
     }
 
     @Test
@@ -35,7 +35,7 @@ public class CloneTest {
         byte[] data2 = {0x0a, 0x0b, 0x0c, 0x0d, 0x0e};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.clone(bn2);
-        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertTrue(bn1.equals(bn2));
     }
 
     @Test
@@ -65,7 +65,7 @@ public class CloneTest {
         byte[] data2 = {0x0a, 0x0b};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.clone(bn2);
-        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertTrue(bn1.equals(bn2));
     }
 
     @Test
@@ -80,6 +80,6 @@ public class CloneTest {
         byte[] data2 = {};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.clone(bn2);
-        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertTrue(bn1.equals(bn2));
     }
 }

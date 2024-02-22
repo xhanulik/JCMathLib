@@ -23,7 +23,7 @@ public class AddTest {
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x01, 0x04, 0x06};
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals_original(bn3));
+        Assertions.assertTrue(bn1.equals(bn3));
     }
 
     @Test
@@ -44,7 +44,7 @@ public class AddTest {
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x02, 0x00, 0x06};
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals_original(bn3));
+        Assertions.assertTrue(bn1.equals(bn3));
     }
 
     @Test
@@ -66,7 +66,7 @@ public class AddTest {
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x00, 0x02, 0x01, 0x01};
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals_original(bn3));
+        Assertions.assertTrue(bn1.equals(bn3));
     }
 
     @Test
@@ -85,7 +85,7 @@ public class AddTest {
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x02, 0x08, 0x08};
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals_original(bn3));
+        Assertions.assertTrue(bn1.equals(bn3));
     }
 
     @Test
@@ -104,7 +104,7 @@ public class AddTest {
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x02, 0x08, (byte) 0xfe};
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals_original(bn3));
+        Assertions.assertTrue(bn1.equals(bn3));
     }
 
     @Test
@@ -127,7 +127,7 @@ public class AddTest {
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x00, 0x00, 0x08, (byte) 0xfe};
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals_original(bn3));
+        Assertions.assertTrue(bn1.equals(bn3));
     }
 
     @Test
@@ -146,7 +146,7 @@ public class AddTest {
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x04, 0x06};
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals_original(bn3));
+        Assertions.assertTrue(bn1.equals(bn3));
     }
 
     @Test
@@ -169,7 +169,7 @@ public class AddTest {
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x00, 0x00, 0x06};
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals_original(bn3));
+        Assertions.assertTrue(bn1.equals(bn3));
     }
 
     @Test
@@ -191,7 +191,7 @@ public class AddTest {
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x00, 0x00, 0x06};
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals_original(bn3));
+        Assertions.assertTrue(bn1.equals(bn3));
     }
 
     @Test
@@ -213,7 +213,7 @@ public class AddTest {
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x00, 0x00, 0x00, 0x06};
         bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals_original(bn3));
+        Assertions.assertTrue(bn1.equals(bn3));
     }
 
     @Test

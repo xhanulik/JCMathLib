@@ -579,57 +579,6 @@ public class BigNatInternal {
      */
     public boolean equals(BigNatInternal other) {
         short diff = (short) (size - other.size);
-        short thisStart = offset;
-        short otherStart = other.offset;;
-        short length = size;
-
-        if (diff == 0) {
-            thisStart = offset;
-            otherStart = other.offset;
-            length = size;
-        }
-
-        if (diff < 0) {
-            thisStart = offset;
-            otherStart = (short) (other.offset - diff);
-            length = size;
-        }
-
-        if (diff > 0) {
-            thisStart = (short) (offset + diff);
-            otherStart = other.offset;
-            length = other.size;
-        }
-
-        short nonZeroPrefixOther = 0;
-        for (short i = 0; i < other.value.length; ++i) {
-            short validIndex1 = (short) (i >= other.offset ? 1 : 0);
-            short validIndex2 = (short) (i < (short) (other.offset - diff) ? 1 : 0);
-            short nonZero = (short) (other.value[i] != (byte) 0 ? 1 : 0);
-            nonZeroPrefixOther = (short) ((validIndex1 & validIndex2 & nonZero) | nonZeroPrefixOther);
-        }
-
-        short nonZeroPrefixThis = 0;
-        for (short i = (short) 0; i < value.length; ++i) {
-            short validIndex1 = (short) (i >= offset ? 1 : 0);
-            short validIndex2 = (short) (i < (short) (offset + diff) ? 1 : 0);
-            short nonZero = (short) (value[i] != (byte) 0 ? 1 : 0);
-            nonZeroPrefixThis = (short) ((validIndex1 & validIndex2 & nonZero) | nonZeroPrefixThis);
-        }
-
-        boolean result = true;
-        if (diff < 0) {
-            result = nonZeroPrefixOther == (short) 0;
-        }
-        if (diff > 0) {
-            result = nonZeroPrefixThis == (short) 0;
-        }
-        boolean val = Util.arrayCompare(value, thisStart, other.value, otherStart, length) == 0;
-        return val && result;
-    }
-
-    public boolean equals_original(BigNatInternal other) {
-        short diff = (short) (size - other.size);
 
         if (diff == 0) {
             return Util.arrayCompare(value, offset, other.value, other.offset, size) == 0;
@@ -643,17 +592,55 @@ public class BigNatInternal {
                     return false;
                 }
             }
-            return Util.arrayCompare(value, (short) 0, other.value, end, size) == 0;
+            return Util.arrayCompare(value, offset, other.value, end, size) == 0;
         }
 
-        short end = diff;
-        for (short i = (short) 0; i < end; ++i) {
+        short end = (short) (offset + diff);
+        for (short i = offset; i < end; ++i) {
             if (value[i] != (byte) 0) {
                 return false;
             }
         }
-        return Util.arrayCompare(value, end, other.value, other.offset, other.size) == 0;
+        short r = Util.arrayCompare(value, end, other.value, other.offset, other.size);
+        return r == 0;
     }
+
+    public short ctEquals(BigNatInternal other) {
+        short diff = (short) (size - other.size);
+        short newThisOffset = (short) (offset + diff);
+        short newOtherOffset = (short) (other.offset - diff);
+        short thisStart = ConstantTime.ctSelect(ConstantTime.ctIsPositive(diff), newThisOffset, offset);
+        short otherStart = ConstantTime.ctSelect(ConstantTime.ctIsNegative(diff), newOtherOffset, other.offset);
+
+        short nonZeroPrefixOther = 0;
+        for (short i = 0; i < other.value.length; ++i) {
+            short nonZero = ConstantTime.ctGreaterOrEqual(i, other.offset); // valid lower bound
+            nonZero &= ConstantTime.ctLessThan (i, newOtherOffset); // valid upper bound
+            nonZero &= ConstantTime.ctIsNonZero(other.value[i]);
+            nonZeroPrefixOther = (short) (nonZero | nonZeroPrefixOther);
+        }
+
+        short nonZeroPrefixThis = 0;
+        for (short i = (short) 0; i < value.length; ++i) {
+            short nonZero = ConstantTime.ctGreaterOrEqual(i, offset); // valid lower bound
+            nonZero &= ConstantTime.ctLessThan (i, newThisOffset); // valid upper bound
+            nonZero &= ConstantTime.ctIsNonZero(value[i]);
+            nonZeroPrefixThis = (short) (nonZero | nonZeroPrefixThis);
+        }
+
+        short result = ConstantTime.ctSelect(ConstantTime.ctIsNegative(diff), (short) ~nonZeroPrefixOther, (short) 0xffff);
+        result = ConstantTime.ctSelect(ConstantTime.ctIsPositive(diff), (short) ~nonZeroPrefixThis, result);
+
+        short j = otherStart;
+        for (short i = 0; i < value.length; i++) {
+            short validThisIndex = ConstantTime.ctGreaterOrEqual(i, thisStart);
+            short equals = ConstantTime.ctEqual(value[i], other.value[j]);
+            result &= ConstantTime.ctSelect(validThisIndex, equals, (short) 0xffff);
+            j += ConstantTime.ctSelect(validThisIndex, (short) 1, (short) 0);
+        }
+        return result;
+    }
+
 
     /**
      * Test equality with a byte.

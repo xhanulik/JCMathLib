@@ -334,7 +334,7 @@ public class BigNatInternalTest {
 
         BigNat bn2 = new BigNat((short) 10, memoryType, rm);
         bn2.fromByteArray(new byte[]{0x01, 0x03}, (short) 0, (short) 2);
-        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertTrue(bn1.equals(bn2));
     }
 
     @Test
@@ -349,7 +349,7 @@ public class BigNatInternalTest {
 
         BigNat bn2 = new BigNat((short) 10, memoryType, rm);
         bn2.fromByteArray(new byte[]{0x02, 0x00}, (short) 0, (short) 2);
-        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertTrue(bn1.equals(bn2));
     }
 
     @Test
@@ -364,7 +364,7 @@ public class BigNatInternalTest {
 
         BigNat bn2 = new BigNat((short) 10, memoryType, rm);
         bn2.fromByteArray(new byte[]{0x00, 0x00}, (short) 0, (short) 2);
-        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertTrue(bn1.equals(bn2));
         Assertions.assertEquals(2, bn1.length());
     }
 
@@ -380,7 +380,7 @@ public class BigNatInternalTest {
 
         BigNat bn2 = new BigNat((short) 10, memoryType, rm);
         bn2.fromByteArray(new byte[]{(byte) 0x01, (byte) 0x01}, (short) 0, (short) 2);
-        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertTrue(bn1.equals(bn2));
         Assertions.assertEquals(2, bn1.length());
     }
 
@@ -396,7 +396,7 @@ public class BigNatInternalTest {
 
         BigNat bn2 = new BigNat((short) 10, memoryType, rm);
         bn2.fromByteArray(new byte[]{(byte) 0x00, (byte) 0xff}, (short) 0, (short) 2);
-        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertTrue(bn1.equals(bn2));
         Assertions.assertEquals(2, bn1.length());
     }
 
@@ -412,7 +412,7 @@ public class BigNatInternalTest {
 
         BigNat bn2 = new BigNat((short) 10, memoryType, rm);
         bn2.fromByteArray(new byte[]{(byte) 0x00, (byte) 0xff, (byte) 0xff, (byte) 0xff}, (short) 0, (short) 4);
-        Assertions.assertTrue(bn1.equals_original(bn2));
+        Assertions.assertTrue(bn1.equals(bn2));
         Assertions.assertEquals(4, bn1.length());
     }
 
