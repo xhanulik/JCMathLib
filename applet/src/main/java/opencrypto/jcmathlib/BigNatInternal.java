@@ -443,7 +443,7 @@ public class BigNatInternal {
         return true;
     }
 
-    public boolean ctIsZero() {
+    public short ctIsZero() {
         return ctIsZero(offset, (short) value.length);
     }
 
@@ -453,13 +453,13 @@ public class BigNatInternal {
      * @param offset offset in the byte array, starting index
      * @param end    ending index
      */
-    public boolean ctIsZero(short offset, short end) {
+    public short ctIsZero(short offset, short end) {
         byte good = (byte) 0xff;
         for (short i = 0; i < value.length; i++) {
             byte validIndex = (byte) ((ctGreaterOrEqual(i, offset) & ctLessThan(i, end)) & 0xff);
             good &= (ConstantTime.ctIsZero(value[i]) & validIndex) | ~validIndex;
         }
-        return (0xff & good) == 0xff;
+        return good;
     }
 
     /**
@@ -474,9 +474,10 @@ public class BigNatInternal {
         return value[(short) (value.length - 1)] == (byte) 0x01;
     }
 
-    public boolean ctIsOne() {
-        boolean upperZero = ctIsZero((short) 0, (short) ((short) value.length - 1));
-        return (value[(short) (value.length - 1)] == (byte) 0x01) && upperZero;
+    public short ctIsOne() {
+        short upperZero = ctIsZero((short) 0, (short) ((short) value.length - 1));
+        short lowerByte = value[(short) (value.length - 1)];
+        return (short) (ConstantTime.ctEqual(lowerByte, (short) 0x01) & upperZero);
     }
 
     /**
@@ -652,6 +653,11 @@ public class BigNatInternal {
             }
         }
         return value[(short) (value.length - 1)] == b;
+    }
+
+    public short ctEquals(byte b) {
+        short result = this.ctIsZero(offset, (short) (value.length - 1));
+        return (short) (result & ConstantTime.ctEqual(value[(short) (value.length - 1)], b));
     }
 
     /**
