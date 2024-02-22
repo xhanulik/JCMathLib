@@ -15,7 +15,7 @@ public class IsOneTest {
 
         byte[] data = {0x00, 0x00, 0x00, 0x01};
         bn.fromByteArray(data, (short) 0, (short) data.length);
-        Assertions.assertTrue(bn.ctIsOne());
+        Assertions.assertEquals((short) 0xffff, bn.ctIsOne());
     }
 
     @Test
@@ -26,7 +26,7 @@ public class IsOneTest {
 
         byte[] data = {0x00, 0x00, 0x00, 0x00};
         bn.fromByteArray(data, (short) 0, (short) data.length);
-        Assertions.assertFalse(bn.ctIsOne());
+        Assertions.assertEquals((short) 0x00, bn.ctIsOne());
     }
 
     @Test
@@ -37,6 +37,6 @@ public class IsOneTest {
 
         byte[] data = {0x00, 0x00, 0x01, 0x01};
         bn.fromByteArray(data, (short) 0, (short) data.length);
-        Assertions.assertFalse(bn.ctIsOne());
+        Assertions.assertEquals((short) 0x00, bn.ctIsOne());
     }
 }
