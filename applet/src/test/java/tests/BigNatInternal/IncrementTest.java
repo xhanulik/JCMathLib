@@ -15,7 +15,7 @@ public class IncrementTest {
 
         byte[] data = {0x00, 0x01, 0x02, 0x03};
         bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.increment();
+        bn.ctIncrement();
 
         byte[] expectedResult = {0x00, 0x01, 0x02, 0x04};
         byte[] actualResult = new byte[4];
@@ -32,7 +32,7 @@ public class IncrementTest {
 
         byte[] data = {0x00, 0x01, 0x02, (byte) 0xff};
         bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.increment();
+        bn.ctIncrement();
 
         byte[] expectedResult = {0x00, 0x01, 0x03, 0x00};
         byte[] actualResult = new byte[4];
@@ -49,7 +49,7 @@ public class IncrementTest {
 
         byte[] data = {0x00, (byte) 0xff, (byte) 0xff, (byte) 0xff};
         bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.increment();
+        bn.ctIncrement();
 
         byte[] expectedResult = {0x01, 0x00, 0x00, 0x00};
         byte[] actualResult = new byte[4];
@@ -66,7 +66,7 @@ public class IncrementTest {
 
         byte[] data = {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
         bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.increment();
+        bn.ctIncrement();
 
         byte[] expectedResult = {0x00, 0x00, 0x00, 0x00};
         byte[] actualResult = new byte[4];
