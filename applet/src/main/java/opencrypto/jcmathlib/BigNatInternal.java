@@ -681,7 +681,7 @@ public class BigNatInternal {
             short validIndex = ConstantTime.ctGreaterOrEqual(i, offset);
             byte newValue = (byte) (tmp + 1);
             value[i] = ConstantTime.ctSelect((short) (validIndex & incrementByte), newValue, tmp);
-            incrementByte = (byte) ~ConstantTime.ctEqual(tmp, (byte) 0xff);
+            incrementByte = ConstantTime.ctEqual(tmp, (byte) 0xff);
         }
     }
 
@@ -691,13 +691,23 @@ public class BigNatInternal {
      */
     public void decrement() {
         short tmp;
-        short decrementByte = 1;
-        for (short i = (short) (value.length - 1); i >= 0; i--) {
+        for (short i = (short) (value.length - 1); i >= offset; i--) {
             tmp = (short) (value[i] & 0xff);
-            short validIndex = (short) (i >= offset ? 1 : 0);
-            short newValue = (short) (tmp - 1);
-            value[i] = (validIndex & decrementByte) != 0 ? (byte) newValue : (byte) tmp;
-            decrementByte = (short) (tmp != 0 ? 0 : decrementByte);
+            value[i] = (byte) (tmp - 1);
+            if (tmp != 0) {
+                break; // CTO
+            }
+        }
+    }
+
+    public void ctDecrement() {
+        byte decrementByte = (byte) 0xff;
+        for (short i = (short) (value.length - 1); i >= 0; i--) {
+            byte tmp = value[i];
+            short validIndex = ConstantTime.ctGreaterOrEqual(i, offset);
+            byte newValue = (byte) (tmp - 1);
+            value[i] = ConstantTime.ctSelect((short) (validIndex & decrementByte), newValue, tmp);
+            decrementByte = ConstantTime.ctEqual(tmp, (byte) 0x00);
         }
     }
 
