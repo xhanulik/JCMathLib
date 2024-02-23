@@ -665,13 +665,23 @@ public class BigNatInternal {
      * @apiNote Does not increase size.
      */
     public void increment() {
-        short incrementByte = 1;
-        for (short i = (short) (value.length - 1); i >= 0; i--) {
+        for (short i = (short) (value.length - 1); i >= offset; i--) {
             short tmp = (short) (value[i] & 0xff);
-            short validIndex = (short) (i >= offset ? 1 : 0);
-            short newValue = (short) (tmp + 1);
-            value[i] = (validIndex & incrementByte) != 0 ? (byte) newValue : (byte) tmp;
-            incrementByte = (short) (tmp < 255 ? 0 : incrementByte);
+            value[i] = (byte) (tmp + 1);
+            if (tmp < 255) {
+                break; // CTO
+            }
+        }
+    }
+
+    public void ctIncrement() {
+        byte incrementByte = (byte) 0xff;
+        for (short i = (short) (value.length - 1); i >= 0; i--) {
+            byte tmp = value[i];
+            short validIndex = ConstantTime.ctGreaterOrEqual(i, offset);
+            byte newValue = (byte) (tmp + 1);
+            value[i] = ConstantTime.ctSelect((short) (validIndex & incrementByte), newValue, tmp);
+            incrementByte = (byte) ~ConstantTime.ctEqual(tmp, (byte) 0xff);
         }
     }
 
