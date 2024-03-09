@@ -719,7 +719,7 @@ public class BigNatInternal {
     public byte add(short other) {
         rm.BN_WORD.lock();
         rm.BN_WORD.setValue(other);
-        byte carry = add(rm.BN_WORD);
+        byte carry = ctAdd(rm.BN_WORD);
         rm.BN_WORD.unlock();
         return carry;
     }
@@ -728,86 +728,27 @@ public class BigNatInternal {
      * Computes other * multiplier, shifts the results by shift and adds it to this.
      * Multiplier must be in range [0; 2^8 - 1].
      * Size of this must be large enough to fit the results.
-     * Refactored method, shift and multiplier are adding complexity.
-     * Computation only inside of valid indexes in values.
-     * Slight leaking for number size.
+     * Original implementation. Leaking data size-offset.
      */
-    public byte add_refactored(BigNatInternal other, short shift, short multiplier) {
-        short acc = 0;
-        short otherIndex = (short) (other.value.length - 1);
-
-        for (short index = (short) (this.value.length - 1); index >= 0; index--) {
-            short shiftedIndex = (short) (index - shift);
-            short thisIndex = shiftedIndex >= 0 ? shiftedIndex : 0;
-            // When shift is too big, do not do addition
-            short thisIndexNonNegative = (short) (((short) (index - shift) >= 0) ? 1 : 0);
-            // thisIndex must be offset <= thisIndex <= this.value.length
-            short thisIndexInRange = (short) (thisIndex >= offset ? 1 : 0);
-            short validOtherIndex = (short) (otherIndex >= other.offset ? 1 : 0);
-
-            // add corresponding bytes in this and other
-            short validRange = (short) ((validOtherIndex & thisIndexInRange & thisIndexNonNegative) != 0 ? 1 : 0);
-            short newValue = (short) ((short) (value[thisIndex] & DIGIT_MASK) + (short) (multiplier * (other.value[otherIndex] & DIGIT_MASK)));
-            acc += validRange != 0 ? newValue : 0;
-
-            byte accMasked = (byte) (acc & DIGIT_MASK);
-            byte currentValue = value[thisIndex];
-            value[thisIndex] = validRange != 0 ? accMasked : currentValue;
-
-            short newAcc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            acc = validRange != 0 ? newAcc : acc;
-
-            // add acc to higher bytes in this, when this is longer than other
-            short validAcc = (short) (acc > 0 ? 1 : 0);
-            // check that index is not in other but only in this
-            short invalidOtherIndex = (short) (otherIndex >= other.offset ? 0 : 1);
-            short validUpperThisPart = (short) (validAcc & invalidOtherIndex & thisIndexInRange);
-            acc += validUpperThisPart != 0 ? (short) (value[thisIndex] & DIGIT_MASK) : 0;
-            value[thisIndex] = validUpperThisPart != 0 ? (byte) (acc & DIGIT_MASK) : value[thisIndex];
-            short shiftAcc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            acc = validUpperThisPart != 0 ? shiftAcc : acc;
-
-            otherIndex -= validRange;
-        }
-
-        // output carry bit if present
-        return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
+    public byte add(BigNatInternal other) {
+        return add(other, (short) 0, (short) 1);
     }
 
-    /**
-     * Refactored method, shift and multiplier are adding complexity.
-     * Using also invalid indexes outside of this and other offset.
-     * Slight leaking for number size.
-     */
-    public byte add_shift(BigNatInternal other, short shift, short multiplier) {
+    public byte add(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
-        short otherIndex = (short) (other.value.length - 1);
+        short i = (short) (other.size - 1 + other.offset);
+        short j = (short) (size - 1 - shift + offset);
+        for (; i >= other.offset && j >= offset; i--, j--) {
+            acc += (short) ((short) (value[j] & DIGIT_MASK) + (short) (multiplier * (other.value[i] & DIGIT_MASK)));
 
-        for (short i = (short) (this.value.length - 1); i >= 0; i--, otherIndex--) {
-            short thisShiftedIndex = (short) (i - shift);
+            value[j] = (byte) (acc & DIGIT_MASK);
+            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+        }
 
-            // shifted index must be in range of this number
-            short thisIndexNonNegative = (short) (thisShiftedIndex >= 0 ? 1 : 0);
-            short thisShiftedIndexInRange = (short) (thisShiftedIndex >= offset ? 1 : 0);
-            short thisValidRange = (short) ((thisIndexNonNegative & thisShiftedIndexInRange) != 0 ? 1 : 0);
-            short thisIndex = thisValidRange != 0 ? thisShiftedIndex : 0;
-
-            // index in other should be in range
-            short otherValidRange = (short) (otherIndex >= 0 ? 1 : 0);
-            short _otherIndex = otherValidRange != 0 ? otherIndex : 0;
-
-            // get value from other - if out of other bounds, use 0
-            short otherValueMultiplied = (short) (multiplier * (other.value[_otherIndex] & DIGIT_MASK));
-            short otherValue = otherValidRange != 0 ? otherValueMultiplied : 0;
-
-            // compute and store new value into this
-            short newValue = (short) ((short) (value[thisIndex] & DIGIT_MASK) + otherValue);
-            acc += thisValidRange != 0 ? newValue : 0;
-            byte valueToSet = (byte) (acc & DIGIT_MASK);
-            this.value[thisIndex] = thisValidRange != 0 ? valueToSet : this.value[thisIndex];
-
-            // preserve acc from last valid byte in this
-            acc = thisValidRange != 0 ? (short) ((acc >> DIGIT_LEN) & DIGIT_MASK) : acc;
+        for (; acc > 0 && j >= offset; --j) {
+            acc += (short) (value[j] & DIGIT_MASK);
+            value[j] = (byte) (acc & DIGIT_MASK);
+            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
         }
 
         // output carry bit if present
@@ -817,73 +758,78 @@ public class BigNatInternal {
     /**
      * Adds other to this. Outputs carry bit.
      * Size of this must be large enough to fit the results.
-     * Bytes before offset are expected to be zeroes
-     * .
+     * Bytes before offset are expected to be zeroes.
      * Refactored method.
      *
      * @param other BigNat to add
      * @return outputs carry bit if present
      */
-    public byte add(BigNatInternal other) {
+    public byte ctAdd(BigNatInternal other) {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
 
         for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
             // index must be in range of size of this number
-            short thisValidRange = (short) (thisIndex >= offset ? 1 : 0);
-            // short thisValidRange = (short) ((short) ((offset - thisIndex - 1) >>> 15) & 1);
-
+            short thisValidRange = ConstantTime.ctGreaterOrEqual(thisIndex, offset);
             // index in other should be in bounds of other.value
-            short otherValidRange = (short) (otherIndex >= 0 ? 1 : 0);
-            // short otherInvalidRange = (short) ((short) (otherIndex >>> 15) & 1);
+            short otherValidRange = (short) (ConstantTime.ctGreaterOrEqual(otherIndex, other.offset) & ConstantTime.ctIsNonNegative(otherIndex));
             // prepare index for other - valid or bogus (just for some reading)
-            short newOtherIndex = otherValidRange != 0 ? otherIndex : 0;
+            short newOtherIndex = ConstantTime.ctSelect(otherValidRange, otherIndex, (short) 0);
             // always read something from other
             short otherBogusValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
             // get value from other - if out of other bounds, use 0
-            short otherValue = otherValidRange != 0 ? otherBogusValue : 0;
-
+            short otherValue = ConstantTime.ctSelect(otherValidRange, otherBogusValue, (short) 0);
             // compute new value
             short thisValue = (short) (value[thisIndex] & DIGIT_MASK);
             short newValue = (short) (thisValue + otherValue);
             // if we are out of size for this, add only 0
-            acc += thisValidRange != 0 ? newValue : 0;
-
+            acc += ConstantTime.ctSelect(thisValidRange, newValue, (short) 0);
             // set new value into this if in valid range
             short tmp = (byte) (acc & DIGIT_MASK);
-            this.value[thisIndex] = thisValidRange != 0 ? (byte) tmp : (byte) thisValue;
-
+            this.value[thisIndex] = ConstantTime.ctSelect(thisValidRange, (byte) tmp, (byte) thisValue);
             // preserve acc from last valid byte in this
             tmp = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            acc = thisValidRange != 0 ? tmp : acc;
+            acc = ConstantTime.ctSelect(thisValidRange, tmp, acc);
         }
         // output carry bit if present
         return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
     }
 
     /**
-     * Computes other * multiplier, shifts the results by shift and adds it to this.
-     * Multiplier must be in range [0; 2^8 - 1].
-     * Size of this must be large enough to fit the results.
-     * Original implementation. Leaking data size-offset.
+     * Refactored method, shift and multiplier are adding complexity.
+     * Using also invalid indexes outside of this and other offset.
      */
-    public byte add_original(BigNatInternal other, short shift, short multiplier) {
+    public byte ctAddShift(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
-        short i = (short) (other.size - 1 + other.offset);
-        short j = (short) (size - 1 - shift + offset);
-        // add corresponding bytes in this and other
-        for (; i >= other.offset && j >= offset; i--, j--) {
-            acc += (short) ((short) (value[j] & DIGIT_MASK) + (short) (multiplier * (other.value[i] & DIGIT_MASK)));
+        short otherIndex = (short) (other.value.length - 1);
 
-            value[j] = (byte) (acc & DIGIT_MASK);
-            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-        }
+        for (short i = (short) (this.value.length - 1); i >= 0; i--, otherIndex--) {
+            short thisShiftedIndex = (short) (i - shift);
 
-        // add acc to higher bytes in this, when this is longer than other
-        for (; acc > 0 && j >= offset; --j) {
-            acc += (short) (value[j] & DIGIT_MASK);
-            value[j] = (byte) (acc & DIGIT_MASK);
-            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            // shifted index must be in range of this number
+            short thisIndexNonNegative = ConstantTime.ctIsNonNegative(thisShiftedIndex);
+            short thisShiftedIndexInRange = ConstantTime.ctGreaterOrEqual(thisShiftedIndex, offset);
+            short thisValidRange = (short) (thisIndexNonNegative & thisShiftedIndexInRange);
+            short thisIndex = ConstantTime.ctSelect(thisValidRange, thisShiftedIndex, (short) 0);
+
+            // index in other should be in range
+            short otherValidRange = ConstantTime.ctIsNonNegative(otherIndex);
+            short _otherIndex = ConstantTime.ctSelect(otherValidRange, otherIndex, (short) 0);
+
+            // get value from other - if out of other bounds, use 0
+            short otherValueMultiplied = (short) (multiplier * (other.value[_otherIndex] & DIGIT_MASK));
+            short otherValue = ConstantTime.ctSelect(otherValidRange, otherValueMultiplied, (short) 0);
+
+            // compute and store new value into this
+            short newValue = (short) ((short) (value[thisIndex] & DIGIT_MASK) + otherValue);
+            acc += ConstantTime.ctSelect(thisValidRange, newValue, (short) 0);
+            byte valueToSet = (byte) (acc & DIGIT_MASK);
+            byte thisValue = this.value[thisIndex];
+            this.value[thisIndex] = ConstantTime.ctSelect(thisValidRange, valueToSet, thisValue);
+
+            // preserve acc from last valid byte in this
+            short adjAcc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            acc = ConstantTime.ctSelect(thisValidRange, adjAcc, acc);
         }
 
         // output carry bit if present
@@ -1011,7 +957,7 @@ public class BigNatInternal {
         tmp.ctClone(this);
         setSizeToMax(true);
         for (short i = (short) (other.value.length - 1); i >= other.offset; i--) {
-            add_original(tmp, (short) (other.value.length - 1 - i), (short) (other.value[i] & DIGIT_MASK));
+            add(tmp, (short) (other.value.length - 1 - i), (short) (other.value[i] & DIGIT_MASK));
         }
         ctShrink();
         tmp.unlock();
@@ -1029,7 +975,7 @@ public class BigNatInternal {
         setSizeToMax(true);
         for (short i = (short) (other.value.length - 1); i >= 0; i--) {
             short otherIndex = i >= other.offset ? i : 0;
-            add_shift(tmp, (short) (other.value.length - 1 - otherIndex), (short) (other.value[otherIndex] & DIGIT_MASK));
+            ctAddShift(tmp, (short) (other.value.length - 1 - otherIndex), (short) (other.value[otherIndex] & DIGIT_MASK));
         }
         ctShrink();
         tmp.unlock();
