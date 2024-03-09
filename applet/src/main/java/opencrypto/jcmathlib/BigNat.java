@@ -133,14 +133,14 @@ public class BigNat extends BigNatInternal {
         tmp.lock();
         if (isLesser(other)) {
             tmp.clone(other);
-            tmp.subtract(this);
+            tmp.ctSubtract(this);
         } else {
             tmp.clone(this);
-            tmp.subtract(other);
+            tmp.ctSubtract(other);
         }
         tmp.sq();
 
-        result.subtract(tmp);
+        result.ctSubtract(tmp);
         tmp.unlock();
         result.shiftRight((short) 2);
 
@@ -165,7 +165,7 @@ public class BigNat extends BigNatInternal {
 
         tmp.lock();
         tmp.clone(mod);
-        tmp.subtract(this);
+        tmp.ctSubtract(this);
         setSize(mod.length());
         copy(tmp);
         tmp.unlock();
@@ -186,9 +186,9 @@ public class BigNat extends BigNatInternal {
         tmp2.clone(this);
 
         if (!isLesser(mod)) {
-            tmp1.subtract(mod);
+            tmp1.ctSubtract(mod);
         } else {
-            tmp2.subtract(mod);
+            tmp2.ctSubtract(mod);
         }
         copy(tmp1);
         setSize(mod.length());
@@ -204,7 +204,7 @@ public class BigNat extends BigNatInternal {
         if (isLesser(other)) {
             add(mod);
         }
-        subtract(other);
+        ctSubtract(other);
         setSize(mod.length());
     }
 
@@ -382,7 +382,7 @@ public class BigNat extends BigNatInternal {
                 if (result.isLesser(mod)) {
                     carry = result.add(mod);
                 } else {
-                    result.subtract(mod);
+                    result.ctSubtract(mod);
                 }
             }
             result.shiftRight((short) 1, carry);

@@ -18,7 +18,7 @@ public class SubtractTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x05, 0x01, 0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2);
+        bn1.ctSubtract(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x02, 0x01};
@@ -37,7 +37,7 @@ public class SubtractTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x05, 0x01, 0x03};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2);
+        bn1.ctSubtract(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x01, (byte) 0xff};
@@ -56,7 +56,7 @@ public class SubtractTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2);
+        bn1.ctSubtract(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x02, 0x01};
@@ -75,7 +75,7 @@ public class SubtractTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x03};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2);
+        bn1.ctSubtract(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x01, (byte) 0xff};
@@ -94,7 +94,7 @@ public class SubtractTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2);
+        bn1.ctSubtract(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x00, (byte) 0xff};
@@ -113,7 +113,7 @@ public class SubtractTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2);
+        bn1.ctSubtract(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {(byte) 0xff, 0x01};
@@ -132,7 +132,7 @@ public class SubtractTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2);
+        bn1.ctSubtract(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {(byte) 0xfe, (byte) 0xff};
@@ -151,7 +151,7 @@ public class SubtractTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2);
+        bn1.ctSubtract(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x03, 0x02, 0x01};
@@ -170,7 +170,7 @@ public class SubtractTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x03, 0x03};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2);
+        bn1.ctSubtract(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x02, (byte) 0xff, (byte) 0xff};
@@ -189,7 +189,7 @@ public class SubtractTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2);
+        bn1.ctSubtract(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x01, 0x01, 0x01, 0x01, 0x01, 0x00};
@@ -208,7 +208,7 @@ public class SubtractTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0xff};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2);
+        bn1.ctSubtract(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x01, 0x01, 0x01, 0x01, 0x00, 0x02};
@@ -227,7 +227,7 @@ public class SubtractTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2);
+        bn1.ctSubtract(bn2);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x01, 0x01, 0x01, 0x01, 0x00, 0x00};
