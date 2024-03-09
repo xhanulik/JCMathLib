@@ -18,12 +18,13 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.add_shift(bn2, (short) 0, (short) 1);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x01, 0x04, 0x06};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals(0, carry);
+        byte[] expectedResult = {0x01, 0x04, 0x06};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -37,14 +38,13 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0xff, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        short carry = bn1.add_shift(bn2, (short) 0, (short) 1);
+        short carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
         Assertions.assertEquals(0, carry);
-
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x02, 0x00, 0x06};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        byte[] expectedResult = {0x02, 0x00, 0x06};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -58,15 +58,14 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0xff, (byte) 0xff};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        short carry = bn1.add_shift(bn2, (short) 0, (short) 1);
+        short carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
         Assertions.assertEquals(0, carry);
-
         bn1.resize((short) (bn1.length() + 1));
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x00, 0x02, 0x01, 0x01};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        byte[] expectedResult = {0x00, 0x02, 0x01, 0x01};
+        byte[] actualResult = new byte[4];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -80,12 +79,13 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0xff, (byte) 0x09};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.add_shift(bn2, (short) 0, (short) 1);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x02, 0x08, 0x08};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals(0, carry);
+        byte[] expectedResult = {0x02, 0x08, 0x08};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -99,12 +99,13 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0xff, (byte) 0xff};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.add_shift(bn2, (short) 0, (short) 1);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x02, 0x08, (byte) 0xfe};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals(0, carry);
+        byte[] expectedResult = {0x02, 0x08, (byte) 0xfe};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -118,16 +119,15 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0xff, (byte) 0xff};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        byte carry = bn1.add_shift(bn2, (short) 0, (short) 1);
-
-        Assertions.assertEquals((byte) 128, carry);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
         // test no overflow to higher byte
         bn1.resize((short) (bn1.length() + 1));
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x00, 0x00, 0x08, (byte) 0xfe};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals((byte) 128, carry);
+        byte[] expectedResult = {0x00, 0x00, 0x08, (byte) 0xfe};
+        byte[] actualResult = new byte[4];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -141,12 +141,13 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.add_shift(bn2, (short) 0, (short) 1);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x04, 0x06};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals((byte) 0, carry);
+        byte[] expectedResult = {0x04, 0x06};
+        byte[] actualResult = new byte[2];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -160,16 +161,15 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0xff, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        byte carry = bn1.add_shift(bn2, (short) 0, (short) 1);
-
-        Assertions.assertEquals((byte) 128, carry);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
         // test no overflow to higher byte
+        Assertions.assertEquals((byte) 128, carry);
         bn1.resize((short) (bn1.length() + 1));
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x00, 0x00, 0x06};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        byte[] expectedResult = {0x00, 0x00, 0x06};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -183,15 +183,14 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x01, 0x02};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        byte carry = bn1.add_shift(bn2, (short) 0, (short) 1);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
         Assertions.assertEquals((byte) 128, carry);
-
         bn1.resize((short) (bn1.length() + 1));
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x00, 0x00, 0x06};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        byte[] expectedResult = {0x00, 0x00, 0x06};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -205,15 +204,14 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x01, 0x01, 0x02};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        byte carry = bn1.add_shift(bn2, (short) 0, (short) 1);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
-        Assertions.assertEquals(0, carry);
-
+        Assertions.assertEquals((byte) 0, carry);
         bn1.resize((short) (bn1.length() + 3));
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x00, 0x00, 0x00, 0x06};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        byte[] expectedResult = {0x00, 0x00, 0x00, 0x06};
+        byte[] actualResult = new byte[4];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -227,12 +225,13 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0x1};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.add_shift(bn2, (short) 0, (short) 1);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x01, 0x00, 0x00, 0x00};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals((byte) 0, carry);
+        byte[] expectedResult = {0x01, 0x00, 0x00, 0x00};
+        byte[] actualResult = new byte[4];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -246,12 +245,13 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0x1};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.add_shift(bn2, (short) 0, (short) 1);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals((byte) 128, carry);
+        byte[] expectedResult = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        byte[] actualResult = new byte[6];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -265,12 +265,13 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x1, 0x1, 0x1};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.add_shift(bn2, (short) 0, (short) 1);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x00, 0x00, 0x00, 0x01, 0x01, 0x00};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals((byte) 128, carry);
+        byte[] expectedResult = {0x00, 0x00, 0x00, 0x01, 0x01, 0x00};
+        byte[] actualResult = new byte[6];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     // tests for shift
@@ -285,12 +286,13 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.add_shift(bn2, (short) 1, (short) 1);
+        byte carry = bn1.ctAddShift(bn2, (short) 1, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x04, 0x05, 0x02};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals((byte) 0, carry);
+        byte[] expectedResult = {0x04, 0x05, 0x02};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -304,12 +306,13 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.add_shift(bn2, (short) 2, (short) 1);
+        byte carry = bn1.ctAddShift(bn2, (short) 2, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x05, 0x01, 0x02};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals((byte) 0, carry);
+        byte[] expectedResult = {0x05, 0x01, 0x02};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -323,13 +326,14 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.add_shift(bn2, (short) 3, (short) 1);
+        byte carry = bn1.ctAddShift(bn2, (short) 3, (short) 1);
 
         bn1.resize((short) (bn1.length() + 1));
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x00, 0x01, 0x01, 0x02};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals((byte) 0, carry);
+        byte[] expectedResult = {0x00, 0x01, 0x01, 0x02};
+        byte[] actualResult = new byte[4];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -343,15 +347,14 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0xff, (byte) 0x09};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        short carry = bn1.add_shift(bn2, (short) 1, (short) 1);
-
-        Assertions.assertEquals((byte) 128, carry);
+        short carry = bn1.ctAddShift(bn2, (short) 1, (short) 1);
 
         bn1.resize((short) (bn1.length() + 1));
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x00, 0x00, 0x11, (byte) 0xff};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals((byte) 128, carry);
+        byte[] expectedResult = {0x00, 0x00, 0x11, (byte) 0xff};
+        byte[] actualResult = new byte[4];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     // multiplication
@@ -366,12 +369,13 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x03, 0x04};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.add_shift(bn2, (short) 0, (short) 2);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 2);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x01, 0x07, 0x0A};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals((byte) 0, carry);
+        byte[] expectedResult = {0x01, 0x07, 0x0A};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -385,13 +389,12 @@ public class AddShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0xff, (byte) 0x09};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        short carry = bn1.add_shift(bn2, (short) 0, (short) 2);
+        short carry = bn1.ctAddShift(bn2, (short) 0, (short) 2);
 
-        Assertions.assertEquals(0, carry);
-
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x03, 0x07, (byte) 0x11};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        Assertions.assertEquals((byte) 0, carry);
+        byte[] expectedResult = {0x03, 0x07, (byte) 0x11};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 }

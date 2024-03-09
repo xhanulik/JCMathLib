@@ -126,6 +126,9 @@ public class ConstantTimeTest {
 
         Assertions.assertEquals((byte) 0xff, ConstantTime.ctGreaterOrEqual((byte) 128, (byte) 127));
         Assertions.assertEquals((short) 0xffff, ConstantTime.ctGreaterOrEqual((short) 32768, (short) 32767));
+
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctGreaterOrEqual((byte) 248, (byte) 3));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctGreaterOrEqual((short) 41768, (short) 120));
     }
 
     @Test
