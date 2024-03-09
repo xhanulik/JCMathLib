@@ -780,7 +780,7 @@ public class ECPoint {
             boolean odd = y.isOdd();
             if ((!odd && point[offset] != (byte) 0x02) || (odd && point[offset] != (byte) 0x03)) {
                 p.clone(curve.pBN);
-                p.subtract(y);
+                p.subtract(y, (short) 0, (short) 0);
                 p.prependZeros(curve.COORD_SIZE, pointBuffer, (short) (curve.COORD_SIZE + 1));
             } else {
                 y.prependZeros(curve.COORD_SIZE, pointBuffer, (short) (curve.COORD_SIZE + 1));
@@ -833,7 +833,7 @@ public class ECPoint {
             boolean odd = y.isOdd();
             if ((!odd && output[offset] != (byte) 0x02) || (odd && output[offset] != (byte) 0x03)) {
                 p.clone(curve.pBN);
-                p.subtract(y);
+                p.subtract(y, (short) 0, (short) 0);
                 p.prependZeros(curve.COORD_SIZE, output, (short) (offset + curve.COORD_SIZE + 1));
             } else {
                 y.prependZeros(curve.COORD_SIZE, output, (short) (offset + curve.COORD_SIZE + 1));
