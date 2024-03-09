@@ -844,7 +844,7 @@ public class BigNatInternal {
     public void subtract(short other) {
         rm.BN_WORD.lock();
         rm.BN_WORD.setValue(other);
-        subtract(rm.BN_WORD);
+        ctSubtract(rm.BN_WORD);
         rm.BN_WORD.unlock();
     }
 
@@ -852,7 +852,7 @@ public class BigNatInternal {
      * Computes other * multiplier, shifts the results by shift and subtract it from this.
      * Multiplier must be in range [0; 2^8 - 1].
      */
-    public void subtract_original(BigNatInternal other, short shift, short multiplier) {
+    public void subtract(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
         short i = (short) (size - 1 - shift + offset);
         short j = (short) (other.size - 1 + other.offset);
@@ -879,14 +879,46 @@ public class BigNatInternal {
     }
 
     /**
+     * Subtract provided other BigNat from this BigNat.
+     * Refactored, computes over all indexes in values, without shift and multiplier.
+     * All bytes before offset are assumed to be zeroes.
+     *
+     * @param other BigNat to be subtracted from this
+     */
+    public void ctSubtract(BigNatInternal other) {
+        short acc = 0;
+        short otherIndex = (short) (other.value.length - 1);
+        for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
+            // compute only on valid this indexes
+            short validThisIndex = ConstantTime.ctGreaterOrEqual(thisIndex, offset);
+
+            // check non-negative other index or set to 0
+            short validOtherIndex = ConstantTime.ctIsNonNegative(otherIndex);
+            short newOtherIndex = ConstantTime.ctSelect(validOtherIndex, otherIndex, (short) 0);
+
+            // add value to acc and subtract
+            short newValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
+            acc += ConstantTime.ctSelect((short) (validThisIndex & validOtherIndex), newValue, (short) 0);
+            short tmp = (short) ((value[thisIndex] & DIGIT_MASK) - (acc & DIGIT_MASK));
+
+            // set new value
+            value[thisIndex] = (byte) (tmp & DIGIT_MASK);
+
+            // update acc
+            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            acc += (tmp >> 15) & 1;
+        }
+    }
+
+    /**
      * Refactored, computes over only valid indexes inside offsets.
      */
-    public void subtract_refactored(BigNatInternal other, short shift, short multiplier) {
+    public void ctSubtractShift(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
         short otherIndex = (short) (other.size - 1 + other.offset);
         for (short index = (short) (this.value.length - 1); index >= 0; index--) {
             short shiftedIndex = (short) (index - shift);
-            short thisIndex = shiftedIndex >= 0 ? shiftedIndex : 0;
+            short thisIndex =  ConstantTime.ctSelect(ConstantTime.ctIsNonNegative(shiftedIndex), shiftedIndex, (short) 0);
             short nonNegativeThisIndex = (short) (shiftedIndex >= 0 ? 1 : 0);
             short validThisIndex = (short) (thisIndex >= offset ? 1 : 0);
             short validOtherIndex = (short) (otherIndex >= other.offset ? 1 : 0);
@@ -912,38 +944,6 @@ public class BigNatInternal {
             short validTmp = (short) (tmp < 0 ? 1 : 0);
             acc += ((validTmp & validUpperPart) != 0) ? 1 : 0;
             otherIndex -= validRange;
-        }
-    }
-
-    /**
-     * Subtract provided other BigNat from this BigNat.
-     * Refactored, computes over all indexes in values, without shift and multiplier.
-     * All bytes before offset are assumed to be zeroes.
-     *
-     * @param other BigNat to be subtracted from this
-     */
-    public void subtract(BigNatInternal other) {
-        short acc = 0;
-        short otherIndex = (short) (other.value.length - 1);
-        for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
-            // compute only on valid this indexes
-            short validThisIndex = (short) (thisIndex >= offset ? 1 : 0);
-
-            // check non-negative other index or set to 0
-            short validOtherIndex = (short) (otherIndex >= 0 ? 1 : 0);
-            short newOtherIndex = validOtherIndex != 0 ? otherIndex : 0;
-
-            // add value to acc and subtract
-            short newValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
-            acc += (validThisIndex & validOtherIndex) != 0 ? newValue : 0;
-            short tmp = (short) ((value[thisIndex] & DIGIT_MASK) - (acc & DIGIT_MASK));
-
-            // set new value
-            value[thisIndex] = (byte) (tmp & DIGIT_MASK);
-
-            // update acc
-            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            acc += (tmp >> 15) & 1;
         }
     }
 
@@ -1133,7 +1133,7 @@ public class BigNatInternal {
                     multiple = 1;
                 }
 
-                subtract_original(divisor, divisorShift, multiple);
+                subtract(divisor, divisorShift, multiple);
 
                 if (quotient != null) {
                     short divisorShiftOffset = (short) (divisorShift - quotient.offset);
