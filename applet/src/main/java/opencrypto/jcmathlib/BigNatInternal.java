@@ -758,8 +758,6 @@ public class BigNatInternal {
     /**
      * Adds other to this. Outputs carry bit.
      * Size of this must be large enough to fit the results.
-     * Bytes before offset are expected to be zeroes.
-     * Refactored method.
      *
      * @param other BigNat to add
      * @return outputs carry bit if present
@@ -807,25 +805,25 @@ public class BigNatInternal {
             short thisShiftedIndex = (short) (i - shift);
 
             // shifted index must be in range of this number
-            short thisIndexNonNegative = ConstantTime.ctIsNonNegative(thisShiftedIndex);
-            short thisShiftedIndexInRange = ConstantTime.ctGreaterOrEqual(thisShiftedIndex, offset);
-            short thisValidRange = (short) (thisIndexNonNegative & thisShiftedIndexInRange);
-            short thisIndex = ConstantTime.ctSelect(thisValidRange, thisShiftedIndex, (short) 0);
+            short thisValidRange = (short) (ConstantTime.ctIsNonNegative(thisShiftedIndex) & ConstantTime.ctGreaterOrEqual(thisShiftedIndex, offset));
+            short thisValidIndex = ConstantTime.ctSelect(thisValidRange, thisShiftedIndex, (short) 0);
 
             // index in other should be in range
-            short otherValidRange = ConstantTime.ctIsNonNegative(otherIndex);
-            short _otherIndex = ConstantTime.ctSelect(otherValidRange, otherIndex, (short) 0);
+            short otherValidRange = (short) (ConstantTime.ctGreaterOrEqual(otherIndex, other.offset) & ConstantTime.ctIsNonNegative(otherIndex));
+            short otherValidIndex = ConstantTime.ctSelect(otherValidRange, otherIndex, (short) 0);
 
             // get value from other - if out of other bounds, use 0
-            short otherValueMultiplied = (short) (multiplier * (other.value[_otherIndex] & DIGIT_MASK));
-            short otherValue = ConstantTime.ctSelect(otherValidRange, otherValueMultiplied, (short) 0);
+            short otherValue = (short) (multiplier * (other.value[otherValidIndex] & DIGIT_MASK));
+            otherValue = ConstantTime.ctSelect(otherValidRange, otherValue, (short) 0);
 
-            // compute and store new value into this
-            short newValue = (short) ((short) (value[thisIndex] & DIGIT_MASK) + otherValue);
+            // compute new value if in valid range
+            short newValue = (short) ((short) (value[thisValidIndex] & DIGIT_MASK) + otherValue);
             acc += ConstantTime.ctSelect(thisValidRange, newValue, (short) 0);
+
+            // set new value only when in valid range
             byte valueToSet = (byte) (acc & DIGIT_MASK);
-            byte thisValue = this.value[thisIndex];
-            this.value[thisIndex] = ConstantTime.ctSelect(thisValidRange, valueToSet, thisValue);
+            byte thisValue = value[thisValidIndex];
+            value[thisValidIndex] = ConstantTime.ctSelect(thisValidRange, valueToSet, thisValue);
 
             // preserve acc from last valid byte in this
             short adjAcc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
@@ -899,10 +897,11 @@ public class BigNatInternal {
             // add value to acc and subtract
             short newValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
             acc += ConstantTime.ctSelect((short) (validThisIndex & validOtherIndex), newValue, (short) 0);
-            short tmp = (short) ((value[thisIndex] & DIGIT_MASK) - (acc & DIGIT_MASK));
+            short thisValue = value[thisIndex];
+            short tmp = (short) ((thisValue & DIGIT_MASK) - (acc & DIGIT_MASK));
 
             // set new value
-            value[thisIndex] = (byte) (tmp & DIGIT_MASK);
+            value[thisIndex] = (byte) (ConstantTime.ctSelect(validThisIndex, tmp, thisValue) & DIGIT_MASK);
 
             // update acc
             acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
@@ -916,34 +915,31 @@ public class BigNatInternal {
     public void ctSubtractShift(BigNatInternal other, short shift, short multiplier) {
         short acc = 0;
         short otherIndex = (short) (other.size - 1 + other.offset);
-        for (short index = (short) (this.value.length - 1); index >= 0; index--) {
-            short shiftedIndex = (short) (index - shift);
-            short thisIndex =  ConstantTime.ctSelect(ConstantTime.ctIsNonNegative(shiftedIndex), shiftedIndex, (short) 0);
-            short nonNegativeThisIndex = (short) (shiftedIndex >= 0 ? 1 : 0);
-            short validThisIndex = (short) (thisIndex >= offset ? 1 : 0);
-            short validOtherIndex = (short) (otherIndex >= other.offset ? 1 : 0);
-            short validRange = (short) ((nonNegativeThisIndex & validThisIndex & validOtherIndex) != 0 ? 1 : 0);
+
+        for (short i = (short) (this.value.length - 1); i >= 0; i--, otherIndex--) {
+            short thisShiftedIndex = (short) (i - shift);
+
+            // shifted index must be in range of this number
+            short thisValidRange = (short) (ConstantTime.ctIsNonNegative(thisShiftedIndex) & ConstantTime.ctGreaterOrEqual(thisShiftedIndex, offset));
+            short thisValidIndex = ConstantTime.ctSelect(thisValidRange, thisShiftedIndex, (short) 0);
+
+            // index in other should be in range
+            short otherValidRange = (short) (ConstantTime.ctGreaterOrEqual(otherIndex, other.offset) & ConstantTime.ctIsNonNegative(otherIndex));
+            short otherValidIndex = ConstantTime.ctSelect(otherValidRange, otherIndex, (short) 0);
 
             // computation for corresponding bytes
-            short newValue = (short) (multiplier * (other.value[otherIndex] & DIGIT_MASK));
-            acc += validRange != 0 ? newValue : 0;
-            short tmp = (short) ((value[thisIndex] & DIGIT_MASK) - (acc & DIGIT_MASK));
+            short otherValue = (short) (multiplier * (other.value[otherValidIndex] & DIGIT_MASK));
+            otherValue = ConstantTime.ctSelect(otherValidRange, otherValue, (short) 0);
 
-            value[thisIndex] = (byte) (tmp & DIGIT_MASK);
+            // compute new value if in valid range
+            acc += ConstantTime.ctSelect((short) (thisValidRange & otherValidRange), otherValue, (short) 0);
+            short valueToSet = (short) ((value[thisValidIndex] & DIGIT_MASK) - (acc & DIGIT_MASK));
+
+            // set new value only when in valid range
+            byte thisValue = value[thisValidIndex];
+            value[thisValidIndex] = (byte) ConstantTime.ctSelect(thisValidRange, valueToSet, thisValue);
             acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            acc += tmp < 0 ? 1 : 0;
-
-            // computation for rest of the bytes in this
-            short nonValidOtherIndex = (short) (otherIndex < other.offset ? 1 : 0);
-            short validAcc = (short) (acc != 0 ? 1 : 0);
-            short validUpperPart = (short) (nonValidOtherIndex & validAcc & validThisIndex);
-            tmp = (short) ((value[thisIndex] & DIGIT_MASK) - (acc & DIGIT_MASK));
-            byte tmpDigit = (byte) (tmp & DIGIT_MASK);
-            value[thisIndex] = validUpperPart != 0 ? tmpDigit : value[thisIndex];
-            acc = validUpperPart != 0 ? (short) ((acc >> DIGIT_LEN) & DIGIT_MASK) : acc;
-            short validTmp = (short) (tmp < 0 ? 1 : 0);
-            acc += ((validTmp & validUpperPart) != 0) ? 1 : 0;
-            otherIndex -= validRange;
+            acc += ConstantTime.ctSelect((short) (ConstantTime.ctIsNegative(valueToSet) & thisValidRange), (short) 1, (short) (0));
         }
     }
 
