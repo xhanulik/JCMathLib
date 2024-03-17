@@ -20,10 +20,11 @@ public class SubtractShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x02, 0x01};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        bn1.resize((short) (bn1.length() + 1));
+        byte[] expectedResult = {0x00, 0x02, 0x01};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -39,10 +40,11 @@ public class SubtractShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x01, (byte) 0xff};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        bn1.resize((short) (bn1.length() + 1));
+        byte[] expectedResult = {0x00, 0x01, (byte) 0xff};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -58,10 +60,11 @@ public class SubtractShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x02, 0x01};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        bn1.resize((short) (bn1.length() + 1));
+        byte[] expectedResult = {0x00, 0x02, 0x01};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -77,10 +80,10 @@ public class SubtractShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x01, (byte) 0xff};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        byte[] expectedResult = {0x01, (byte) 0xff};
+        byte[] actualResult = new byte[2];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -96,10 +99,10 @@ public class SubtractShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x00, (byte) 0xff};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        byte[] expectedResult = {0x00, (byte) 0xff};
+        byte[] actualResult = new byte[2];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -115,10 +118,10 @@ public class SubtractShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {(byte) 0xff, 0x01};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        byte[] expectedResult = {(byte) 0xff, 0x01};
+        byte[] actualResult = new byte[2];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -134,10 +137,10 @@ public class SubtractShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {(byte) 0xfe, (byte) 0xff};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        byte[] expectedResult = {(byte) 0xfe, (byte) 0xff};
+        byte[] actualResult = new byte[2];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -153,10 +156,11 @@ public class SubtractShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x03, 0x02, 0x01};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        bn1.resize((short) (bn1.length() + 1));
+        byte[] expectedResult = {0x00, 0x03, 0x02, 0x01};
+        byte[] actualResult = new byte[4];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -265,7 +269,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 2, (short) 0);
+         bn1.ctSubtractShift(bn2, (short) 2, (short) 0);
 
         BigNat bn3 = new BigNat((short) 10, memoryType, rm);
         byte[] data3 = {0x05, 0x08};
