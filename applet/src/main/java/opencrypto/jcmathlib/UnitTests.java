@@ -12,16 +12,17 @@ import javacard.framework.SystemException;
 import javacard.framework.TransactionException;
 import javacard.framework.Util;
 import javacard.security.CryptoException;
+import javacard.security.RandomData;
 
 /**
  * @author Vasilios Mavroudis and Petr Svenda and Antonin Dufka
  */
 public class UnitTests extends Applet {
-    public final static short CARD_TYPE = OperationSupport.SIMULATOR; // TODO set your card
+    //public final static short CARD_TYPE = OperationSupport.SIMULATOR; // TODO set your card
     //public final static short CARD_TYPE = OperationSupport.JCOP21;
     //public final static short CARD_TYPE = OperationSupport.SECORA;
     //public final static short CARD_TYPE = OperationSupport.JCOP3_P60;
-    //public final static short CARD_TYPE = OperationSupport.JCOP4_P71;
+    public final static short CARD_TYPE = OperationSupport.JCOP4_P71;
     //public final static short CARD_TYPE = OperationSupport.GD60;
     //public final static short CARD_TYPE = OperationSupport.GD70;
 
@@ -85,6 +86,9 @@ public class UnitTests extends Applet {
     public final static byte INS_BN_DIV = (byte) 0x5C;
     public final static byte INS_BN_NEG_MOD = (byte) 0x5D;
 
+    // power analysis targets
+    public final static byte INS_SPA_BN_STR = (byte) 0xC0;
+
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
     public final static short SW_Exception                      = (short) 0xff01;
@@ -115,6 +119,10 @@ public class UnitTests extends Applet {
 
     Integer int1;
     Integer int2;
+
+    private RandomData spaRandom  = null;
+    private byte spaDelimBuffer[] = null;
+    final static short spaDelimBufferSize = (short) 0x100;
 
     public UnitTests() {
         OperationSupport.getInstance().setCard(CARD_TYPE);
@@ -154,6 +162,9 @@ public class UnitTests extends Applet {
         int1 = new Integer(intLen, rm);
         int2 = new Integer(intLen, rm);
         initialized = true;
+
+        spaRandom = RandomData.getInstance(RandomData.ALG_SECURE_RANDOM);
+        spaDelimBuffer = JCSystem.makeTransientByteArray(spaDelimBufferSize, JCSystem.CLEAR_ON_DESELECT);
     }
 
     public static void install(byte[] ignoredArray, short ignoredOffset, byte ignoredLength) {
@@ -353,8 +364,14 @@ public class UnitTests extends Applet {
                     break;
                 case INS_BN_DIV:
                     testBnDiv(apdu, dataLen);
+                    break;
                 case INS_BN_NEG_MOD:
                     testBnNegMod(apdu, dataLen);
+                    break;
+
+                case INS_SPA_BN_STR:
+                    testSPABnStr(apdu, dataLen);
+                    break;
                 default:
                     ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
             }
@@ -932,6 +949,41 @@ public class UnitTests extends Applet {
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
         bn1.modNegate(bn2);
         short len = bn1.copyToByteArray(apduBuffer, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, len);
+    }
+
+    // power analysis tests
+    private void beginDivision() {
+        short pauseOuterCycles = 1000;
+        for (short i = 0; i < pauseOuterCycles; i++) { }
+        spaRandom.generateData(spaDelimBuffer, (short) 0, (short) 128);
+    }
+
+    private void middleDivision() {
+        short pauseInnerCycles = 100;
+        spaRandom.generateData(spaDelimBuffer, (short) 0, (short) 128);
+        for (short i = 0; i < pauseInnerCycles; i++) { }
+        spaRandom.generateData(spaDelimBuffer,  (short) 0, (short) 128);
+    }
+
+    private void endDivision() {
+        short pauseOuterCycles = 1000;
+        short pauseInnerCycles = 100;
+        spaRandom.generateData(spaDelimBuffer,  (short) 0, (short) 128);
+        for (short i = 0; i < pauseInnerCycles; i++) { }
+        spaRandom.generateData(spaDelimBuffer, (short) 0, (short) 128);
+        for (short i = 0; i < pauseInnerCycles; i++) { }
+        spaRandom.generateData(spaDelimBuffer,  (short) 0, (short) 128);
+        for (short i = 0; i < pauseOuterCycles; i++) { }
+    }
+
+    void testSPABnStr(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
+        beginDivision();
+        short len = bn1.copyToByteArray(apduBuffer, (short) 0);
+        endDivision();
         apdu.setOutgoingAndSend((short) 0, len);
     }
 }
