@@ -18,7 +18,8 @@ public class ConstantTime {
      * @return      0 or (short) 65535
      */
     public static short ctMsb(short a) {
-        return (short) ((-((a & 0xffff) >> 15)) & 0xffff);
+        short mask = (short) 0xffff;
+        return (short) (((a & mask) >> 15) & mask);
     }
 
     /**
@@ -27,7 +28,7 @@ public class ConstantTime {
      * @param  a    value to be checked
      * @return      (byte) 255 if zero, 0 otherwise
      */
-    public static byte ctIsZero(byte a){
+    public static byte ctIsZero(byte a) {
         return ctMsb((byte) (~a & ((0xff & a) - 1)));
     }
 
@@ -37,12 +38,12 @@ public class ConstantTime {
      * @param  a    value to be checked
      * @return      (short) 65535 if zero, 0 otherwise
      */
-    public static short ctIsZero(short a){
-        return ctMsb((short) (~a & ((0xffff & a) - 1)));
+    public static short ctIsZero(short a) {
+        return ctMsb((short) (~a & ((a & (short) 0xffff) - 1)));
     }
 
-    public static short _ctIsZero(byte a){
-        return ctMsb((short) (~((short) a) & ((0xffff & ((short) a)) - 1)));
+    public static short _ctIsZero(byte a) {
+        return ctMsb((short) (~((short) a) & (((short) 0xffff & ((short) a)) - 1)));
     }
 
     /**
@@ -62,7 +63,7 @@ public class ConstantTime {
      * @return      (short) 65535 if zero, 0 otherwise
      */
     public static short ctIsNonZero(short a){
-        return (short) ~ctMsb((short) (~a & ((0xffff & a) - 1)));
+        return (short) ~ctMsb((short) (~a & (((short) 0xffff & a) - 1)));
     }
 
     /**
@@ -106,7 +107,7 @@ public class ConstantTime {
      * @return 0xffff if the first short is greater or equal to the second short, 0 otherwise
      */
     public static short ctGreaterOrEqual(short a, short b) {
-        return (short) (~ctLessThan(a, b) & 0xffff);
+        return (short) (~ctLessThan(a, b) & (short) 0xffff);
     }
 
     /**

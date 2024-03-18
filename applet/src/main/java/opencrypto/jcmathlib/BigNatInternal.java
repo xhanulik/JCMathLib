@@ -89,7 +89,7 @@ public class BigNatInternal {
             dstIndex += ConstantTime.ctSelect(validIndex, (short) 1, (short) 0);
         }
 
-        if ((problem & 0xffff) == 0xffff)
+        if ((problem & (short) 0xffff) == (short) 0xffff)
             throw new ArrayIndexOutOfBoundsException();
         return size;
     }
@@ -191,7 +191,7 @@ public class BigNatInternal {
             short zeroes = (short) (after & ConstantTime.ctLessThan(i, (short) (outOffset + targetLength)));
 
             short thisIndex = ConstantTime.ctSelect(ctLessThan(j, size), j, (short) 0);
-            byte thisValue = value[offset + thisIndex];
+            byte thisValue = value[(short) (offset + thisIndex)];
 
             /* Copy bytes from this value */
             byte outBufferValue = outBuffer[i];
@@ -234,7 +234,7 @@ public class BigNatInternal {
             short in = (short) (~before & ~after & ~zeroes);
 
             short thisIndex = ConstantTime.ctSelect(ctLessThan(j, size), j, (short) 0);
-            byte thisValue = value[offset + thisIndex];
+            byte thisValue = value[(short) (offset + thisIndex)];
 
             /* Copy bytes from this value */
             byte outBufferValue = outBuffer[i];
@@ -396,7 +396,7 @@ public class BigNatInternal {
             otherIndex += incr;
         }
 
-        if ((problem & 0xffff) == 0xffff) {
+        if ((problem & (short) 0xffff) == (short) 0xffff) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCOPYOTHER);
         }
     }
