@@ -947,7 +947,7 @@ public class BigNatInternal {
      * Multiplies this and other using software multiplications and stores results into this.
      * Original version, not time-constant.
      */
-    public void mult_original(BigNatInternal other) {
+    public void mult(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
         tmp.ctClone(this);
@@ -964,13 +964,13 @@ public class BigNatInternal {
      * Refactored method, using refactored and reimplemented add2().
      * Goes through whole other.value array.
      */
-    public void mult_refactored(BigNatInternal other) {
+    public void ctMult(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
         tmp.ctClone(this);
         setSizeToMax(true);
         for (short i = (short) (other.value.length - 1); i >= 0; i--) {
-            short otherIndex = i >= other.offset ? i : 0;
+            short otherIndex = ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(i, other.offset), i, (short) 0);
             ctAddShift(tmp, (short) (other.value.length - 1 - otherIndex), (short) (other.value[otherIndex] & DIGIT_MASK));
         }
         ctShrink();
@@ -981,7 +981,7 @@ public class BigNatInternal {
      * Refactored method, cycle over all other values.
      * Adding done directly.
      */
-    public void mult(BigNatInternal other) {
+    public void ctMultDirect(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
         tmp.ctClone(this);
@@ -994,9 +994,10 @@ public class BigNatInternal {
             short tmpIndex = (short) (tmp.value.length - 1);
             for (short i = (short) (this.value.length - 1); i >= 0; i--) {
                 // check valid index in this
-                short validIndex = (short) (i <= thisStart ? 1 : 0);
+                short validIndex = ConstantTime.ctGreaterOrEqual(thisStart, i);
+                short thisIndex = ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(thisStart, i), i, (short) 0);
                 // if index is invalid, use 0 value to ensure, that something from array is always read
-                short thisValue = validIndex != 0 ? (short) (value[i] & DIGIT_MASK) : (short) (value[0] & DIGIT_MASK);
+                short thisValue = (short) (value[i] & DIGIT_MASK);
                 thisValue = validIndex != 0 ? thisValue : 0;
                 // check index in tmp, set bogus value if needed
                 short tmpValidIndex = (short) (tmpIndex >= 0 ? 1 : 0);
