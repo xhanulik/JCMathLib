@@ -994,22 +994,23 @@ public class BigNatInternal {
             short tmpIndex = (short) (tmp.value.length - 1);
             for (short i = (short) (this.value.length - 1); i >= 0; i--) {
                 // check valid index in this
-                short validIndex = ConstantTime.ctGreaterOrEqual(thisStart, i);
+                short thisValidRange = ConstantTime.ctGreaterOrEqual(thisStart, i);
                 short thisIndex = ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(thisStart, i), i, (short) 0);
-                // if index is invalid, use 0 value to ensure, that something from array is always read
-                short thisValue = (short) (value[i] & DIGIT_MASK);
-                thisValue = validIndex != 0 ? thisValue : 0;
+                short thisValue = (short) (value[thisIndex] & DIGIT_MASK);
+                thisValue = ConstantTime.ctSelect(thisValidRange, thisValue, (short) 0);
                 // check index in tmp, set bogus value if needed
-                short tmpValidIndex = (short) (tmpIndex >= 0 ? 1 : 0);
-                short tmpValue = tmpValidIndex != 0 ? tmp.value[tmpIndex] : tmp.value[0];
-                tmpValue = (validIndex & tmpValidIndex) != 0 ? tmpValue : (short) 0;
+                short tmpValidRange = ConstantTime.ctIsNonNegative(tmpIndex);
+                short tmpValidIndex = ConstantTime.ctSelect(tmpValidRange, tmpIndex, (short) 0);
+                short tmpValue = tmp.value[tmpValidIndex];
+                tmpValue = ConstantTime.ctSelect((short) (thisValidRange & tmpValidRange), tmpValue, (short) 0);
                 // compute
                 over += (short) (thisValue + (short) (tmpValue & DIGIT_MASK) * multiplier);
                 // store byte
-                byte overLowerByte = (byte) (over & DIGIT_MASK);
-                value[i] = validIndex != 0 ? overLowerByte : value[i];
+                byte newValue = (byte) (over & DIGIT_MASK);
+                thisValue = (byte) (value[i] & DIGIT_MASK);
+                value[i] = ConstantTime.ctSelect(thisValidRange, newValue, (byte) thisValue);
                 over = (short) ((over >> DIGIT_LEN) & DIGIT_MASK);
-                tmpIndex -= validIndex;
+                tmpIndex -= ConstantTime.ctSelect(thisValidRange, (short) 1, (short) 0);
             }
             thisStart--;
         }
