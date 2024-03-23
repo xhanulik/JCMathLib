@@ -280,7 +280,7 @@ public class BigNatInternal {
         if (newSize < 0) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDRESIZE);
         }
-        resize(newSize);
+        ctResize(newSize);
     }
 
     /**
@@ -423,6 +423,9 @@ public class BigNatInternal {
     public void ctClone(BigNatInternal other) {
         if (other.size > (short) value.length) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_REALLOCATIONNOTALLOWED);
+        }
+        if (other.length() == 0) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCLONE);
         }
 
         short diff = (short) ((short) value.length - other.size);
@@ -950,12 +953,12 @@ public class BigNatInternal {
     public void mult(BigNatInternal other) {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
-        tmp.ctClone(this);
+        tmp.clone(this);
         setSizeToMax(true);
         for (short i = (short) (other.value.length - 1); i >= other.offset; i--) {
             add(tmp, (short) (other.value.length - 1 - i), (short) (other.value[i] & DIGIT_MASK));
         }
-        ctShrink();
+        shrink();
         tmp.unlock();
     }
 
