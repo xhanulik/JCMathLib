@@ -1025,18 +1025,38 @@ public class BigNatInternal {
      * Right bit shift with carry
      *
      * @param bits number of bits to shift by
-     * @param carry ORed into the highest byte
+     * @param carry XORed into the highest byte
      */
-    protected void shiftRight(short bits, short carry) {
+    public void shiftRight(short bits, short carry) {
         // assumes 0 <= bits < 8
         short mask = (short) ((short) (1 << bits) - 1); // lowest `bits` bits set to 1
-        for (short i = 0; i < (short) value.length; i++) {
-            short current = i >= offset ? (short) (value[i] & 0xff) : 0;
+        for (short i = offset; i < (short) value.length; i++) {
+            short current = (short) (value[i] & DIGIT_MASK);
             short previous = current;
             current >>= bits;
             value[i] = (byte) (current | carry);
             carry = (short) (previous & mask);
             carry <<= (short) (8 - bits);
+        }
+    }
+
+    public void ctShiftRight(short bits, short carry) {
+        // assumes 0 <= bits < 8
+        short mask = (short) ((short) (1 << bits) - 1); // lowest `bits` bits set to 1
+        for (short i = 0; i < (short) value.length; i++) {
+            short validRange = ConstantTime.ctGreaterOrEqual(i, offset);
+            short thisValue = (short) (value[i] & DIGIT_MASK);
+            short current =  ConstantTime.ctSelect(validRange, thisValue, (short) 0);
+            short previous = current;
+
+            /* use carry to compute current if in valid range */
+            current >>= bits;
+            current = (byte) (current | carry);
+            value[i] = (byte) ConstantTime.ctSelect(validRange, current, thisValue);
+
+            /* Update carry if in valid range */
+            current = (short) ((short) (previous & mask) << (short) (8 - bits));
+            carry = ConstantTime.ctSelect(validRange, current, carry);
         }
     }
 
@@ -1046,7 +1066,10 @@ public class BigNatInternal {
      * @param bits number of bits to shift by
      */
     public void shiftRight(short bits) {
-        shiftRight(bits, (short) 0);
+        ctShiftRight(bits, (short) 0);
+    }
+    public void ctShiftRight(short bits) {
+        ctShiftRight(bits, (short) 0);
     }
 
     /**
