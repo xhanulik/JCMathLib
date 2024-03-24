@@ -1028,7 +1028,10 @@ public class BigNatInternal {
      * @param carry XORed into the highest byte
      */
     public void shiftRight(short bits, short carry) {
-        // assumes 0 <= bits < 8
+        if (bits < 0 || bits > 7) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSHIFT);
+        }
+
         short mask = (short) ((short) (1 << bits) - 1); // lowest `bits` bits set to 1
         for (short i = offset; i < (short) value.length; i++) {
             short current = (short) (value[i] & DIGIT_MASK);
@@ -1041,7 +1044,10 @@ public class BigNatInternal {
     }
 
     public void ctShiftRight(short bits, short carry) {
-        // assumes 0 <= bits < 8
+        if (bits < 0 || bits > 7) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSHIFT);
+        }
+
         short mask = (short) ((short) (1 << bits) - 1); // lowest `bits` bits set to 1
         for (short i = 0; i < (short) value.length; i++) {
             short validRange = ConstantTime.ctGreaterOrEqual(i, offset);
@@ -1079,7 +1085,10 @@ public class BigNatInternal {
      * @param carry ORed into the lowest byte
      */
     protected void shiftLeft(short bits, short carry) {
-        // assumes 0 <= bits < 8
+        if (bits < 0 || bits > 7) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSHIFT);
+        }
+
         short mask = (short) ((-1 << (8 - bits)) & 0xff); // highest `bits` bits set to 1
         for (short i = (short) (value.length - 1); i >= offset; --i) {
             short current = (short) (value[i] & 0xff);
@@ -1096,13 +1105,47 @@ public class BigNatInternal {
         }
     }
 
+    public void ctShiftLeft(short bits, short carry) {
+        if (bits < 0 || bits > 7) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSHIFT);
+        }
+
+        short mask = (short) ((-1 << (8 - bits)) & 0xff); // highest `bits` bits set to 1
+        for (short i = (short) (value.length - 1); i >= 0; --i) {
+            short validRange = ConstantTime.ctGreaterOrEqual(i, offset);
+            short thisValue = (short) (value[i] & 0xff);
+            short current = ConstantTime.ctSelect(validRange, thisValue, (short) 0);
+            short previous = current;
+
+            /* use carry to compute current if in valid range */
+            current <<= bits;
+            current = (byte) (current | carry);
+            value[i] = (byte) ConstantTime.ctSelect(validRange, current, thisValue);
+
+            /* update carry if in valid range */
+            current = (short) ((short) (previous & mask) >> (short) (8 - bits));
+            carry = ConstantTime.ctSelect(validRange, current, carry);
+        }
+
+        short nonZeroCarry = ConstantTime.ctIsNonZero(carry);
+        short valueAtOffset = value[offset];
+        short newSize = (short) (size + 1);
+        newSize = ConstantTime.ctSelect(nonZeroCarry, newSize, size);
+        setSize(newSize);
+        value[offset] = (byte) ConstantTime.ctSelect(nonZeroCarry, carry, valueAtOffset);
+    }
+
     /**
-     * Right bit shift
+     * Left bit shift
      *
      * @param bits number of bits to shift by
      */
     public void shiftLeft(short bits) {
         shiftLeft(bits, (short) 0);
+    }
+
+    public void ctShiftLeft(short bits) {
+        ctShiftLeft(bits, (short) 0);
     }
 
     /**
