@@ -1,5 +1,6 @@
 package tests.BigNatInternal;
 
+import javacard.framework.ISOException;
 import javacard.framework.JCSystem;
 import opencrypto.jcmathlib.BigNat;
 import opencrypto.jcmathlib.ResourceManager;
@@ -17,10 +18,10 @@ public class ShiftRightTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         bn1.ctShiftRight((short) 0);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x05, 0x08};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        byte[] expectedResult = {0x05, 0x08};
+        byte[] actualResult = new byte[2];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -33,10 +34,10 @@ public class ShiftRightTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         bn1.ctShiftRight((short) 1);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x02, (byte) 0x84};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        byte[] expectedResult = {0x02, (byte) 0x84};
+        byte[] actualResult = new byte[2];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -49,10 +50,10 @@ public class ShiftRightTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         bn1.ctShiftRight((short) 7);
 
-        BigNat bn3 = new BigNat((short) 10, memoryType, rm);
-        byte[] data3 = {0x00, (byte) 0x80};
-        bn3.fromByteArray(data3, (short) 0, (short) data3.length);
-        Assertions.assertTrue(bn1.equals(bn3));
+        byte[] expectedResult = {0x00, (byte) 0x80};
+        byte[] actualResult = new byte[2];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
     }
 
     @Test
@@ -85,5 +86,27 @@ public class ShiftRightTest {
         byte[] actualResult = new byte[2];
         bn1.copyToByteArray(actualResult, (short) 0);
         Assertions.assertArrayEquals(expectedResult, actualResult);
+    }
+
+    @Test
+    public void shiftRight_invalidShift8() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x00, 0x02};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        Assertions.assertThrows(ISOException.class, () -> bn1.ctShiftRight((short) 8));
+    }
+
+    @Test
+    public void shiftRight_invalidShiftNegative() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x00, 0x02};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        Assertions.assertThrows(ISOException.class, () -> bn1.ctShiftRight((short) -1));
     }
 }
