@@ -79,7 +79,6 @@ public class UnitTests extends Applet {
     public final static byte INS_BN_CLONE = (byte) 0x56;
     public final static byte INS_BN_ZERO = (byte) 0x57;
     public final static byte INS_BN_ONE = (byte) 0x58;
-    public final static byte INS_BN_EQ = (byte) 0x59;
     public final static byte INS_BN_INC = (byte) 0x5A;
     public final static byte INS_BN_DEC = (byte) 0x5B;
     public final static byte INS_BN_DIV = (byte) 0x5C;
@@ -342,9 +341,6 @@ public class UnitTests extends Applet {
                 case INS_BN_ONE:
                     testBnOne(apdu, dataLen);
                     break;
-                case INS_BN_EQ:
-                    testBnEq(apdu, dataLen);
-                    break;
                 case INS_BN_INC:
                     testBnIncrement(apdu, dataLen);
                     break;
@@ -546,7 +542,7 @@ public class UnitTests extends Applet {
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
         bn3.setSize((short) (p1 + 1));
         bn3.copy(bn1);
-        bn3.ctSubtract(bn2);
+        bn3.subtract(bn2, (short) 0, (short) 1);
         short len = bn3.copyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
     }
@@ -798,8 +794,8 @@ public class UnitTests extends Applet {
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
 
-        short lesser = bn1.ctIsLesser(bn2, (short) 0, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, lesser);
+        boolean lesser = bn1.isLesser(bn2, (short) 0, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, (short) (lesser ? 1 : 0));
     }
 
     void testBnEquals(APDU apdu, short dataLen) {
@@ -885,16 +881,6 @@ public class UnitTests extends Applet {
 
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
         bn1.isOne();
-        apdu.setOutgoingAndSend((short) 0, (short) 0);
-    }
-
-    void testBnEq(APDU apdu, short dataLen) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
-        bn1.equals(bn2);
         apdu.setOutgoingAndSend((short) 0, (short) 0);
     }
 
