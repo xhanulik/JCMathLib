@@ -133,14 +133,14 @@ public class BigNat extends BigNatInternal {
         tmp.lock();
         if (isLesser(other)) {
             tmp.clone(other);
-            tmp.ctSubtract(this);
+            tmp.subtract(this);
         } else {
             tmp.clone(this);
-            tmp.ctSubtract(other);
+            tmp.subtract(other);
         }
         tmp.sq();
 
-        result.ctSubtract(tmp);
+        result.subtract(tmp);
         tmp.unlock();
         result.shiftRight((short) 2);
 
@@ -165,9 +165,20 @@ public class BigNat extends BigNatInternal {
 
         tmp.lock();
         tmp.clone(mod);
-        tmp.ctSubtract(this);
+        tmp.subtract(this, (short) 0, (short) 1);
         setSize(mod.length());
         copy(tmp);
+        tmp.unlock();
+    }
+
+    public void ctModNegate(BigNat mod) {
+        BigNat tmp = rm.BN_B;
+
+        tmp.lock();
+        tmp.ctClone(mod);
+        tmp.ctSubtract(this);
+        setSize(mod.length());
+        ctCopy(tmp);
         tmp.unlock();
     }
 
@@ -175,6 +186,15 @@ public class BigNat extends BigNatInternal {
      * Modular addition of a BigNat to this.
      */
     public void modAdd(BigNat other, BigNat mod) {
+        resize((short) (mod.length() + 1));
+        add(other);
+        if (!isLesser(mod)) {
+            subtract(mod);
+        }
+        setSize(mod.length());
+    }
+
+    public void ctModAdd(BigNat other, BigNat mod) {
         BigNat tmp1 = rm.BN_B;
         BigNat tmp2 = rm.BN_C;
         tmp1.lock();
@@ -204,7 +224,7 @@ public class BigNat extends BigNatInternal {
         if (isLesser(other)) {
             add(mod);
         }
-        ctSubtract(other);
+        subtract(other);
         setSize(mod.length());
     }
 
@@ -382,7 +402,7 @@ public class BigNat extends BigNatInternal {
                 if (result.isLesser(mod)) {
                     carry = result.add(mod);
                 } else {
-                    result.ctSubtract(mod);
+                    result.subtract(mod);
                 }
             }
             result.shiftRight((short) 1, carry);
