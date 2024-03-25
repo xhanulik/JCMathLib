@@ -276,22 +276,22 @@ public class Integer {
         } else {
             if (this.isPositive() && other.getMagnitude().isLesser(this.getMagnitude())) { //this(+) is larger than other(-)
                 this.sign = 0;
-                this.magnitude.subtract(other.magnitude, (short) 0, (short) 0);
+                this.magnitude.subtract(other.magnitude, (short) 0, (short) 1);
             } else if (this.isNegative() && other.getMagnitude().isLesser(this.getMagnitude())) {    //this(-) has larger magnitude than other(+)
                 this.sign = 1;
-                this.magnitude.subtract(other.magnitude, (short) 0, (short) 0);
+                this.magnitude.subtract(other.magnitude, (short) 0, (short) 1);
             } else if (this.isPositive() && this.getMagnitude().isLesser(other.getMagnitude())) { //this(+) has smaller magnitude than other(-)
                 this.sign = 1;
                 tmp.lock();
                 tmp.clone(other.getMagnitude());
-                tmp.subtract(this.magnitude, (short) 0, (short) 0);
+                tmp.subtract(this.magnitude, (short) 0, (short) 1);
                 this.magnitude.copy(tmp);
                 tmp.unlock();
             } else if (this.isNegative() && this.getMagnitude().isLesser(other.getMagnitude())) {  //this(-) has larger magnitude than other(+)
                 this.sign = 0;
                 tmp.lock();
                 tmp.clone(other.getMagnitude());
-                tmp.subtract(this.magnitude, (short) 0, (short) 0);
+                tmp.subtract(this.magnitude, (short) 0, (short) 1);
                 this.magnitude.copy(tmp);
                 tmp.unlock();
             } else if (this.getMagnitude().equals(other.getMagnitude())) {  //this has opposite sign than other, and the same magnitude
