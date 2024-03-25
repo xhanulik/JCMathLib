@@ -849,6 +849,10 @@ public class BigNatInternal {
         rm.BN_WORD.unlock();
     }
 
+    public void subtract(BigNatInternal other) {
+        subtract(other, (short) 0, (short) 1);
+    }
+
     /**
      * Computes other * multiplier, shifts the results by shift and subtract it from this.
      * Multiplier must be in range [0; 2^8 - 1].
@@ -1217,14 +1221,13 @@ public class BigNatInternal {
      * Get the index of the highest bit set to 1. Used in remainderDivide.
      */
     private static short highestOneBit(short x) {
-        short foundIndex = DOUBLE_DIGIT_LEN;
         for (short i = 0; i < DOUBLE_DIGIT_LEN; ++i) {
             if (x < 0) {
-                foundIndex = i;
+                return i;
             }
             x <<= 1;
         }
-        return foundIndex;
+        return DOUBLE_DIGIT_LEN;
     }
 
     /**
