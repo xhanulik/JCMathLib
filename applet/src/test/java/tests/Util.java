@@ -17,4 +17,17 @@ public class Util {
 
         return data;
     }
+
+    public static int bytesToInt(byte[] data) {
+        int val = (data[1] << 24)
+                | ((data[2] & 0xFF) << 16)
+                | ((data[3] & 0xFF) << 8)
+                | (data[4] & 0xFF);
+
+        if (data[0] == 0x01) {
+            val = val * -1;
+        }
+
+        return val;
+    }
 }
