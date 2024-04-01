@@ -161,11 +161,11 @@ public class ConstantTime {
      * @return 0xff if a is positive, 0 otherwise
      */
     public static byte ctIsPositive(byte a) {
-        return (byte) (ctLessThan(a, (byte) 0b10000000) & ~ctIsZero(a));
+        return (byte) (ctLessThan(a, (byte) 0x80) & ~ctIsZero(a));
     }
 
     public static short ctIsPositive(short a) {
-        return (short) (ctLessThan(a, (short) 0b1000000000000000) & ~ctIsZero(a));
+        return (short) (ctLessThan(a, (short) 0x8000) & ~ctIsZero(a));
     }
 
     /**
@@ -176,11 +176,11 @@ public class ConstantTime {
      * @return 0xff if a is positive, 0 otherwise
      */
     public static byte ctIsNegative(byte a) {
-        return ctGreaterOrEqual(a, (byte) 0b10000000);
+        return ctGreaterOrEqual(a, (byte) 0x80);
     }
 
     public static short ctIsNegative(short a) {
-        return ctGreaterOrEqual(a, (short) 0b1000000000000000);
+        return ctGreaterOrEqual(a, (short) 0x8000);
     }
 
     /**
@@ -191,11 +191,11 @@ public class ConstantTime {
      * @return 0xff if a is positive, 0 otherwise
      */
     public static byte ctIsNonNegative(byte a) {
-        return (byte) (ctLessThan(a, (byte) 0b10000000) | ctIsZero(a));
+        return (byte) (ctLessThan(a, (byte) 0x80) | ctIsZero(a));
     }
 
     public static short ctIsNonNegative(short a) {
-        return (short) (ctLessThan(a, (short) 0b1000000000000000) | ctIsZero(a));
+        return (short) (ctLessThan(a, (short) 0x8000) | ctIsZero(a));
     }
 
     /**
@@ -206,10 +206,10 @@ public class ConstantTime {
      * @return 0xff if a is positive, 0 otherwise
      */
     public static byte ctIsNonPositive(byte a) {
-        return (byte) (ctGreaterOrEqual(a, (byte) 0b10000000) | ctIsZero(a));
+        return (byte) (ctGreaterOrEqual(a, (byte) 0x80) | ctIsZero(a));
     }
 
     public static short ctIsNonPositive(short a) {
-        return (short) (ctGreaterOrEqual(a, (short) 0b10000000) | ctIsZero(a));
+        return (short) (ctGreaterOrEqual(a, (short) 0x80) | ctIsZero(a));
     }
 }
