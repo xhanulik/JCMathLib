@@ -22,14 +22,7 @@ public class ConstantTimeUnitTests extends Applet {
     public final static byte INS_GET_ALLOCATOR_STATS = (byte) 0x07;
     public final static byte INS_GET_PROFILE_LOCKS = (byte) 0x08;
 
-    public final static byte INS_INT_STR = (byte) 0x09;
-    public final static byte INS_INT_ADD = (byte) 0x10;
-    public final static byte INS_INT_SUB = (byte) 0x11;
-    public final static byte INS_INT_MUL = (byte) 0x12;
-    public final static byte INS_INT_DIV = (byte) 0x13;
-    public final static byte INS_INT_MOD = (byte) 0x15;
-
-    public final static byte INS_BN_STR = (byte) 0x20;
+    public final static byte INS_BN_TOARRAY = (byte) 0x20;
     public final static byte INS_BN_ADD = (byte) 0x21;
     public final static byte INS_BN_SUB = (byte) 0x22;
     public final static byte INS_BN_MUL = (byte) 0x23;
@@ -49,17 +42,6 @@ public class ConstantTimeUnitTests extends Applet {
     public final static byte INS_BN_SQ_MOD = (byte) 0x35;
     public final static byte INS_BN_SQRT_MOD = (byte) 0x36;
 
-    public final static byte INS_EC_GEN = (byte) 0x40;
-    public final static byte INS_EC_DBL = (byte) 0x41;
-    public final static byte INS_EC_ADD = (byte) 0x42;
-    public final static byte INS_EC_MUL = (byte) 0x43;
-    public final static byte INS_EC_NEG = (byte) 0x44;
-    public final static byte INS_EC_COMPARE = (byte) 0x46;
-    public final static byte INS_EC_FROM_X = (byte) 0x47;
-    public final static byte INS_EC_IS_Y_EVEN = (byte) 0x48;
-    public final static byte INS_EC_MUL_ADD = (byte) 0x49;
-    public final static byte INS_EC_ENCODE = (byte) 0x4a;
-
     // other tests
     public final static byte INS_BN_LESSER = (byte) 0x50;
     public final static byte INS_BN_EQUAL = (byte) 0x51;
@@ -74,6 +56,7 @@ public class ConstantTimeUnitTests extends Applet {
     public final static byte INS_BN_DEC = (byte) 0x5B;
     public final static byte INS_BN_DIV = (byte) 0x5C;
     public final static byte INS_BN_NEG_MOD = (byte) 0x5D;
+    public final static byte INS_BN_FROMARRAY = (byte) 0x5E;
 
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
@@ -202,39 +185,11 @@ public class ConstantTimeUnitTests extends Applet {
                     apdu.setOutgoingAndSend((short) 0, (short) rm.locker.profileLockedObjects.length);
                     break;
 
-                case INS_EC_GEN:
-                    testEcGen(apdu);
+                case INS_BN_TOARRAY:
+                    testBnToArray(apdu, dataLen);
                     break;
-                case INS_EC_DBL:
-                    testEcDbl(apdu);
-                    break;
-                case INS_EC_ADD:
-                    testEcAdd(apdu);
-                    break;
-                case INS_EC_MUL:
-                    testEcMul(apdu);
-                    break;
-                case INS_EC_NEG:
-                    testEcNeg(apdu);
-                    break;
-                case INS_EC_COMPARE:
-                    testEcCompare(apdu);
-                    break;
-                case INS_EC_FROM_X:
-                    testEcFromX(apdu);
-                    break;
-                case INS_EC_IS_Y_EVEN:
-                    testEcIsYEven(apdu);
-                    break;
-                case INS_EC_MUL_ADD:
-                    testEcMulAdd(apdu);
-                    break;
-                case INS_EC_ENCODE:
-                    testEcEncode(apdu);
-                    break;
-
-                case INS_BN_STR:
-                    testBnStr(apdu, dataLen);
+                case INS_BN_FROMARRAY:
+                    testBnFromArray(apdu, dataLen);
                     break;
                 case INS_BN_ADD:
                     testBnAdd(apdu, dataLen);
@@ -284,25 +239,6 @@ public class ConstantTimeUnitTests extends Applet {
                     break;
                 case INS_BN_SQRT_MOD:
                     testBnModSqrt(apdu, dataLen);
-                    break;
-
-                case INS_INT_STR:
-                    testIntStr(apdu, dataLen);
-                    break;
-                case INS_INT_ADD:
-                    testIntAdd(apdu, dataLen);
-                    break;
-                case INS_INT_SUB:
-                    testIntSub(apdu, dataLen);
-                    break;
-                case INS_INT_MUL:
-                    testIntMul(apdu, dataLen);
-                    break;
-                case INS_INT_DIV:
-                    testIntDiv(apdu, dataLen);
-                    break;
-                case INS_INT_MOD:
-                    testIntMod(apdu, dataLen);
                     break;
 
                 case INS_BN_LESSER:
@@ -380,16 +316,6 @@ public class ConstantTimeUnitTests extends Applet {
         return (short) (bufferOffset + 3);
     }
 
-
-    void testEcGen(APDU apdu) {
-        byte[] apduBuffer = apdu.getBuffer();
-
-        point1.randomize();
-
-        short len = point1.getW(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
     void updateAfterReset() {
         if (curve != null) {
             curve.updateAfterReset();
@@ -400,115 +326,20 @@ public class ConstantTimeUnitTests extends Applet {
         }
     }
 
-    void testEcDbl(APDU apdu) {
-        byte[] apduBuffer = apdu.getBuffer();
-
-        point1.setW(apduBuffer, ISO7816.OFFSET_CDATA, curve.POINT_SIZE);
-        point1.makeDouble();
-
-        short len = point1.getW(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
-    void testEcAdd(APDU apdu) {
-        byte[] apduBuffer = apdu.getBuffer();
-
-        point1.setW(apduBuffer, ISO7816.OFFSET_CDATA, curve.POINT_SIZE);
-        point2.setW(apduBuffer, (short) (ISO7816.OFFSET_CDATA + curve.POINT_SIZE), curve.POINT_SIZE);
-        point1.add(point2);
-
-        short len = point1.getW(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
-    void testEcMul(APDU apdu) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        point1.setW(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), curve.POINT_SIZE);
-        point1.multiplication(bn1);
-
-        short len = point1.getW(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
-    void testEcMulAdd(APDU apdu) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        point1.setW(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), curve.POINT_SIZE);
-        point2.setW(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1 + curve.POINT_SIZE), curve.POINT_SIZE);
-        point1.multAndAdd(bn1, point2);
-
-        short len = point1.getW(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
-    void testEcNeg(APDU apdu) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        point1.setW(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        point1.negate();
-        short len = point1.getW(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
-
-    void testEcCompare(APDU apdu) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-        short p2 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        point1.setW(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        point2.setW(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), p2);
-        apduBuffer[0] = 0;
-        apduBuffer[1] = 0;
-        apduBuffer[2] = 0;
-        apduBuffer[3] = 0; // Tests expects big integer
-        apduBuffer[4] = point1.isEqual(point2) ? (byte) 1 : (byte) 0;
-        apdu.setOutgoingAndSend((short) 0, (short) 5);
-    }
-
-
-    void testEcFromX(APDU apdu) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        point1.fromX(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        short len = point1.getW(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
-
-    void testEcIsYEven(APDU apdu) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        point1.setW(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        apduBuffer[0] = point1.isYEven() ? (byte) 1 : (byte) 0;
-        apdu.setOutgoingAndSend((short) 0, (short) 1);
-    }
-
-
-    void testEcEncode(APDU apdu) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short len = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-        boolean compressed = apduBuffer[ISO7816.OFFSET_P2] == 0x01;
-
-        point1.decode(apduBuffer, ISO7816.OFFSET_CDATA, len);
-        apdu.setOutgoingAndSend((short) 0, point1.encode(apduBuffer, (short) 0, compressed));
-    }
-
-
-    void testBnStr(APDU apdu, short dataLen) {
+    void testBnToArray(APDU apdu, short dataLen) {
         byte[] apduBuffer = apdu.getBuffer();
 
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
         short len = bn1.ctCopyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
+    }
+
+    void testBnFromArray(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+
+        bn1.ctFromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
+        short len = bn1.copyToByteArray(apduBuffer, (short) 0);
+        //apdu.setOutgoingAndSend((short) 0, len);
     }
 
     void testBnAdd(APDU apdu, short dataLen) {
@@ -697,14 +528,6 @@ public class ConstantTimeUnitTests extends Applet {
         apdu.setOutgoingAndSend((short) 0, len);
     }
 
-    void testIntStr(APDU apdu, short dataLen) {
-        byte[] apduBuffer = apdu.getBuffer();
-
-        int1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
-        short len = int1.toByteArray(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
     void testBnModSqrt(APDU apdu, short dataLen) {
         byte[] apduBuffer = apdu.getBuffer();
         short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
@@ -713,68 +536,6 @@ public class ConstantTimeUnitTests extends Applet {
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
         bn1.modSqrt(bn2);
         short len = bn1.copyToByteArray(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
-
-    void testIntAdd(APDU apdu, short ignoredDataLen) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        int1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        int2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), p1);
-
-        int1.add(int2);
-        short len = int1.toByteArray(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
-    void testIntSub(APDU apdu, short ignoredDataLen) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        int1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        int2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), p1);
-
-        int1.subtract(int2);
-        short len = int1.toByteArray(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
-    void testIntMul(APDU apdu, short ignoredDataLen) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        int1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        int2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), p1);
-
-        int1.multiply(int2);
-        short len = int1.toByteArray(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
-    void testIntDiv(APDU apdu, short ignoredDataLen) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        int1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        int2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), p1);
-
-        int1.divide(int2);
-
-        short len = int1.toByteArray(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
-    }
-
-    void testIntMod(APDU apdu, short ignoredDataLen) {
-        byte[] apduBuffer = apdu.getBuffer();
-        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        int1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
-        int2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), p1);
-
-        int1.modulo(int2);
-        short len = int1.toByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
     }
 
