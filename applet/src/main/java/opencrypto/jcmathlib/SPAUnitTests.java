@@ -390,8 +390,6 @@ public class SPAUnitTests extends Applet {
         beginDivision();
         bn3.mult(bn2);
         middleDivision();
-        bn3.clone(bn1);
-        beginDivision();
         bn3.mult(bn2);
         endDivision();
 
