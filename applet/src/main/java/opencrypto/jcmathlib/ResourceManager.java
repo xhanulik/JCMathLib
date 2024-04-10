@@ -142,7 +142,7 @@ public class ResourceManager {
                 sqPriv = (RSAPrivateKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PRIVATE, MAX_SQ_BIT_LENGTH, false);
                 sqPriv.setExponent(CONST_TWO, (short) 0, (short) CONST_TWO.length);
                 sqPriv.setModulus(ARRAY_A, (short) 0, MAX_SQ_LENGTH);
-                sqCiph.init(sqPriv, Cipher.MODE_DECRYPT); // this needs to be commented out when running with SIMULATOR locally
+                //sqCiph.init(sqPriv, Cipher.MODE_DECRYPT); // this needs to be commented out when running with SIMULATOR locally
             }
         }
 

@@ -81,6 +81,7 @@ public class BigNat extends BigNatInternal {
             tmp.setSize(length());
             tmp.copy(this);
             super.mult(tmp);
+            tmp.unlock();
             return;
         }
         if ((short) (rm.MAX_SQ_LENGTH - 1) < (short) (2 * length())) {
@@ -94,6 +95,43 @@ public class BigNat extends BigNatInternal {
         Util.arrayFillNonAtomic(resultBuffer, (short) 0, offset, (byte) 0x00);
         copyToByteArray(resultBuffer, offset);
         short len = rm.sqCiph.doFinal(resultBuffer, (short) 0, rm.MAX_SQ_LENGTH, resultBuffer, (short) 0);
+        if (len != rm.MAX_SQ_LENGTH) {
+            if (OperationSupport.getInstance().RSA_PREPEND_ZEROS) {
+                Util.arrayCopyNonAtomic(resultBuffer, (short) 0, resultBuffer, (short) (rm.MAX_SQ_LENGTH - len), len);
+                Util.arrayFillNonAtomic(resultBuffer, (short) 0, (short) (rm.MAX_SQ_LENGTH - len), (byte) 0);
+            } else {
+                ISOException.throwIt(ReturnCodes.SW_ECPOINT_UNEXPECTED_KA_LEN);
+            }
+        }
+        short zeroPrefix = (short) (rm.MAX_SQ_LENGTH - (short) 2 * length());
+        fromByteArray(resultBuffer, zeroPrefix, (short) (rm.MAX_SQ_LENGTH - zeroPrefix));
+        rm.unlock(resultBuffer);
+        shrink();
+    }
+
+    public void ctSq() {
+        BigNat tmp = rm.BN_E;
+        tmp.lock();
+        tmp.setSize(length());
+        tmp.ctCopy(this);
+        super.ctMult(tmp);
+    }
+
+    public void ctHWSq() {
+        if ((short) (rm.MAX_SQ_LENGTH - 1) < (short) (2 * length())) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSQ);
+        }
+
+        byte[] resultBuffer = rm.ARRAY_A;
+        short offset = (short) (rm.MAX_SQ_LENGTH - length());
+
+        rm.lock(resultBuffer);
+        Util.arrayFillNonAtomic(resultBuffer, (short) 0, offset, (byte) 0x00);
+        ctCopyToByteArray(resultBuffer, offset);
+        short len = rm.sqCiph.doFinal(resultBuffer, (short) 0, rm.MAX_SQ_LENGTH, resultBuffer, (short) 0); // verify CT
+        BigNat tmp = rm.BN_E;
+        tmp.lock();
+        tmp.setSize(length());
         if (len != rm.MAX_SQ_LENGTH) {
             if (OperationSupport.getInstance().RSA_PREPEND_ZEROS) {
                 Util.arrayCopyNonAtomic(resultBuffer, (short) 0, resultBuffer, (short) (rm.MAX_SQ_LENGTH - len), len);
