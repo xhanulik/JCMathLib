@@ -2,7 +2,6 @@ package tests;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import opencrypto.jcmathlib.ConstantTime;
 
 public class ConstantTimeTest {
     /* ctMsb tests */

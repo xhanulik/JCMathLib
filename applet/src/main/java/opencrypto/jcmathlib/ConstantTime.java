@@ -42,6 +42,10 @@ public class ConstantTime {
         return ctMsb((short) (~a & ((a & (short) 0xffff) - 1)));
     }
 
+    public static short _ctIsZero(byte a) {
+        return ctMsb((short) (~((short) a) & (((short) 0xffff & ((short) a)) - 1)));
+    }
+
     /**
      * Constant time check for non-zero byte value.
      *
