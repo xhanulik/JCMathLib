@@ -47,7 +47,7 @@ public class ECPoint {
      * Generates new random point value.
      */
     public void randomize() {
-        if (OperationSupport.getInstance().EC_GEN) {
+        if (OperationSupport.getInstance().EC_GEN == (short) 0xffff) {
             pointKeyPair.genKeyPair(); // Fails for some curves on some cards
         } else {
             BigNat tmp = rm.EC_BN_A;
@@ -228,7 +228,7 @@ public class ECPoint {
      * @param other point to be added to this.
      */
     public void add(ECPoint other) {
-        if (OperationSupport.getInstance().EC_HW_ADD) {
+        if (OperationSupport.getInstance().EC_HW_ADD == (short) 0xffff) {
             hwAdd(other);
         } else {
             swAdd(other);
@@ -242,7 +242,7 @@ public class ECPoint {
      */
     private void swAdd(ECPoint other) {
         boolean samePoint = this == other || isEqual(other);
-        if (samePoint && OperationSupport.getInstance().EC_HW_XY) {
+        if (samePoint && (OperationSupport.getInstance().EC_HW_XY == (short) 0xffff)) {
             multiplication(ResourceManager.TWO);
             return;
         }
@@ -388,7 +388,7 @@ public class ECPoint {
      * @param scalar value of scalar for multiplication
      */
     public void multiplication(BigNat scalar) {
-        if (OperationSupport.getInstance().EC_SW_DOUBLE && scalar.equals(ResourceManager.TWO)) {
+        if ((OperationSupport.getInstance().EC_SW_DOUBLE == (short) 0xffff) && scalar.equals(ResourceManager.TWO)) {
             swDouble();
         // } else if (rm.ecMultKA.getAlgorithm() == KeyAgreement.ALG_EC_SVDP_DH_PLAIN_XY) {
         } else if (rm.ecMultKA.getAlgorithm() == (byte) 6) {
@@ -408,7 +408,7 @@ public class ECPoint {
      * @param point the other point
      */
     public void multAndAdd(BigNat scalar, ECPoint point) {
-        if (OperationSupport.getInstance().EC_HW_ADD) {
+        if (OperationSupport.getInstance().EC_HW_ADD == (short) 0xffff) {
             byte[] pointBuffer = rm.POINT_ARRAY_A;
 
             rm.lock(pointBuffer);
@@ -525,7 +525,7 @@ public class ECPoint {
         y.unlock();
 
         boolean negate;
-        if (OperationSupport.getInstance().EC_HW_X_ECDSA) {
+        if (OperationSupport.getInstance().EC_HW_X_ECDSA == (short) 0xffff) {
             rm.lock(pointBuffer2);
             getW(pointBuffer2, (short) 0);
             curve.disposablePriv.setG(pointBuffer2, (short) 0, curve.POINT_SIZE);

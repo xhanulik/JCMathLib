@@ -85,7 +85,7 @@ public class SPAUnitTests extends Applet {
 
     public SPAUnitTests() {
         OperationSupport.getInstance().setCard(CARD_TYPE);
-        if (!OperationSupport.getInstance().DEFERRED_INITIALIZATION) {
+        if (OperationSupport.getInstance().DEFERRED_INITIALIZATION != (short) 0xffff) {
             initialize();
         }
     }
@@ -439,8 +439,8 @@ public class SPAUnitTests extends Applet {
 
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
-        boolean previous = OperationSupport.getInstance().RSA_SQ;
-        OperationSupport.getInstance().RSA_SQ = false;
+        short previous = OperationSupport.getInstance().RSA_SQ;
+        OperationSupport.getInstance().RSA_SQ = 0x0000;
         bn3.clone(bn1);
 
         beginDivision();

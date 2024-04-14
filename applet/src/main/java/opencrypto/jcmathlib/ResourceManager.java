@@ -112,26 +112,26 @@ public class ResourceManager {
         ONE_COORD = new BigNat(MAX_COORD_SIZE, JCSystem.MEMORY_TYPE_PERSISTENT, this);
         ONE_COORD.setValue((byte) 1);
         // ECC Helpers
-        if (OperationSupport.getInstance().EC_HW_XY) {
+        if (OperationSupport.getInstance().EC_HW_XY == (short) 0xffff) {
             // ecMultKA = KeyAgreement.getInstance(KeyAgreement.ALG_EC_SVDP_DH_PLAIN_XY, false);
             ecMultKA = KeyAgreement.getInstance((byte) 6, false);
-        } else if (OperationSupport.getInstance().EC_HW_X) {
+        } else if (OperationSupport.getInstance().EC_HW_X == (short) 0xffff) {
             // ecMultKA = KeyAgreement.getInstance(KeyAgreement.ALG_EC_SVDP_DH_PLAIN, false);
             ecMultKA = KeyAgreement.getInstance((byte) 3, false);
         }
         // verifyEcdsa = Signature.getInstance(Signature.ALG_ECDSA_SHA_256, false);
         verifyEcdsa = Signature.getInstance((byte) 33, false);
-        if (OperationSupport.getInstance().EC_HW_ADD) {
+        if (OperationSupport.getInstance().EC_HW_ADD == (short) 0xffff) {
             // ecAddKA = KeyAgreement.getInstance(KeyAgreement.ALG_EC_PACE_GM, false);
             ecAddKA = KeyAgreement.getInstance((byte) 5, false);
         }
 
         // RSA Sq Helpers
-        if (OperationSupport.getInstance().RSA_SQ) {
+        if (OperationSupport.getInstance().RSA_SQ == (short) 0xffff) {
             Util.arrayFillNonAtomic(ARRAY_A, (short) 0, MAX_SQ_LENGTH, (byte) 0xff);
             sqCiph = Cipher.getInstance(Cipher.ALG_RSA_NOPAD, false);
             modSqCiph = Cipher.getInstance(Cipher.ALG_RSA_NOPAD, false);
-            if (OperationSupport.getInstance().RSA_PUB) {
+            if (OperationSupport.getInstance().RSA_PUB == (short) 0xffff) {
                 modSqPub = (RSAPublicKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PUBLIC, MAX_EXP_BIT_LENGTH, false);
                 sqPub = (RSAPublicKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PUBLIC, MAX_SQ_BIT_LENGTH, false);
                 sqPub.setExponent(CONST_TWO, (short) 0, (short) CONST_TWO.length);
@@ -159,7 +159,7 @@ public class ResourceManager {
      * provided mod is assumed to be fixed.
      */
     public void fixModSqMod(BigNat mod) {
-        if (!OperationSupport.getInstance().RSA_SQ) {
+        if (OperationSupport.getInstance().RSA_SQ != (short) 0xffff) {
             return; // modSq engine is not used
         }
         fixedMod = mod;
@@ -172,13 +172,13 @@ public class ResourceManager {
         tmpMod.lock();
         lock(ARRAY_A);
         tmpMod.setSize(MAX_EXP_LENGTH);
-        if (OperationSupport.getInstance().RSA_PUB) {
-            if (OperationSupport.getInstance().RSA_KEY_REFRESH) {
+        if (OperationSupport.getInstance().RSA_PUB == (short) 0xffff) {
+            if (OperationSupport.getInstance().RSA_KEY_REFRESH == (short) 0xffff) {
                 modSqPub = (RSAPublicKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PUBLIC, MAX_EXP_BIT_LENGTH, false);
             }
             modSqPub.setExponent(ResourceManager.CONST_TWO, (short) 0, (short) ResourceManager.CONST_TWO.length);
-            if (OperationSupport.getInstance().RSA_RESIZE_MOD) {
-                if (OperationSupport.getInstance().RSA_APPEND_MOD) {
+            if (OperationSupport.getInstance().RSA_RESIZE_MOD == (short) 0xffff) {
+                if (OperationSupport.getInstance().RSA_APPEND_MOD == (short) 0xffff) {
                     mod.appendZeros(MAX_EXP_LENGTH, tmpBuffer, (short) 0);
                 } else {
                     mod.prependZeros(MAX_EXP_LENGTH, tmpBuffer, (short) 0);
@@ -190,12 +190,12 @@ public class ResourceManager {
             }
             modSqCiph.init(modSqPub, Cipher.MODE_DECRYPT);
         } else {
-            if (OperationSupport.getInstance().RSA_KEY_REFRESH) {
+            if (OperationSupport.getInstance().RSA_KEY_REFRESH == (short) 0xffff) {
                 modSqPriv = (RSAPrivateKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PRIVATE, MAX_EXP_BIT_LENGTH, false);
             }
             modSqPriv.setExponent(ResourceManager.CONST_TWO, (short) 0, (short) ResourceManager.CONST_TWO.length);
-            if (OperationSupport.getInstance().RSA_RESIZE_MOD) {
-                if (OperationSupport.getInstance().RSA_APPEND_MOD) {
+            if (OperationSupport.getInstance().RSA_RESIZE_MOD == (short) 0xffff) {
+                if (OperationSupport.getInstance().RSA_APPEND_MOD == (short) 0xffff) {
                     mod.appendZeros(MAX_EXP_LENGTH, tmpBuffer, (short) 0);
                 } else {
                     mod.prependZeros(MAX_EXP_LENGTH, tmpBuffer, (short) 0);
