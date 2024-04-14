@@ -46,7 +46,7 @@ public class Example extends Applet {
 
     public Example() {
         OperationSupport.getInstance().setCard(OperationSupport.SIMULATOR); // TODO set your card
-        if (!OperationSupport.getInstance().DEFERRED_INITIALIZATION) {
+        if (OperationSupport.getInstance().DEFERRED_INITIALIZATION != (short) 0xffff) {
             initialize();
         }
     }
