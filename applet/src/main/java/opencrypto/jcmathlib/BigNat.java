@@ -151,13 +151,9 @@ public class BigNat extends BigNatInternal {
         tmp.setSize(length());
 
         short lenMax = ConstantTime.ctEqual(len, rm.MAX_SQ_LENGTH);
-        if ((~lenMax & OperationSupport.getInstance().RSA_PREPEND_ZEROS) == (short) 0xffff) { //
-            Util.arrayCopyNonAtomic(resultBuffer, (short) 0, resultBuffer, (short) (rm.MAX_SQ_LENGTH - len), len);
-            Util.arrayFillNonAtomic(resultBuffer, (short) 0, (short) (rm.MAX_SQ_LENGTH - len), (byte) 0);
-        } else {
-            Util.arrayCopyNonAtomic(tmpBuffer, (short) 0, tmpBuffer, (short) (rm.MAX_SQ_LENGTH - len), len);
-            Util.arrayFillNonAtomic(tmpBuffer, (short) 0, (short) (rm.MAX_SQ_LENGTH - len), (byte) 0);
-        }
+        short blind = (short) (~(~lenMax & OperationSupport.getInstance().RSA_PREPEND_ZEROS))
+        CTUtil.ctArrayCopyNonAtomicBlinded(resultBuffer, (short) 0, resultBuffer, (short) (rm.MAX_SQ_LENGTH - len), len, blind);
+        CTUtil.ctArrayFillNonAtomicBlinded(resultBuffer, (short) 0, (short) (rm.MAX_SQ_LENGTH - len), (byte) 0, blind);
 
         short zeroPrefix = (short) (rm.MAX_SQ_LENGTH - (short) 2 * length());
         ctFromByteArray(resultBuffer, zeroPrefix, (short) (rm.MAX_SQ_LENGTH - zeroPrefix));

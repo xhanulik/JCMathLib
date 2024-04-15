@@ -1,10 +1,6 @@
 package tests.CTUtilTest;
 
-import javacard.framework.ISOException;
-import javacard.framework.JCSystem;
-import opencrypto.jcmathlib.BigNat;
 import opencrypto.jcmathlib.CTUtil;
-import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -21,5 +17,59 @@ public class ctArrayCopyNonAtomicTest {
         byte[] src = new byte[10];
         byte[] dest = new byte[12];
         Assertions.assertThrows(ArrayIndexOutOfBoundsException.class, () -> CTUtil.ctArrayCopyNonAtomic(src, (short) 0, dest, (short) 0, (short) 11));
+    }
+
+    @Test
+    public void sameLength_zeroOffset() {
+        byte[] src = {0, 1, 2, 3, 4, 5};
+        byte[] dest = new byte[6];
+        CTUtil.ctArrayCopyNonAtomic(src, (short) 0, dest, (short) 0, (short) 6);
+        Assertions.assertArrayEquals(src, dest);
+    }
+
+    @Test
+    public void sameLength_nonZeroSrcOffset() {
+        byte[] src = {0, 1, 2, 3, 4, 5};
+        byte[] dest = new byte[6];
+        Assertions.assertThrows(ArrayIndexOutOfBoundsException.class, () -> CTUtil.ctArrayCopyNonAtomic(src, (short) 1, dest, (short) 0, (short) 6));
+    }
+
+    @Test
+    public void sameLength_nonZeroDestOffset() {
+        byte[] src = {0, 1, 2, 3, 4, 5};
+        byte[] dest = new byte[6];
+        Assertions.assertThrows(ArrayIndexOutOfBoundsException.class, () -> CTUtil.ctArrayCopyNonAtomic(src, (short) 0, dest, (short) 1, (short) 6));
+    }
+
+    @Test
+    public void srcShorter() {
+        byte[] src = {0, 1, 2, 3, 4};
+        byte[] dest = new byte[6];
+        CTUtil.ctArrayCopyNonAtomic(src, (short) 0, dest, (short) 0, (short) 5);
+        Assertions.assertArrayEquals(new byte[] {0, 1, 2, 3, 4, 0}, dest);
+    }
+
+    @Test
+    public void srcShorter_nonZeroDestOffset() {
+        byte[] src = {0, 1, 2, 3, 4};
+        byte[] dest = new byte[6];
+        CTUtil.ctArrayCopyNonAtomic(src, (short) 0, dest, (short) 1, (short) 5);
+        Assertions.assertArrayEquals(new byte[] {0, 0, 1, 2, 3, 4}, dest);
+    }
+
+    @Test
+    public void srcShorter_nonZeroSrcOffset() {
+        byte[] src = {0, 1, 2, 3, 4};
+        byte[] dest = new byte[6];
+        CTUtil.ctArrayCopyNonAtomic(src, (short) 1, dest, (short) 0, (short) 4);
+        Assertions.assertArrayEquals(new byte[] {1, 2, 3, 4, 0, 0}, dest);
+    }
+
+    @Test
+    public void srcShorter_nonZeroSrcDestOffset() {
+        byte[] src = {0, 1, 2, 3, 4};
+        byte[] dest = new byte[6];
+        CTUtil.ctArrayCopyNonAtomic(src, (short) 1, dest, (short) 1, (short) 4);
+        Assertions.assertArrayEquals(new byte[] {0, 1, 2, 3, 4, 0}, dest);
     }
 }
