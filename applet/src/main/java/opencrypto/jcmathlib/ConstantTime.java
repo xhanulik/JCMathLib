@@ -111,6 +111,28 @@ public class ConstantTime {
     }
 
     /**
+     * Compares two byte values for the first value being greater to the second value.
+     *
+     * @param a the first byte value to compare
+     * @param b the second byte value to compare
+     * @return 0xff if the first short is greater to the second short, 0 otherwise
+     */
+    public static byte ctGreater(byte a, byte b) {
+        return (byte) (ctLessThan(b, a) & 0xff);
+    }
+
+    /**
+     * Compares two short values for the first value being greater to the second value.
+     *
+     * @param a the first short value to compare
+     * @param b the second short value to compare
+     * @return 0xffff if the first short is greater to the second short, 0 otherwise
+     */
+    public static short ctGreater(short a, short b) {
+        return (short) (ctLessThan(b, a) & (short) 0xffff);
+    }
+
+    /**
      * Compares two byte values for the first value being equal to the second value.
      *
      * @param a the first byte value to compare
