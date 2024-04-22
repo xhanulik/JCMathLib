@@ -94,6 +94,25 @@ public class BigNatInternal {
         return size;
     }
 
+    public short ctCopyToByteArray(byte[] dst, short dstOffset, short blind) {
+        if (dst.length == 0)
+            throw new ArrayIndexOutOfBoundsException();
+        short actualDstLength = (short) (dst.length - dstOffset);
+        short problem = ConstantTime.ctLessThan(actualDstLength, size);
+        short dstIndex = dstOffset;
+        for (short i = 0; i < value.length; i++) {
+            short validIndex = (short) (ConstantTime.ctGreaterOrEqual(i, offset) & ~problem);
+            byte thisValue = value[i];
+            byte dstValue = dst[dstIndex];
+            dst[dstIndex] = ConstantTime.ctSelect((short) (validIndex & ~blind), thisValue, dstValue);
+            dstIndex += ConstantTime.ctSelect(validIndex, (short) 1, (short) 0);
+        }
+
+        if ((problem & (short) 0xffff) == (short) 0xffff)
+            throw new ArrayIndexOutOfBoundsException();
+        return size;
+    }
+
     /**
      * Get size of this BigNat in bytes.
      *
@@ -118,6 +137,15 @@ public class BigNatInternal {
         offset = (short) (value.length - size);
     }
 
+    public void ctSetSize(short newSize, short blind) {
+        if (blind == (short) 0x0000 && (newSize < 0 || newSize > value.length)) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_RESIZETOLONGER);
+        }
+        size = ConstantTime.ctSelect(blind, size, newSize);
+        short newOffset = (short) (value.length - size);
+        offset = ConstantTime.ctSelect(blind, offset, newOffset);
+    }
+
     /**
      * Set size of this BigNat to the maximum size given during object creation.
      *
@@ -127,6 +155,14 @@ public class BigNatInternal {
         setSize((short) value.length);
         if (erase) {
             erase();
+        }
+    }
+
+    public void ctSetSizeToMax(boolean erase, short blind) {
+        short newValue = ConstantTime.ctSelect(blind, size, (short) value.length);
+        setSize(newValue);
+        if (erase) {
+            ctErase(blind);
         }
     }
 
@@ -283,6 +319,23 @@ public class BigNatInternal {
         ctResize(newSize);
     }
 
+    public void ctShrink(short blind) {
+        short i;
+        short newSize = (short) value.length;
+        byte foundNonZero = 0x00;
+        for (i = 0; i < value.length; i++) { // Compute size of non-zero part
+            byte isNonZeroValue = (byte) ~ConstantTime.ctIsZero(value[i]);
+            foundNonZero = (byte) (isNonZeroValue | foundNonZero);
+            short value = ConstantTime.ctSelect((short) (foundNonZero & ~blind), (short) 0, (short) 1);
+            newSize -= value;
+        }
+
+        if (newSize < 0) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDRESIZE);
+        }
+        ctResize(newSize);
+    }
+
     /**
      * Set this BigNat value to zero. Previous size is kept.
      */
@@ -301,6 +354,14 @@ public class BigNatInternal {
         }
     }
 
+    public void ctZero(short blind) {
+        for (short i = 0; i < value.length; i++) {
+            short validIndex = ConstantTime.ctGreaterOrEqual(i, offset);
+            byte thisValue = value[i];
+            value[i] = ConstantTime.ctSelect((short) (validIndex & ~blind), (byte) 0, thisValue);
+        }
+    }
+
     /**
      * Erase the internal array of this BigNat.
      */
@@ -308,9 +369,10 @@ public class BigNatInternal {
         Util.arrayFillNonAtomic(value, (short) 0, (short) value.length, (byte) 0);
     }
 
-    public void ctErase() {
+    public void ctErase(short blind) {
         for (short i = 0; i < value.length; i++) {
-            value[i] = 0;
+            byte current = value[i];
+            value[i] = ConstantTime.ctSelect(blind, current, (byte) 0);
         }
     }
 
@@ -401,6 +463,46 @@ public class BigNatInternal {
         }
     }
 
+    public void ctCopy(BigNatInternal other, short blind) {
+        short diff = (short) (size - other.size);
+        short movedThisOffset = (short) (diff + offset);
+        short movedOtherOffset = (short) (other.offset - diff);
+        short thisStart = ConstantTime.ctSelect(ConstantTime.ctIsNonNegative(diff), movedThisOffset, offset);
+        short otherStart = ConstantTime.ctSelect(ConstantTime.ctIsNonNegative(diff), other.offset, movedOtherOffset);
+        short len = diff >= 0 ? other.size : size;
+        short problem = 0;
+
+        // Verify here that other have leading zeroes up to otherStart
+        for (short i = 0; i < other.value.length; i++) {
+            short validIndex = ConstantTime.ctLessThan(i, otherStart);
+            short nonZero = (short) ~ConstantTime._ctIsZero(other.value[i]);
+            short otherLonger = ConstantTime.ctIsNegative(diff);
+            problem = (short) ((nonZero & validIndex & otherLonger & ~blind) | problem);
+        }
+
+        short otherIndex = otherStart;
+        short copiedBytes = 0;
+        for (short thisIndex = 0; thisIndex < value.length; thisIndex++) {
+            /* Check whether index is in this area for copied bytes */
+            short isInThisValue = ConstantTime.ctGreaterOrEqual(thisIndex, thisStart);
+            isInThisValue = (short) (ConstantTime.ctLessThan(copiedBytes, len) & isInThisValue & ~problem);
+            /* Read bytes from other array */
+            short tmpOtherIndex = ConstantTime.ctSelect(ctLessThan(otherIndex, (short) other.value.length), otherIndex, (short)0);
+            byte otherValue = other.value[tmpOtherIndex];
+            byte thisValue = this.value[thisIndex];
+            thisValue = ConstantTime.ctSelect((byte) problem, thisValue, (byte) 0);
+            /* Store byte into index */
+            value[thisIndex] = ConstantTime.ctSelect((short) (isInThisValue & blind), otherValue, thisValue);
+            /* Increment index in other */
+            short incr = ConstantTime.ctSelect((byte) isInThisValue, (byte) 1, (byte) 0);
+            otherIndex += incr;
+        }
+
+        if ((problem & (short) 0xffff) == (short) 0xffff) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCOPYOTHER);
+        }
+    }
+
     /**
      * Copies a BigNat into this including its size. May require reallocation.
      */
@@ -431,6 +533,20 @@ public class BigNatInternal {
         short diff = (short) ((short) value.length - other.size);
         ctZero();
         other.ctCopyToByteArray(value, diff);
+        setSize(other.size);
+    }
+
+    public void ctClone(BigNatInternal other, short blind) {
+        if (other.size > (short) value.length) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_REALLOCATIONNOTALLOWED);
+        }
+        if (other.length() == 0) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDCLONE);
+        }
+
+        short diff = (short) ((short) value.length - other.size);
+        ctZero(blind);
+        other.ctCopyToByteArray(value, diff, blind);
         setSize(other.size);
     }
 
@@ -487,8 +603,8 @@ public class BigNatInternal {
 
      * Check if stored BigNat is odd.
      */
-    public boolean isOdd() {
-        return (byte) (value[(short) (value.length - 1)] & (byte) 1) != (byte) 0;
+    public short isOdd() {
+        return (short) (value[(short) (value.length - 1)] & (byte) 1);
     }
 
     /**
@@ -796,6 +912,37 @@ public class BigNatInternal {
         return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
     }
 
+    public byte ctAdd(BigNatInternal other, short blind) {
+        short acc = 0;
+        short otherIndex = (short) (other.value.length - 1);
+
+        for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
+            // index must be in range of size of this number
+            short thisValidRange = ConstantTime.ctGreaterOrEqual(thisIndex, offset);
+            // index in other should be in bounds of other.value
+            short otherValidRange = (short) (ConstantTime.ctGreaterOrEqual(otherIndex, other.offset) & ConstantTime.ctIsNonNegative(otherIndex));
+            // prepare index for other - valid or bogus (just for some reading)
+            short newOtherIndex = ConstantTime.ctSelect(otherValidRange, otherIndex, (short) 0);
+            // always read something from other
+            short otherBogusValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
+            // get value from other - if out of other bounds, use 0
+            short otherValue = ConstantTime.ctSelect(otherValidRange, otherBogusValue, (short) 0);
+            // compute new value
+            short thisValue = (short) (value[thisIndex] & DIGIT_MASK);
+            short newValue = (short) (thisValue + otherValue);
+            // if we are out of size for this, add only 0
+            acc += ConstantTime.ctSelect(thisValidRange, newValue, (short) 0);
+            // set new value into this if in valid range
+            short tmp = (byte) (acc & DIGIT_MASK);
+            this.value[thisIndex] = ConstantTime.ctSelect((short) (thisValidRange & ~blind), (byte) tmp, (byte) thisValue);
+            // preserve acc from last valid byte in this
+            tmp = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            acc = ConstantTime.ctSelect(thisValidRange, tmp, acc);
+        }
+        // output carry bit if present
+        return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
+    }
+
     /**
      * Refactored method, shift and multiplier are adding complexity.
      * Using also invalid indexes outside of this and other offset.
@@ -827,6 +974,43 @@ public class BigNatInternal {
             byte valueToSet = (byte) (acc & DIGIT_MASK);
             byte thisValue = value[thisValidIndex];
             value[thisValidIndex] = ConstantTime.ctSelect(thisValidRange, valueToSet, thisValue);
+
+            // preserve acc from last valid byte in this
+            short adjAcc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            acc = ConstantTime.ctSelect(thisValidRange, adjAcc, acc);
+        }
+
+        // output carry bit if present
+        return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
+    }
+
+    public byte ctAddShift(BigNatInternal other, short shift, short multiplier, short blind) {
+        short acc = 0;
+        short otherIndex = (short) (other.value.length - 1);
+
+        for (short i = (short) (this.value.length - 1); i >= 0; i--, otherIndex--) {
+            short thisShiftedIndex = (short) (i - shift);
+
+            // shifted index must be in range of this number
+            short thisValidRange = (short) (ConstantTime.ctIsNonNegative(thisShiftedIndex) & ConstantTime.ctGreaterOrEqual(thisShiftedIndex, offset));
+            short thisValidIndex = ConstantTime.ctSelect(thisValidRange, thisShiftedIndex, (short) 0);
+
+            // index in other should be in range
+            short otherValidRange = (short) (ConstantTime.ctGreaterOrEqual(otherIndex, other.offset) & ConstantTime.ctIsNonNegative(otherIndex));
+            short otherValidIndex = ConstantTime.ctSelect(otherValidRange, otherIndex, (short) 0);
+
+            // get value from other - if out of other bounds, use 0
+            short otherValue = (short) (multiplier * (other.value[otherValidIndex] & DIGIT_MASK));
+            otherValue = ConstantTime.ctSelect(otherValidRange, otherValue, (short) 0);
+
+            // compute new value if in valid range
+            short newValue = (short) ((short) (value[thisValidIndex] & DIGIT_MASK) + otherValue);
+            acc += ConstantTime.ctSelect(thisValidRange, newValue, (short) 0);
+
+            // set new value only when in valid range
+            byte valueToSet = (byte) (acc & DIGIT_MASK);
+            byte thisValue = value[thisValidIndex];
+            value[thisValidIndex] = ConstantTime.ctSelect((short) (thisValidRange & blind), valueToSet, thisValue);
 
             // preserve acc from last valid byte in this
             short adjAcc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
@@ -916,6 +1100,32 @@ public class BigNatInternal {
         }
     }
 
+    public void ctSubtract(BigNatInternal other, short blind) {
+        short acc = 0;
+        short otherIndex = (short) (other.value.length - 1);
+        for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
+            // compute only on valid this indexes
+            short validThisIndex = ConstantTime.ctGreaterOrEqual(thisIndex, offset);
+
+            // check non-negative other index or set to 0
+            short validOtherIndex = ConstantTime.ctIsNonNegative(otherIndex);
+            short newOtherIndex = ConstantTime.ctSelect(validOtherIndex, otherIndex, (short) 0);
+
+            // add value to acc and subtract
+            short newValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
+            acc += ConstantTime.ctSelect((short) (validThisIndex & validOtherIndex), newValue, (short) 0);
+            short thisValue = value[thisIndex];
+            short tmp = (short) ((thisValue & DIGIT_MASK) - (acc & DIGIT_MASK));
+
+            // set new value
+            value[thisIndex] = (byte) (ConstantTime.ctSelect((short) (validThisIndex & ~blind), tmp, thisValue) & DIGIT_MASK);
+
+            // update acc
+            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            acc += (tmp >> 15) & 1;
+        }
+    }
+
     /**
      * Refactored, computes over only valid indexes inside offsets.
      */
@@ -981,6 +1191,19 @@ public class BigNatInternal {
             ctAddShift(tmp, (short) (other.value.length - 1 - otherIndex), (short) (other.value[otherIndex] & DIGIT_MASK));
         }
         ctShrink();
+        tmp.unlock();
+    }
+
+    public void ctMult(BigNatInternal other, short blind) {
+        BigNatInternal tmp = rm.BN_F;
+        tmp.lock();
+        tmp.ctClone(this, blind);
+        setSizeToMax(true);
+        for (short i = (short) (other.value.length - 1); i >= 0; i--) {
+            short otherIndex = ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(i, other.offset), i, (short) 0);
+            ctAddShift(tmp, (short) (other.value.length - 1 - otherIndex), (short) (other.value[otherIndex] & DIGIT_MASK), blind);
+        }
+        ctShrink(blind);
         tmp.unlock();
     }
 
@@ -1265,10 +1488,19 @@ public class BigNatInternal {
         return high;
     }
 
+    public void ctRemainderDivide(BigNatInternal divisor, BigNatInternal quotient) {
+        return;
+    }
+
+    public void ctRemainderDivide(BigNatInternal divisor, BigNatInternal quotient, short blind) {
+        return;
+    }
+
+
     /// [DependencyBegin:ObjectLocker]
     private boolean ERASE_ON_LOCK = false;
     private boolean ERASE_ON_UNLOCK = false;
-    private boolean locked = false; // Logical flag to store info if this BigNat is currently used for some operation. Used as a prevention of unintentional parallel use of same temporary pre-allocated BigNat.
+    private short locked = 0x0000; // Logical flag to store info if this BigNat is currently used for some operation. Used as a prevention of unintentional parallel use of same temporary pre-allocated BigNat.
 
     /**
      * Lock/reserve this BigNat for subsequent use.
@@ -1276,12 +1508,22 @@ public class BigNatInternal {
      * potentially nested operations. Must be unlocked by unlock() later on.
      */
     public void lock() {
-        if (locked) {
+        if (locked == (short) 0xffff) {
             ISOException.throwIt(ReturnCodes.SW_LOCK_ALREADYLOCKED);
         }
-        locked = true;
+        locked = (short) 0xffff;
         if (ERASE_ON_LOCK) {
             erase();
+        }
+    }
+
+    public void ctLock(short blind) {
+        if (locked == (short) 0xffff) {
+            ISOException.throwIt(ReturnCodes.SW_LOCK_ALREADYLOCKED);
+        }
+        locked = (short) 0xffff;
+        if (ERASE_ON_LOCK) {
+            ctErase(blind);
         }
     }
 
@@ -1291,12 +1533,22 @@ public class BigNatInternal {
      * Must be locked before.
      */
     public void unlock() {
-        if (!locked) {
+        if (locked != (short) 0xffff) {
             ISOException.throwIt(ReturnCodes.SW_LOCK_NOTLOCKED);
         }
-        locked = false;
+        locked = (short) 0x0000;
         if (ERASE_ON_UNLOCK) {
             erase();
+        }
+    }
+
+    public void ctUnlock(short blind) {
+        if (locked != (short) 0xffff) {
+            ISOException.throwIt(ReturnCodes.SW_LOCK_NOTLOCKED);
+        }
+        locked = (short) 0x0000;
+        if (ERASE_ON_UNLOCK) {
+            ctErase(blind);
         }
     }
 
@@ -1306,7 +1558,7 @@ public class BigNatInternal {
      * @return true if object is logically locked (reserved), false otherwise
      */
     public boolean isLocked() {
-        return locked;
+        return locked == (short) 0xffff;
     }
     /// [DependencyEnd:ObjectLocker]
 }

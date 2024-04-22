@@ -16,7 +16,7 @@ public class CTUtil {
      */
     public static short ctArrayCopyNonAtomic(byte[] src, short srcOff, byte[] dest, short destOff, short length) {
         if (srcOff < 0 || destOff < 0 || length < 0
-                || srcOff + length > src.length || destOff + length > dest.length) {
+                || (short) (srcOff + length) > src.length || (short) (destOff + length) > dest.length) {
             throw new ArrayIndexOutOfBoundsException();
         }
 
@@ -51,7 +51,7 @@ public class CTUtil {
      * @implNote If destOff+length is greater than dest.length, the length of the dest array an ArrayIndexOutOfBoundsException exception is thrown and no copy is performed.
      */
     // TODO make use of return value reflecting problem
-    public static short ctArrayCopyNonAtomicBlinded(byte[] src, short srcOff, byte[] dest, short destOff, short length, short blind) {
+    public static short ctArrayCopyNonAtomic(byte[] src, short srcOff, byte[] dest, short destOff, short length, short blind) {
         short srcOffNonNegative = ConstantTime.ctIsNonNegative(srcOff);
         short destOffNonNegative = ConstantTime.ctIsNonNegative(destOff);
         short lengthNonNegative = ConstantTime.ctIsNonNegative(length);
@@ -90,7 +90,7 @@ public class CTUtil {
     public static short ctArrayFillNonAtomic(byte[] bArray, short bOff, short bLen, byte bValue) {
         if (bArray == null)
             throw new NullPointerException();
-        if (bOff < 0 || bLen < 0 || bOff + bLen > bArray.length)
+        if (bOff < 0 || bLen < 0 || (short) (bOff + bLen) > bArray.length)
             throw new ArrayIndexOutOfBoundsException();
         for (short index = 0; index < bArray.length; index++) {
             short validIndex = ConstantTime.ctGreaterOrEqual(index, bOff);
@@ -110,10 +110,10 @@ public class CTUtil {
      * @param bValue the value to fill the byte array with
      * @return bOff+bLen
      */
-    public static short ctArrayFillNonAtomicBlinded(byte[] bArray, short bOff, short bLen, byte bValue, short blind) {
+    public static short ctArrayFillNonAtomic(byte[] bArray, short bOff, short bLen, byte bValue, short blind) {
         if (bArray == null)
             throw new NullPointerException();
-        if (bOff < 0 || bLen < 0 || bOff + bLen > bArray.length)
+        if (bOff < 0 || bLen < 0 || (short) (bOff + bLen) > bArray.length)
             throw new ArrayIndexOutOfBoundsException();
         short bOffNonNegative = ConstantTime.ctIsNonNegative(bOff);
         short bLenNonNegative = ConstantTime.ctIsNonNegative(bLen);
