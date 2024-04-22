@@ -349,8 +349,10 @@ public class UnitTests extends Applet {
                     break;
                 case INS_BN_DIV:
                     testBnDiv(apdu, dataLen);
+                    break;
                 case INS_BN_NEG_MOD:
                     testBnNegMod(apdu, dataLen);
+                    break;
                 default:
                     ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
             }

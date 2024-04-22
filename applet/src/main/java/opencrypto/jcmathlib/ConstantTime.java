@@ -151,7 +151,29 @@ public class ConstantTime {
      * @return 0xffff if the first short is equal to the second short, 0 otherwise
      */
     public static short ctEqual(short a, short b) {
-        return ctIsZero((short) (a ^ b));
+        return (short) ~ctIsZero((short) (a ^ b));
+    }
+
+    /**
+     * Compares two byte values for the first value being not equal to the second value.
+     *
+     * @param a the first byte value to compare
+     * @param b the second byte value to compare
+     * @return 0xff if the first byte is not equal to the second byte, 0 otherwise
+     */
+    public static byte ctNotEqual(byte a, byte b) {
+        return ctIsZero((byte) (a ^ b));
+    }
+
+    /**
+     * Compares two short values for the first value being not equal to the second value.
+     *
+     * @param a the first short value to compare
+     * @param b the second short value to compare
+     * @return 0xffff if the first short is not equal to the second short, 0 otherwise
+     */
+    public static short ctNotEqual(short a, short b) {
+        return (short) ~ctIsZero((short) (a ^ b));
     }
 
     /**
