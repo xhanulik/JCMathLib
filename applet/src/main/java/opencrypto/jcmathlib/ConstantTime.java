@@ -42,10 +42,6 @@ public class ConstantTime {
         return ctMsb((short) (~a & ((a & (short) 0xffff) - 1)));
     }
 
-    public static short _ctIsZero(byte a) {
-        return ctMsb((short) (~((short) a) & (((short) 0xffff & ((short) a)) - 1)));
-    }
-
     /**
      * Constant time check for non-zero byte value.
      *
@@ -151,7 +147,7 @@ public class ConstantTime {
      * @return 0xffff if the first short is equal to the second short, 0 otherwise
      */
     public static short ctEqual(short a, short b) {
-        return (short) ~ctIsZero((short) (a ^ b));
+        return ctIsZero((short) (a ^ b));
     }
 
     /**
@@ -162,7 +158,7 @@ public class ConstantTime {
      * @return 0xff if the first byte is not equal to the second byte, 0 otherwise
      */
     public static byte ctNotEqual(byte a, byte b) {
-        return ctIsZero((byte) (a ^ b));
+        return (byte) ~ctEqual(a, b);
     }
 
     /**
@@ -173,7 +169,7 @@ public class ConstantTime {
      * @return 0xffff if the first short is not equal to the second short, 0 otherwise
      */
     public static short ctNotEqual(short a, short b) {
-        return (short) ~ctIsZero((short) (a ^ b));
+        return (short) ~ctEqual(a, b);
     }
 
     /**
