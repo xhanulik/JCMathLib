@@ -112,7 +112,7 @@ public class ShiftLeftTest {
 
         byte[] data1 = {0x00, 0x02};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        Assertions.assertThrows(ISOException.class, () -> bn1.ctShiftRight((short) 8));
+        Assertions.assertThrows(ISOException.class, () -> bn1.ctShiftRightBits((short) 8));
     }
 
     @Test
@@ -123,6 +123,6 @@ public class ShiftLeftTest {
 
         byte[] data1 = {0x00, 0x02};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        Assertions.assertThrows(ISOException.class, () -> bn1.ctShiftRight((short) -1));
+        Assertions.assertThrows(ISOException.class, () -> bn1.ctShiftRightBits((short) -1));
     }
 }

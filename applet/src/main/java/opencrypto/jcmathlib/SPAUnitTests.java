@@ -404,11 +404,11 @@ public class SPAUnitTests extends Applet {
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
 
         beginDivision();
-        bn1.ctShiftRight(p1);
+        bn1.ctShiftRightBits(p1);
         middleDivision();
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
         beginDivision();
-        bn1.ctShiftRight(p1);
+        bn1.ctShiftRightBits(p1);
         endDivision();
 
         short len = bn1.copyToByteArray(apduBuffer, (short) 0);
