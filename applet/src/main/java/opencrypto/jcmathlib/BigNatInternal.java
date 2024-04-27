@@ -29,6 +29,38 @@ public class BigNatInternal {
     }
 
     /**
+     * Get length of allocated value of this.
+     *
+     * @return number of allocated bytes fot this
+     */
+    public short getValueLength() {
+        return (short) value.length;
+    }
+
+    /**
+     * Get position of first bit of specified value in this number.
+     *
+     * @param bit bit value to find
+     * @return Bit index of first bit of specified value in this number.
+     */
+    public short getFirstBitPosition(byte bit) {
+        short position = (short) (size * 8); // bogus value out of size - maximal bit in number
+        for (short byteIndex = (short) (value.length - 1); byteIndex >= 0; byteIndex--) {
+            for (short bitIndex = 0; bitIndex < 8; bitIndex++) {
+                short validIndex = ConstantTime.ctGreaterOrEqual(byteIndex, offset);
+                byte bitValue = this.value[byteIndex];
+                bitValue >>= bitIndex;
+                bitValue &= (byte) 0x01;
+                short wantedBitValue = ConstantTime.ctEqual(bit, bitValue);
+                short newPosition = (short) ((short) (value.length - 1 - byteIndex) * 8 + bitIndex);
+                short save = ConstantTime.ctLessThan(newPosition, position);
+                position = ConstantTime.ctSelect((short) (save & validIndex & wantedBitValue), newPosition, position);
+            }
+        }
+        return position;
+    }
+
+    /**
      * Set value of this from a byte array representation.
      *
      * @param source the byte array
@@ -435,7 +467,8 @@ public class BigNatInternal {
         // Verify here that other have leading zeroes up to otherStart
         for (short i = 0; i < other.value.length; i++) {
             short validIndex = ConstantTime.ctLessThan(i, otherStart);
-            short nonZero = (short) ~ConstantTime._ctIsZero(other.value[i]);
+            byte value = other.value[i];
+            short nonZero = (short) ~ConstantTime.ctIsZero((short) value);
             short otherLonger = ConstantTime.ctIsNegative(diff);
             problem = (short) ((nonZero & validIndex & otherLonger) | problem);
         }
@@ -475,7 +508,7 @@ public class BigNatInternal {
         // Verify here that other have leading zeroes up to otherStart
         for (short i = 0; i < other.value.length; i++) {
             short validIndex = ConstantTime.ctLessThan(i, otherStart);
-            short nonZero = (short) ~ConstantTime._ctIsZero(other.value[i]);
+            short nonZero = (short) ~ConstantTime.ctIsZero((short) other.value[i]);
             short otherLonger = ConstantTime.ctIsNegative(diff);
             problem = (short) ((nonZero & validIndex & otherLonger & ~blind) | problem);
         }
@@ -603,7 +636,11 @@ public class BigNatInternal {
 
      * Check if stored BigNat is odd.
      */
-    public short isOdd() {
+    public boolean isOdd() {
+        return (byte) (value[(short) (value.length - 1)] & (byte) 1) != (byte) 0;
+    }
+
+    public short ctIsOdd() {
         return (short) (value[(short) (value.length - 1)] & (byte) 1);
     }
 
@@ -1254,7 +1291,7 @@ public class BigNatInternal {
      * @param bits number of bits to shift by
      * @param carry XORed into the highest byte
      */
-    public void shiftRight(short bits, short carry) {
+    public void shiftRightBits(short bits, short carry) {
         if (bits < 0 || bits > 7) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSHIFT);
         }
@@ -1270,7 +1307,7 @@ public class BigNatInternal {
         }
     }
 
-    public void ctShiftRight(short bits, short carry) {
+    public void ctShiftRightBits(short bits, short carry) {
         if (bits < 0 || bits > 7) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSHIFT);
         }
@@ -1298,11 +1335,66 @@ public class BigNatInternal {
      *
      * @param bits number of bits to shift by
      */
-    public void shiftRight(short bits) {
-        ctShiftRight(bits, (short) 0);
+    public void shiftRightBits(short bits) {
+        shiftRightBits(bits, (short) 0);
     }
+    public void ctShiftRightBits(short bits) {
+        ctShiftRightBits(bits, (short) 0);
+    }
+
+    /**
+     * Right byte shift
+     *
+     * @param bytes number of bytes to shift by
+     */
+    public void shiftRightBytes(short bytes) {
+        if (bytes < 0)
+            throw new ArrayIndexOutOfBoundsException();
+
+        Util.arrayCopyNonAtomic(value, offset, value, (short) (offset + bytes), size);
+        Util.arrayFillNonAtomic(value, offset, bytes, (byte) 0);
+    }
+
+    public void ctShiftRightBytes(short bytes) {
+        if (bytes < 0) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
+        for (short index = (short) (value.length - 1); index >= 0; index--) {
+            short indexFrom = (short) (index - bytes);
+            short validIndexFrom = ConstantTime.ctGreaterOrEqual(index, bytes);
+            short validIndex = ConstantTime.ctGreaterOrEqual(index, offset);
+            short mask = (short) (validIndexFrom & validIndex);
+            byte valueFrom = value[ConstantTime.ctSelect(mask, indexFrom, (short) 0)];
+            value[index] = ConstantTime.ctSelect(mask, valueFrom, (byte) 0);
+        }
+    }
+
+    /**
+     * Right bit shift
+     *
+     * @param bits number of bytes to shift by
+     */
+    public void shiftRight(short bits) {
+        if (bits < 0) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
+        short bytes = (short) (bits / 8);
+        bits = (short) (bits - (bytes * 8));
+        shiftRightBytes(bytes);
+        shiftRightBits(bits);
+    }
+
     public void ctShiftRight(short bits) {
-        ctShiftRight(bits, (short) 0);
+        if (bits < 0) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
+        short bytes = (short) (bits / 8);
+        bits = (short) (bits - (bytes * 8));
+        ctShiftRightBytes(bytes);
+        ctShiftRightBits(bits);
     }
 
     /**
