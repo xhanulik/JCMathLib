@@ -225,7 +225,7 @@ public class BigNat extends BigNatInternal {
 
         result.subtract(tmp);
         tmp.unlock();
-        result.shiftRight((short) 2);
+        result.shiftRightBits((short) 2);
 
         setSizeToMax(false);
         copy(result);
@@ -263,7 +263,7 @@ public class BigNat extends BigNatInternal {
 
         result.ctSubtract(tmp);
         tmp.unlock();
-        result.ctShiftRight((short) 2);
+        result.ctShiftRightBits((short) 2);
 
         ctSetSizeToMax(false, (short) 0x0000);
         ctCopy(result, blind);
@@ -513,7 +513,7 @@ public class BigNat extends BigNatInternal {
         tmpMod.unlock();
     }
 
-    /* must be ensured that exp is not 2 when RSA_SQ not supported */
+    /* Must be ensured that exp is not 2 when RSA_SQ not supported */
     public void ctModExp(BigNat exp, BigNat mod) {
         if (OperationSupport.getInstance().RSA_EXP != (short) 0xffff)
             ISOException.throwIt(ReturnCodes.SW_OPERATION_NOT_SUPPORTED);
@@ -672,7 +672,7 @@ public class BigNat extends BigNatInternal {
                     result.subtract(mod);
                 }
             }
-            result.shiftRight((short) 1, carry);
+            result.shiftRightBits((short) 1, carry);
             result.resize(mod.length());
 
             tmp.lock();
@@ -706,18 +706,16 @@ public class BigNat extends BigNatInternal {
         } else {
             result.setSize((short) (mod.length() + 1));
             result.ctCopy(this);
-
-            result.ctClone(this);
+            ctCopy(other, (short) (~onlyCopy));
 
             result.ctAdd(other);
-
-            short isOdd = result.isOdd();
+            short isOdd = result.ctIsOdd();
             short isLesser = result.ctIsLesser(mod);
             short carry = result.ctAdd(mod, (short) (~(isOdd & isLesser)));
             carry = ConstantTime.ctSelect((short) (isOdd & isLesser), carry, (short) 0);
             result.ctSubtract(mod, (short) (~(isOdd & ~isLesser)));
 
-            result.ctShiftRight((short) 1, carry);
+            result.ctShiftRightBits((short) 1, carry);
             result.ctResize(mod.length());
 
             tmp.lock();
@@ -735,7 +733,48 @@ public class BigNat extends BigNatInternal {
         result.unlock();
     }
 
-    public void ctModMult(BigNat other, BigNat mod, short blind) {}
+    public void ctModMult(BigNat other, BigNat mod, short blind) {
+        BigNat tmp = rm.BN_D;
+        BigNat result = rm.BN_E;
+
+        short isOne = ctEquals((byte) 1);
+        short onlyCopy = (short) (OperationSupport.getInstance().RSA_CHECK_ONE & isOne);
+
+        result.lock();
+        if ((OperationSupport.getInstance().RSA_SQ != (short) 0xffff) || (OperationSupport.getInstance().RSA_EXTRA_MOD == (short) 0xffff)) {
+            ctCopy(other, (short) (~onlyCopy | blind));
+            result.ctClone(this);
+            result.ctMult(other);
+            result.ctMod(mod);
+        } else {
+            result.setSize((short) (mod.length() + 1));
+            result.ctCopy(this);
+            ctCopy(other, (short) (~onlyCopy | blind));
+
+            result.ctAdd(other);
+            short isOdd = result.ctIsOdd();
+            short isLesser = result.ctIsLesser(mod);
+            short carry = result.ctAdd(mod, (short) (~(isOdd & isLesser)));
+            carry = ConstantTime.ctSelect((short) (isOdd & isLesser), carry, (short) 0);
+            result.ctSubtract(mod, (short) (~(isOdd & ~isLesser)));
+
+            result.ctShiftRightBits((short) 1, carry);
+            result.ctResize(mod.length());
+
+            tmp.lock();
+            tmp.ctClone(result);
+            tmp.ctModSub(other, mod);
+
+            result.ctModSq(mod);
+            tmp.ctModSq(mod);
+
+            result.ctModSub(tmp, mod);
+            tmp.unlock();
+        }
+        ctSetSize(mod.length(), (short) (onlyCopy | blind));
+        ctCopy(result, (short) (onlyCopy | blind)); // do not change this if already copied in the beggining
+        result.unlock();
+    }
 
     /**
      * Computes modulo square of this BigNat.
@@ -752,15 +791,19 @@ public class BigNat extends BigNatInternal {
         }
     }
 
+    /** Constant-time implementation of modulo square of this BigNat.
+     *
+     * @param mod modulo BigNat
+     */
     public void ctModSq(BigNat mod) {
         if (OperationSupport.getInstance().RSA_SQ == (short) 0xffff) {
             if (rm.fixedMod != null && rm.fixedMod == mod) {
-                modSqFixed();
+                ctModSqFixed();
             } else {
-                modExp(ResourceManager.TWO, mod);
+                ctModExp(ResourceManager.TWO, mod);
             }
         } else {
-            modMult(this, mod);
+            ctModMult(this, mod);
         }
     }
 
@@ -788,14 +831,13 @@ public class BigNat extends BigNatInternal {
         short s = 0;
         while (!q.isOdd()) {
             ++s;
-            q.shiftRight((short) 1);
+            q.shiftRightBits((short) 1);
         }
 
         // 2. Find the first quadratic non-residue z by brute-force search
         exp.lock();
         exp.clone(p1);
-        exp.shiftRight((short) 1);
-
+        exp.shiftRightBits((short) 1);
 
         z.lock();
         z.setSize(p.length());
@@ -815,8 +857,133 @@ public class BigNat extends BigNatInternal {
         // 3. Compute the first candidate
         exp.clone(q);
         exp.increment();
-        exp.shiftRight((short) 1);
+        exp.shiftRightBits((short) 1);
 
+        t.lock();
+        t.clone(this);
+        t.modExp(q, p);
+
+        if (t.equals((byte) 0)) {
+            z.unlock();
+            t.unlock();
+            exp.unlock();
+            q.unlock();
+            zero();
+            return;
+        }
+
+        mod(p);
+        modExp(exp, p);
+        exp.unlock();
+
+        if (t.equals((byte) 1)) {
+            z.unlock();
+            t.unlock();
+            q.unlock();
+            return;
+        }
+
+        // 4. Search for further candidates
+        z.modExp(q, p);
+        q.unlock();
+
+        while(true) {
+            tmp.lock();
+            tmp.clone(t);
+            short i = 0;
+
+            do {
+                tmp.modSq(p);
+                ++i;
+            } while (!tmp.equals((byte) 1));
+
+            tmp.unlock();
+
+            b.lock();
+            b.clone(z);
+            s -= i;
+            --s;
+
+            tmp.lock();
+            tmp.setSize((short) 1);
+            tmp.setValue((byte) 1);
+            while(s != 0) {
+                tmp.shiftLeft((short) 1);
+                --s;
+            }
+            b.modExp(tmp, p);
+            tmp.unlock();
+            s = i;
+            z.clone(b);
+            z.modSq(p);
+            t.modMult(z, p);
+            modMult(b, p);
+            b.unlock();
+
+            if(t.equals((byte) 0)) {
+                zero();
+                break;
+            }
+            if(t.equals((byte) 1)) {
+                break;
+            }
+        }
+        z.unlock();
+        t.unlock();
+    }
+
+    /** Constant-time implementation square root of provided BigNat which MUST be prime using Tonelli Shanks Algorithm. The result (one of
+     * the two roots) is stored to this.
+     * TODO: Implement
+     *
+     * @param p prime for modulo
+     */
+    public void ctModSqrt(BigNat p) {
+        BigNat exp = rm.BN_G;
+        BigNat p1 = rm.BN_B;
+        BigNat q = rm.BN_C;
+        BigNat tmp = rm.BN_D;
+        BigNat z = rm.BN_A;
+        BigNat t = rm.BN_B;
+        BigNat b = rm.BN_C;
+
+        // 1. Find Q and S such that p - 1 = Q * 2^S and Q is odd
+        p1.lock();
+        p1.ctClone(p);
+        p1.ctDecrement();
+
+        q.lock();
+        q.ctClone(p1);
+
+        short s = getFirstBitPosition((byte) 0);
+        ctShiftRight(s);
+
+        // 2. Find the first quadratic non-residue z by brute-force search
+        exp.lock();
+        exp.ctClone(p1);
+        exp.ctShiftRightBits((short) 1);
+
+
+        z.lock();
+        z.setSize(p.length());
+        z.setValue((byte) 1);
+        tmp.lock();
+        tmp.setSize(p.length());
+        tmp.setValue((byte) 1);
+
+        // TODO: continue with Tonelli-Shanks Algorithm
+        while (!tmp.equals(p1)) {
+            z.increment();
+            tmp.copy(z);
+            tmp.modExp(exp, p); // Euler's criterion
+        }
+        p1.unlock();
+        tmp.unlock();
+
+        // 3. Compute the first candidate
+        exp.ctClone(q);
+        exp.ctIncrement();
+        exp.ctShiftRightBits((short) 1);
         t.lock();
         t.clone(this);
         t.modExp(q, p);
