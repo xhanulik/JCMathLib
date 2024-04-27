@@ -54,12 +54,18 @@ public class ConstantTimeTest {
         Assertions.assertEquals((short) 0, ConstantTime.ctIsZero((short) 1));
         Assertions.assertEquals((short) 0, ConstantTime.ctIsZero((short) 65535));
         Assertions.assertEquals((short) 0, ConstantTime.ctIsZero((short) -32768));
+
+        byte nonZero = (byte) 0xff;
+        Assertions.assertEquals((short) 0, ConstantTime.ctIsZero((short) nonZero));
     }
 
     @Test
     public void ctIsZero_true() {
-        Assertions.assertEquals((byte) 255, ConstantTime.ctIsZero((byte) 0));
-        Assertions.assertEquals((short) 65535, ConstantTime.ctIsZero((short) 0));
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsZero((byte) 0));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsZero((short) 0));
+
+        byte zero = 0;
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsZero((short) zero));
     }
 
     /* ctIsNonZero tests */
@@ -141,6 +147,95 @@ public class ConstantTimeTest {
 
         Assertions.assertEquals((byte) 0, ConstantTime.ctGreaterOrEqual((byte) 55, (byte) 128));
         Assertions.assertEquals((short) 0, ConstantTime.ctGreaterOrEqual((short) 5535, (short) 32767));
+    }
+
+    /* ctGreater tests */
+    @Test
+    public void ctGreater_true() {
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctGreater((byte) 1, (byte) 0));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctGreater((short) 1, (short) 0));
+
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctGreater((byte) 255, (byte) 254));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctGreater((short) 65535, (short) 65534));
+
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctGreater((byte) 255, (byte) 128));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctGreater((short) 65535, (short) 32767));
+
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctGreater((byte) 127, (byte) 0));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctGreater((short) 32767, (short) 0));
+
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctGreater((byte) 128, (byte) 127));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctGreater((short) 32768, (short) 32767));
+
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctGreater((byte) 248, (byte) 3));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctGreater((short) 41768, (short) 120));
+    }
+
+    @Test
+    public void ctGreater_false() {
+        Assertions.assertEquals((byte) 0, ConstantTime.ctGreater((byte) 0, (byte) 1));
+        Assertions.assertEquals((short) 0, ConstantTime.ctGreater((short) 0, (short) 1));
+
+        Assertions.assertEquals((byte) 0, ConstantTime.ctGreater((byte) 254, (byte) 255));
+        Assertions.assertEquals((short) 0, ConstantTime.ctGreater((short) 65534, (short) 65535));
+
+        Assertions.assertEquals((byte) 0, ConstantTime.ctGreater((byte) 55, (byte) 128));
+        Assertions.assertEquals((short) 0, ConstantTime.ctGreater((short) 5535, (short) 32767));
+
+        Assertions.assertEquals((byte) 0, ConstantTime.ctGreater((byte) 255, (byte) 255));
+        Assertions.assertEquals((short) 0, ConstantTime.ctGreater((short) 65535, (short) 65535));
+
+        Assertions.assertEquals((byte) 0, ConstantTime.ctGreater((byte) 128, (byte) 128));
+        Assertions.assertEquals((short) 0, ConstantTime.ctGreater((short) 32767, (short) 32767));
+    }
+
+    /* ctEqual tests */
+    @Test
+    public void ctEqual_false() {
+        Assertions.assertEquals((byte) 0, ConstantTime.ctEqual((byte) 0, (byte) 1));
+        Assertions.assertEquals((short) 0, ConstantTime.ctEqual((short) 0, (short) 1));
+
+        Assertions.assertEquals((byte) 0, ConstantTime.ctEqual((byte) 254, (byte) 255));
+        Assertions.assertEquals((short) 0, ConstantTime.ctEqual((short) 65534, (short) 65535));
+
+        Assertions.assertEquals((byte) 0, ConstantTime.ctEqual((byte) 55, (byte) 128));
+        Assertions.assertEquals((short) 0, ConstantTime.ctEqual((short) 5535, (short) 32767));
+    }
+
+    @Test
+    public void ctEqual_true() {
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctEqual((byte) 1, (byte) 1));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctEqual((short) 1, (short) 1));
+
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctEqual((byte) 255, (byte) 255));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctEqual((short) 65535, (short) 65535));
+
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctEqual((byte) 128, (byte) 128));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctEqual((short) 32767, (short) 32767));
+    }
+
+    @Test
+    public void ctNotEqual_false() {
+        Assertions.assertEquals((byte) 0, ConstantTime.ctNotEqual((byte) 1, (byte) 1));
+        Assertions.assertEquals((short) 0, ConstantTime.ctNotEqual((short) 1, (short) 1));
+
+        Assertions.assertEquals((byte) 0, ConstantTime.ctNotEqual((byte) 255, (byte) 255));
+        Assertions.assertEquals((short) 0, ConstantTime.ctNotEqual((short) 65535, (short) 65535));
+
+        Assertions.assertEquals((byte) 0, ConstantTime.ctNotEqual((byte) 128, (byte) 128));
+        Assertions.assertEquals((short) 0, ConstantTime.ctNotEqual((short) 32767, (short) 32767));
+    }
+
+    @Test
+    public void ctNotEqual_true() {
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctNotEqual((byte) 0, (byte) 1));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctNotEqual((short) 0, (short) 1));
+
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctNotEqual((byte) 254, (byte) 255));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctNotEqual((short) 65534, (short) 65535));
+
+        Assertions.assertEquals((byte) 0xff, ConstantTime.ctNotEqual((byte) 12, (byte) 128));
+        Assertions.assertEquals((short) 0xffff, ConstantTime.ctNotEqual((short) 3276, (short) 32767));
     }
 
     /* ctSelect tests */
