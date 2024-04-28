@@ -1,7 +1,6 @@
 package opencrypto.jcmathlib;
 
 import javacard.framework.JCSystem;
-import javacard.framework.Util;
 
 /**
  * @author Vasilios Mavroudis and Petr Svenda
@@ -109,6 +108,15 @@ public class Integer {
         initialize(sign, mag, this.rm);
     }
 
+    private void ctAllocate(short size, byte sign, byte[] fromArray, short fromArrayOffset, ResourceManager rm) {
+        this.rm = rm;
+        BigNat mag = new BigNat(size, JCSystem.MEMORY_TYPE_TRANSIENT_RESET, this.rm);
+        if (fromArray != null) {
+            mag.ctFromByteArray(fromArray, fromArrayOffset, size);
+        }
+        initialize(sign, mag, this.rm);
+    }
+
     /**
      * Clone value into this Integer from other Integer. Updates size of integer.
      *
@@ -119,12 +127,22 @@ public class Integer {
         this.magnitude.copy(other.getMagnitude());
     }
 
+    public void ctClone(Integer other) {
+        this.sign = other.getSign();
+        this.magnitude.ctCopy(other.getMagnitude());
+    }
+
     /**
      * set this integer to zero
      */
     public void zero() {
         this.sign = (short) 0;
         this.magnitude.zero();
+    }
+
+    public void ctZero() {
+        this.sign = (short) 0;
+        this.magnitude.ctZero();
     }
 
     /**
@@ -174,6 +192,15 @@ public class Integer {
         }
     }
 
+    public void ctNegate() {
+        short positive = this.ctIsPositive();
+        short negative = this.ctIsNegative();
+        byte oldSign = this.sign;
+        byte newSign = (byte) ConstantTime.ctSelect(positive, (short) 1, oldSign);
+        newSign = (byte) ConstantTime.ctSelect(negative, (short) 0, newSign);
+        this.setSign(newSign);
+    }
+
     /**
      * Returns magnitude as Bignat. No copy is performed so change of Bignat also changes this integer
      *
@@ -193,6 +220,10 @@ public class Integer {
         this.magnitude.copy(other.getMagnitude());
     }
 
+    public void ctSetMagnitude(Integer other) {
+        this.magnitude.ctCopy(other.getMagnitude());
+    }
+
     /**
      * Serializes this integer value into array. Sign is serialized as first byte
      *
@@ -205,6 +236,14 @@ public class Integer {
         outBuffer[outBufferOffset] = sign;
         //Store magnitude
         magnitude.copyToByteArray(outBuffer, (short) (outBufferOffset + 1));
+        return (short) (this.getSize() + 1);
+    }
+
+    public short ctToByteArray(byte[] outBuffer, short outBufferOffset) {
+        //Store sign
+        outBuffer[outBufferOffset] = sign;
+        //Store magnitude
+        magnitude.ctCopyToByteArray(outBuffer, (short) (outBufferOffset + 1));
         return (short) (this.getSize() + 1);
     }
 
@@ -223,6 +262,13 @@ public class Integer {
         this.magnitude.fromByteArray(value, (short) (valueOffset + 1), (short) (valueLength - 1));
     }
 
+    public void ctFromByteArray(byte[] value, short valueOffset, short valueLength) {
+        //Store sign
+        this.sign = value[valueOffset];
+        //Store magnitude
+        this.magnitude.ctFromByteArray(value, (short) (valueOffset + 1), (short) (valueLength - 1));
+    }
+
     /**
      * Return true if integer is negative.
      *
@@ -232,6 +278,10 @@ public class Integer {
         return this.sign == 1;
     }
 
+    public short ctIsNegative() {
+        return ConstantTime.ctEqual(this.sign, (short) 1);
+    }
+
     /**
      * Return true if integer is positive.
      *
@@ -239,6 +289,10 @@ public class Integer {
      */
     public boolean isPositive() {
         return this.sign == 0;
+    }
+
+    public short ctIsPositive() {
+        return ConstantTime.ctEqual(this.sign, (short) 0);
     }
 
     /**
@@ -257,6 +311,19 @@ public class Integer {
         } else { //if ((this.sign == 1 && other.sign==1))
             return (!this.magnitude.isLesser(other.magnitude));
         }
+    }
+
+    public short ctLesser(Integer other) {
+        short thisNegativeOtherPositive = (short) (this.ctIsNegative() & other.ctIsPositive());
+        short thisPositiveOtherNegative = (short) (this.ctIsPositive() & other.ctIsNegative());
+        short bothPositive = (short) (this.ctIsPositive() & other.ctIsPositive());
+        short bothNegative = (short) (this.ctIsNegative() & other.ctIsNegative());
+        short isLesser = this.magnitude.ctIsLesser(other.magnitude);
+        short result = ConstantTime.ctSelect(thisNegativeOtherPositive, (short) 0xffff, (short) 0);
+        result = ConstantTime.ctSelect(thisPositiveOtherNegative, (short) 0, result);
+        result = ConstantTime.ctSelect(bothPositive, isLesser, result);
+        result = ConstantTime.ctSelect(bothNegative,  (short) (~isLesser), result);
+        return result;
     }
 
     /**
@@ -299,6 +366,62 @@ public class Integer {
                 this.zero();
             }
         }
+    }
+
+    public void ctAdd(Integer other) {
+        BigNat tmp = rm.BN_A;
+
+        short thisNegativeOtherPositive = (short) (this.ctIsNegative() & other.ctIsPositive()); // true
+        short thisPositiveOtherNegative = (short) (this.ctIsPositive() & other.ctIsNegative()); // false
+        short bothPositive = (short) (this.ctIsPositive() & other.ctIsPositive());
+        short bothNegative = (short) (this.ctIsNegative() & other.ctIsNegative());
+        short otherLesser = other.getMagnitude().ctIsLesser(this.getMagnitude());
+        short thisLesser = this.getMagnitude().ctIsLesser(other.getMagnitude());
+
+        /* Both positive */
+        short newSign = ConstantTime.ctSelect(bothPositive, (short) 0, this.sign);
+        this.magnitude.ctAdd(other.magnitude, (short) (~bothPositive));
+        /* Both negative */
+        newSign = ConstantTime.ctSelect(bothNegative, (short) 1,newSign);
+        this.magnitude.ctAdd(other.magnitude, (short) (~bothNegative));
+        /* this(+) is larger than other(-) */
+        short thisPositiveLargerThanOtherNegative = (short) (thisPositiveOtherNegative & otherLesser);
+        newSign = ConstantTime.ctSelect(thisPositiveLargerThanOtherNegative, (short) 0, newSign);
+        this.magnitude.ctSubtract(other.magnitude, (short) (~thisPositiveLargerThanOtherNegative));
+        /* this(-) has larger magnitude than other(+) */
+        short thisNegativeLargerThanOtherPositive = (short) (thisNegativeOtherPositive & otherLesser);
+        newSign = ConstantTime.ctSelect(thisNegativeLargerThanOtherPositive, (short) 1, newSign);
+        this.magnitude.ctSubtract(other.magnitude, (short) (~thisNegativeLargerThanOtherPositive));
+        /* this(+) has smaller magnitude than other(-) */
+        /* this(+) has smaller magnitude than other(-) */
+        /* this(-) has larger magnitude than other(+) */
+        /* this has opposite sign than other, and the same magnitude */
+//        } else {
+//            if (this.isPositive() && other.getMagnitude().isLesser(this.getMagnitude())) { //this(+) is larger than other(-)
+//                this.sign = 0;
+//                this.magnitude.subtract(other.magnitude, (short) 0, (short) 1);
+//            } else if (this.isNegative() && other.getMagnitude().isLesser(this.getMagnitude())) {    //this(-) has larger magnitude than other(+)
+//                this.sign = 1;
+//                this.magnitude.subtract(other.magnitude, (short) 0, (short) 1);
+//            } else if (this.isPositive() && this.getMagnitude().isLesser(other.getMagnitude())) { //this(+) has smaller magnitude than other(-)
+//                this.sign = 1;
+//                tmp.lock();
+//                tmp.clone(other.getMagnitude());
+//                tmp.subtract(this.magnitude, (short) 0, (short) 1);
+//                this.magnitude.copy(tmp);
+//                tmp.unlock();
+//            } else if (this.isNegative() && this.getMagnitude().isLesser(other.getMagnitude())) {  //this(-) has larger magnitude than other(+)
+//                this.sign = 0;
+//                tmp.lock();
+//                tmp.clone(other.getMagnitude());
+//                tmp.subtract(this.magnitude, (short) 0, (short) 1);
+//                this.magnitude.copy(tmp);
+//                tmp.unlock();
+//            } else if (this.getMagnitude().equals(other.getMagnitude())) {  //this has opposite sign than other, and the same magnitude
+//                this.sign = 0;
+//                this.zero();
+//            }
+//        }
     }
 
     /**
