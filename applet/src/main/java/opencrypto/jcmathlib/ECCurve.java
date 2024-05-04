@@ -34,6 +34,7 @@ public class ECCurve {
      */
     public ECCurve(byte[] p, byte[] a, byte[] b, byte[] G, byte[] r, short k, ResourceManager rm) {
         short bits = (short) (p.length * 8);
+        // TODO: make constant time
         if (OperationSupport.getInstance().EC_PRECISE_BITLENGTH == (short) 0xffff) {
             for (short i = 0; i < (short) p.length; ++i) {
                 bits -= 8;
@@ -82,6 +83,13 @@ public class ECCurve {
         bBN.fromByteArray(b, (short) 0, (short) b.length);
         rBN.fromByteArray(r, (short) 0, (short) r.length);
     }
+
+    public void ctUpdateAfterReset() {
+        pBN.ctFromByteArray(p, (short) 0, (short) p.length);
+        aBN.ctFromByteArray(a, (short) 0, (short) a.length);
+        bBN.ctFromByteArray(b, (short) 0, (short) b.length);
+        rBN.ctFromByteArray(r, (short) 0, (short) r.length);
+    }
     
     /**
      * Creates a new keyPair based on this curve parameters. KeyPair object is reused if provided. Fresh keyPair value is generated.
@@ -89,6 +97,7 @@ public class ECCurve {
      * @return new or existing object with fresh key pair value
      */
     KeyPair newKeyPair(KeyPair keyPair) {
+        // TODO: leaking?
         ECPublicKey pubKey;
         ECPrivateKey privKey;
         if (keyPair == null) {
