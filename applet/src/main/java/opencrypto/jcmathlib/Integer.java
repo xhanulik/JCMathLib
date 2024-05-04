@@ -145,6 +145,11 @@ public class Integer {
         this.magnitude.ctZero();
     }
 
+    public void ctZero(short blind) {
+        byte newSign = ConstantTime.ctSelect(blind, this.sign, (byte) 0);
+        this.magnitude.ctZero(blind);
+    }
+
     /**
      * Return sign of this integer
      *
@@ -344,7 +349,7 @@ public class Integer {
             if (this.isPositive() && other.getMagnitude().isLesser(this.getMagnitude())) { //this(+) is larger than other(-)
                 this.sign = 0;
                 this.magnitude.subtract(other.magnitude, (short) 0, (short) 1);
-            } else if (this.isNegative() && other.getMagnitude().isLesser(this.getMagnitude())) {    //this(-) has larger magnitude than other(+)
+            } else if (this.isNegative() && other.getMagnitude().isLesser(this.getMagnitude())) {    //this(-) has  magnitude than other(+)
                 this.sign = 1;
                 this.magnitude.subtract(other.magnitude, (short) 0, (short) 1);
             } else if (this.isPositive() && this.getMagnitude().isLesser(other.getMagnitude())) { //this(+) has smaller magnitude than other(-)
@@ -354,7 +359,7 @@ public class Integer {
                 tmp.subtract(this.magnitude, (short) 0, (short) 1);
                 this.magnitude.copy(tmp);
                 tmp.unlock();
-            } else if (this.isNegative() && this.getMagnitude().isLesser(other.getMagnitude())) {  //this(-) has larger magnitude than other(+)
+            } else if (this.isNegative() && this.getMagnitude().isLesser(other.getMagnitude())) {  //this(-) has smaller magnitude than other(+)
                 this.sign = 0;
                 tmp.lock();
                 tmp.clone(other.getMagnitude());
@@ -377,51 +382,40 @@ public class Integer {
         short bothNegative = (short) (this.ctIsNegative() & other.ctIsNegative());
         short otherLesser = other.getMagnitude().ctIsLesser(this.getMagnitude());
         short thisLesser = this.getMagnitude().ctIsLesser(other.getMagnitude());
+        short equal = (short) (~otherLesser & ~thisLesser);
 
         /* Both positive */
-        short newSign = ConstantTime.ctSelect(bothPositive, (short) 0, this.sign);
-        this.magnitude.ctAdd(other.magnitude, (short) (~bothPositive));
+        byte newSign = ConstantTime.ctSelect(bothPositive, (byte) 0, this.sign);
         /* Both negative */
-        newSign = ConstantTime.ctSelect(bothNegative, (short) 1,newSign);
-        this.magnitude.ctAdd(other.magnitude, (short) (~bothNegative));
+        newSign = ConstantTime.ctSelect(bothNegative, (byte) 1,newSign);
+        this.magnitude.ctAdd(other.magnitude, (short) (~bothNegative | ~bothPositive));
+
         /* this(+) is larger than other(-) */
         short thisPositiveLargerThanOtherNegative = (short) (thisPositiveOtherNegative & otherLesser);
-        newSign = ConstantTime.ctSelect(thisPositiveLargerThanOtherNegative, (short) 0, newSign);
-        this.magnitude.ctSubtract(other.magnitude, (short) (~thisPositiveLargerThanOtherNegative));
+        newSign = ConstantTime.ctSelect(thisPositiveLargerThanOtherNegative, (byte) 0, newSign);
         /* this(-) has larger magnitude than other(+) */
         short thisNegativeLargerThanOtherPositive = (short) (thisNegativeOtherPositive & otherLesser);
-        newSign = ConstantTime.ctSelect(thisNegativeLargerThanOtherPositive, (short) 1, newSign);
-        this.magnitude.ctSubtract(other.magnitude, (short) (~thisNegativeLargerThanOtherPositive));
+        newSign = ConstantTime.ctSelect(thisNegativeLargerThanOtherPositive, (byte) 1, newSign);
+        this.magnitude.ctSubtract(other.magnitude, (short) (~thisNegativeLargerThanOtherPositive | ~thisPositiveLargerThanOtherNegative));
+
         /* this(+) has smaller magnitude than other(-) */
-        /* this(+) has smaller magnitude than other(-) */
-        /* this(-) has larger magnitude than other(+) */
+        short thisPositiveSmallerThanOtherNegative = (short) (thisPositiveOtherNegative & thisLesser);
+        newSign = ConstantTime.ctSelect(thisPositiveSmallerThanOtherNegative, (byte) 1, newSign);
+        /* this(-) has smaller magnitude than other(+) */
+        short thisNegativeSmallerThanOtherPositive = (short) (thisPositiveOtherNegative & thisLesser);
+        newSign = ConstantTime.ctSelect(thisNegativeLargerThanOtherPositive, (byte) 1, newSign);
+        tmp.lock();
+        tmp.ctClone(other.getMagnitude());
+        tmp.ctSubtract(this.magnitude);
+        this.magnitude.ctCopy(tmp, (short) (~thisNegativeSmallerThanOtherPositive | ~thisPositiveSmallerThanOtherNegative));
+        tmp.unlock();
+
         /* this has opposite sign than other, and the same magnitude */
-//        } else {
-//            if (this.isPositive() && other.getMagnitude().isLesser(this.getMagnitude())) { //this(+) is larger than other(-)
-//                this.sign = 0;
-//                this.magnitude.subtract(other.magnitude, (short) 0, (short) 1);
-//            } else if (this.isNegative() && other.getMagnitude().isLesser(this.getMagnitude())) {    //this(-) has larger magnitude than other(+)
-//                this.sign = 1;
-//                this.magnitude.subtract(other.magnitude, (short) 0, (short) 1);
-//            } else if (this.isPositive() && this.getMagnitude().isLesser(other.getMagnitude())) { //this(+) has smaller magnitude than other(-)
-//                this.sign = 1;
-//                tmp.lock();
-//                tmp.clone(other.getMagnitude());
-//                tmp.subtract(this.magnitude, (short) 0, (short) 1);
-//                this.magnitude.copy(tmp);
-//                tmp.unlock();
-//            } else if (this.isNegative() && this.getMagnitude().isLesser(other.getMagnitude())) {  //this(-) has larger magnitude than other(+)
-//                this.sign = 0;
-//                tmp.lock();
-//                tmp.clone(other.getMagnitude());
-//                tmp.subtract(this.magnitude, (short) 0, (short) 1);
-//                this.magnitude.copy(tmp);
-//                tmp.unlock();
-//            } else if (this.getMagnitude().equals(other.getMagnitude())) {  //this has opposite sign than other, and the same magnitude
-//                this.sign = 0;
-//                this.zero();
-//            }
-//        }
+        short oppositeSignEqual = (short) ((thisPositiveOtherNegative | thisNegativeOtherPositive) & equal);
+        newSign = ConstantTime.ctSelect(oppositeSignEqual, (byte) 1, newSign);
+        this.ctZero((short) (~oppositeSignEqual));
+
+        setSign(newSign);
     }
 
     /**
@@ -434,6 +428,19 @@ public class Integer {
         this.add(other);
         // Restore original sign for other
         other.negate();
+    }BigNat tmp = rm.BN_A;
+
+    public void subtractAtomic(Integer other) {
+        other.negate(); // Potentially problematic - failure and exception in subsequent function will cause other to stay negated
+        this.add(other);
+        // Restore original sign for other
+        other.negate();
+    }
+
+    public void ctSubtract(Integer other) {
+        other.ctNegate();
+        this.ctAdd(other);
+        other.ctNegate();
     }
 
     /**
@@ -459,6 +466,21 @@ public class Integer {
         tmp.unlock();
     }
 
+    public void ctMultiply(Integer other) {
+        BigNat tmp = rm.BN_B;
+
+        short thisPositiveOtherNegative = (short) (this.ctIsPositive() & other.ctIsNegative());
+        short thisNegativeotherPositive = (short) (this.ctIsNegative() & other.ctIsPositive());
+        byte newSign = ConstantTime.ctSelect((short) (thisPositiveOtherNegative & thisNegativeotherPositive), (byte) 1, (byte) 0);
+        this.setSign(newSign);
+
+        tmp.lock();
+        tmp.ctClone(this.magnitude);
+        tmp.ctMult(other.getMagnitude());
+        this.magnitude.ctCopy(tmp);
+        tmp.unlock();
+    }
+
     /**
      * Divide this by other integer and store result into this.
      *
@@ -481,6 +503,20 @@ public class Integer {
         tmp.unlock();
     }
 
+    public void ctDivide(Integer other) {
+        BigNat tmp = rm.BN_A;
+
+        short thisPositiveOtherNegative = (short) (this.ctIsPositive() & other.ctIsNegative());
+        short thisNegativeotherPositive = (short) (this.ctIsNegative() & other.ctIsPositive());
+        byte newSign = ConstantTime.ctSelect((short) (thisPositiveOtherNegative & thisNegativeotherPositive), (byte) 1, (byte) 0);
+        this.setSign(newSign);
+
+        tmp.lock();
+        tmp.ctClone(this.magnitude);
+        tmp.ctRemainderDivide(other.getMagnitude(), this.magnitude);
+        tmp.unlock();
+    }
+
     /**
      * Computes modulo of this by other integer and store result into this.
      *
@@ -488,5 +524,9 @@ public class Integer {
      */
     public void modulo(Integer other) {
         this.magnitude.mod(other.getMagnitude());
+    }
+
+    public void ctModulo(Integer other) {
+        this.magnitude.ctMod(other.getMagnitude());
     }
 }
