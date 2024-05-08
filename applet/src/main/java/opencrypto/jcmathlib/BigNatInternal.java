@@ -1,5 +1,6 @@
 package opencrypto.jcmathlib;
 
+
 import javacard.framework.ISOException;
 import javacard.framework.Util;
 
@@ -358,14 +359,14 @@ public class BigNatInternal {
         for (i = 0; i < value.length; i++) { // Compute size of non-zero part
             byte isNonZeroValue = (byte) ~ConstantTime.ctIsZero(value[i]);
             foundNonZero = (byte) (isNonZeroValue | foundNonZero);
-            short value = ConstantTime.ctSelect((short) (foundNonZero & ~blind), (short) 0, (short) 1);
+            short value = ConstantTime.ctSelect((short) foundNonZero, (short) 0, (short) 1);
             newSize -= value;
         }
 
         if (newSize < 0) {
             ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDRESIZE);
         }
-        ctResize(newSize);
+        ctResize(ConstantTime.ctSelect(blind, size, newSize));
     }
 
     /**
@@ -523,9 +524,9 @@ public class BigNatInternal {
             short tmpOtherIndex = ConstantTime.ctSelect(ctLessThan(otherIndex, (short) other.value.length), otherIndex, (short)0);
             byte otherValue = other.value[tmpOtherIndex];
             byte thisValue = this.value[thisIndex];
-            thisValue = ConstantTime.ctSelect((byte) problem, thisValue, (byte) 0);
+            thisValue = ConstantTime.ctSelect((byte) (problem | blind), thisValue, (byte) 0);
             /* Store byte into index */
-            value[thisIndex] = ConstantTime.ctSelect((short) (isInThisValue & blind), otherValue, thisValue);
+            value[thisIndex] = ConstantTime.ctSelect((short) (isInThisValue & ~blind), otherValue, thisValue);
             /* Increment index in other */
             short incr = ConstantTime.ctSelect((byte) isInThisValue, (byte) 1, (byte) 0);
             otherIndex += incr;
@@ -1111,7 +1112,7 @@ public class BigNatInternal {
      *
      * @param other BigNat to be subtracted from this
      */
-    public void ctSubtract(BigNatInternal other) {
+    public byte ctSubtract(BigNatInternal other) {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
         for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
@@ -1135,9 +1136,10 @@ public class BigNatInternal {
             acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
             acc += (tmp >> 15) & 1;
         }
+        return (byte) (acc & (byte) 0xff);
     }
 
-    public void ctSubtract(BigNatInternal other, short blind) {
+    public byte ctSubtract(BigNatInternal other, short blind) {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
         for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
@@ -1161,6 +1163,7 @@ public class BigNatInternal {
             acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
             acc += (tmp >> 15) & 1;
         }
+        return (byte) (acc & 0xff);
     }
 
     /**
@@ -1330,6 +1333,29 @@ public class BigNatInternal {
         }
     }
 
+    public void ctShiftRightBits(short bits, short carry, short blind) {
+        if (bits < 0 || bits > 7) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSHIFT);
+        }
+
+        short mask = (short) ((short) (1 << bits) - 1); // lowest `bits` bits set to 1
+        for (short i = 0; i < (short) value.length; i++) {
+            short validRange = ConstantTime.ctGreaterOrEqual(i, offset);
+            short thisValue = (short) (value[i] & DIGIT_MASK);
+            short current =  ConstantTime.ctSelect(validRange, thisValue, (short) 0);
+            short previous = current;
+
+            /* use carry to compute current if in valid range */
+            current >>= bits;
+            current = (byte) (current | carry);
+            value[i] = (byte) ConstantTime.ctSelect((short) (validRange & ~blind), current, thisValue);
+
+            /* Update carry if in valid range */
+            current = (short) ((short) (previous & mask) << (short) (8 - bits));
+            carry = ConstantTime.ctSelect(validRange, current, carry);
+        }
+    }
+
     /**
      * Right bit shift
      *
@@ -1476,19 +1502,19 @@ public class BigNatInternal {
      * @param quotient may be null
      */
     public void remainderDivide(BigNatInternal divisor, BigNatInternal quotient) {
-        if (quotient != null) {
+        if (quotient != null) { // zero result buffer
             quotient.zero();
         }
 
         short divisorIndex = divisor.offset;
-        while (divisor.value[divisorIndex] == 0) {
+        while (divisor.value[divisorIndex] == 0) { // move to first nonzero digit
             divisorIndex++;
         }
 
         short divisorShift = (short) (size - divisor.size + divisorIndex - divisor.offset);
         short divisionRound = 0;
-        short firstDivisorDigit = (short) (divisor.value[divisorIndex] & DIGIT_MASK);
-        short divisorBitShift = (short) (highestOneBit((short) (firstDivisorDigit + 1)) - 1);
+        short firstDivisorDigit = (short) (divisor.value[divisorIndex] & DIGIT_MASK); // first nonzero digit
+        short divisorBitShift = (short) (highestOneBit((short) (firstDivisorDigit + 1)) - 1); // in short from left -1
         byte secondDivisorDigit = divisorIndex < (short) (divisor.value.length - 1) ? divisor.value[(short) (divisorIndex + 1)] : 0;
         byte thirdDivisorDigit = divisorIndex < (short) (divisor.value.length - 2) ? divisor.value[(short) (divisorIndex + 2)] : 0;
 
@@ -1581,7 +1607,89 @@ public class BigNatInternal {
     }
 
     public void ctRemainderDivide(BigNatInternal divisor, BigNatInternal quotient) {
-        return;
+
+        while (!isLesser(divisor)) {
+            subtract(divisor);
+            quotient.add((short) 1);
+        }
+    }
+
+    public void ctMod(BigNatInternal modulus, BigNatInternal tmp) {
+        short newModulusSize = modulus.length() % 8 == 0 ? modulus.length() : (short) ((modulus.length() / 8 + 1) * 8);
+        short newThisSize = this.length() % 8 == 0 ? this.length() : (short) ((this.length() / 8 + 1) * 8);
+
+        short newSize = (short) (newThisSize + newModulusSize);
+        if (newSize > value.length || newSize > modulus.value.length || newSize > tmp.value.length) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
+        this.setSize(newSize);
+        modulus.setSize(newSize);
+        tmp.setSize(newSize);
+        short index = (short) (modulus.value.length - newModulusSize);
+        // move modulus to the left
+        for (short i = 0; i < modulus.value.length; i++) {
+            short validI = (short) (ConstantTime.ctGreaterOrEqual(i, modulus.offset)
+                                & ConstantTime.ctLessThan(i, (short) (modulus.offset + newSize)));
+            short validIndex = ConstantTime.ctLessThan(index, (short) modulus.value.length);
+            byte modulusValue = modulus.value[ConstantTime.ctSelect(validIndex, index, (short) 0)];
+            modulus.value[i] = ConstantTime.ctSelect((short) (validI & validIndex), modulusValue, (byte) 0);
+            index += ConstantTime.ctSelect(validI, (short) 1, (short) 0);
+        }
+
+        for (short i = 0; i < this.value.length * 8; i++) {
+            // we care only about bits int thisSize
+            short invalidBit = ConstantTime.ctGreaterOrEqual(i, (short) (newThisSize * 8));
+            // shift right
+            modulus.ctShiftRightBits((short) 1, (short) 0, invalidBit);
+            //subtract with borrow
+            tmp.ctCopy(this);
+            byte borrow = tmp.ctSubtract(modulus);
+            System.out.println(borrow);
+            // update this
+            short blind = ConstantTime.ctIsNonZero(borrow);
+            this.ctCopy(tmp, blind);
+        }
+        ctShrink();
+    }
+
+    public void ctMod(BigNatInternal modulus, BigNatInternal tmp, short blindResult) {
+        short newModulusSize = modulus.length() % 8 == 0 ? modulus.length() : (short) ((modulus.length() / 8 + 1) * 8);
+        short newThisSize = this.length() % 8 == 0 ? this.length() : (short) ((this.length() / 8 + 1) * 8);
+
+        short newSize = (short) (newThisSize + newModulusSize);
+        if (newSize > value.length || newSize > modulus.value.length || newSize > tmp.value.length) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
+        this.setSize(newSize);
+        modulus.setSize(newSize);
+        tmp.setSize(newSize);
+        short index = (short) (modulus.value.length - newModulusSize);
+        // move modulus to the left
+        for (short i = 0; i < modulus.value.length; i++) {
+            short validI = (short) (ConstantTime.ctGreaterOrEqual(i, modulus.offset)
+                    & ConstantTime.ctLessThan(i, (short) (modulus.offset + newSize)));
+            short validIndex = ConstantTime.ctLessThan(index, (short) modulus.value.length);
+            byte modulusValue = modulus.value[ConstantTime.ctSelect(validIndex, index, (short) 0)];
+            modulus.value[i] = ConstantTime.ctSelect((short) (validI & validIndex), modulusValue, (byte) 0);
+            index += ConstantTime.ctSelect(validI, (short) 1, (short) 0);
+        }
+
+        for (short i = 0; i < this.value.length * 8; i++) {
+            // we care only about bits int thisSize
+            short invalidBit = ConstantTime.ctGreaterOrEqual(i, (short) (newThisSize * 8));
+            // shift right
+            modulus.ctShiftRightBits((short) 1, (short) 0, invalidBit);
+            //subtract with borrow
+            tmp.ctCopy(this);
+            byte borrow = tmp.ctSubtract(modulus);
+            System.out.println(borrow);
+            // update this
+            short blind = (short) (ConstantTime.ctIsNonZero(borrow) | blindResult);
+            this.ctCopy(tmp, blind);
+        }
+        ctShrink();
     }
 
     public void ctRemainderDivide(BigNatInternal divisor, BigNatInternal quotient, short blind) {
