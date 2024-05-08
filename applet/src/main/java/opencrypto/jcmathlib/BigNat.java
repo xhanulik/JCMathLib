@@ -67,7 +67,26 @@ public class BigNat extends BigNatInternal {
     }
 
     public void ctGcd(BigNat other) {
-        // TODO
+        BigNat tmp = rm.BN_A;
+        BigNat tmpOther = rm.BN_B;
+        BigNat tmpMod = rm.BN_C;
+
+        tmp.lock();
+        tmpOther.lock();
+        tmpMod.lock();
+
+        tmpOther.ctClone(other);
+
+        while (!other.equals((byte) 0)) { // TODO: make constant time
+            tmp.ctClone(tmpOther);
+            ctMod(tmpOther, tmpMod);
+            tmpOther.ctClone(this);
+            ctClone(tmp);
+        }
+
+        tmp.unlock();
+        tmpOther.unlock();
+        tmpMod.unlock();
     }
 
     /**
@@ -279,11 +298,31 @@ public class BigNat extends BigNatInternal {
     }
 
     public void ctMod(BigNat mod) {
-        ctRemainderDivide(mod, null);
+        BigNat tmpModulus = rm.BN_A;
+        BigNat tmp = rm.BN_B;
+
+        tmpModulus.lock();
+        tmp.lock();
+        tmpModulus.ctClone(mod);
+
+        ctMod(tmpModulus, tmp);
+
+        tmp.unlock();
+        tmpModulus.unlock();
     }
 
     public void ctMod(BigNat mod, short blind) {
-        ctRemainderDivide(mod, null, blind);
+        BigNat tmpModulus = rm.BN_A;
+        BigNat tmp = rm.BN_B;
+
+        tmpModulus.lock();
+        tmp.lock();
+        tmpModulus.ctClone(mod);
+
+        ctMod(tmpModulus, tmp, blind);
+
+        tmp.unlock();
+        tmpModulus.unlock();
     }
 
     /**
