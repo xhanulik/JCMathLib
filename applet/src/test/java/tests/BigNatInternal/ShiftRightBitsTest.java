@@ -109,4 +109,38 @@ public class ShiftRightBitsTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         Assertions.assertThrows(ISOException.class, () -> bn1.ctShiftRightBits((short) -1));
     }
+
+    /* blinded */
+
+    @Test
+    public void shiftRight_7_blindFalse() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x40, 0x00};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        bn1.ctShiftRightBits((short) 7, (short) 0x00);
+
+        byte[] expectedResult = {0x00, (byte) 0x80};
+        byte[] actualResult = new byte[2];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
+    }
+
+    @Test
+    public void shiftRight_7_blindTrue() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x40, 0x00};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        bn1.ctShiftRightBits((short) 7, (short) 0, (short) 0xffff);
+
+        byte[] expectedResult = {0x40, 0x00};
+        byte[] actualResult = new byte[2];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
+    }
 }
