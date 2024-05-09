@@ -1048,7 +1048,7 @@ public class BigNatInternal {
             // set new value only when in valid range
             byte valueToSet = (byte) (acc & DIGIT_MASK);
             byte thisValue = value[thisValidIndex];
-            value[thisValidIndex] = ConstantTime.ctSelect((short) (thisValidRange & blind), valueToSet, thisValue);
+            value[thisValidIndex] = ConstantTime.ctSelect((short) (thisValidRange & ~blind), valueToSet, thisValue);
 
             // preserve acc from last valid byte in this
             short adjAcc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
@@ -1238,7 +1238,7 @@ public class BigNatInternal {
         BigNatInternal tmp = rm.BN_F;
         tmp.lock();
         tmp.ctClone(this, blind);
-        setSizeToMax(true);
+        ctSetSizeToMax(true, blind);
         for (short i = (short) (other.value.length - 1); i >= 0; i--) {
             short otherIndex = ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(i, other.offset), i, (short) 0);
             ctAddShift(tmp, (short) (other.value.length - 1 - otherIndex), (short) (other.value[otherIndex] & DIGIT_MASK), blind);

@@ -6,7 +6,7 @@ import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class getFirstBitPositionTest {
+public class GetFirstBitPositionTest {
     @Test
     public void noZero() {
         ResourceManager rm = new ResourceManager((short) 256);

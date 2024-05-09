@@ -102,4 +102,36 @@ public class CopyToByteArrayTest {
         byte[] expectedDst = new byte[6];
         Assertions.assertArrayEquals(expectedDst, actualDst);
     }
+
+    @Test
+    public void copyToByteArray_dstSameLength_blindFalse() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+
+        byte[] actualDst = new byte[6];
+        bn1.ctCopyToByteArray(actualDst, (short) 0, (short) 0);
+
+        byte[] expectedDst = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+        Assertions.assertArrayEquals(expectedDst, actualDst);
+    }
+
+    @Test
+    public void copyToByteArray_dstSameLength_blindTrue() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+
+        byte[] actualDst = new byte[6];
+        bn1.ctCopyToByteArray(actualDst, (short) 0, (short) (0xffff));
+
+        byte[] expectedDst = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+        Assertions.assertArrayEquals(expectedDst, actualDst);
+    }
 }

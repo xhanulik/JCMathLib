@@ -397,4 +397,46 @@ public class AddShiftTest {
         bn1.copyToByteArray(actualResult, (short) 0);
         Assertions.assertArrayEquals(expectedResult, actualResult);
     }
+
+    /* blinded */
+
+    @Test
+    public void add_thisLonger_blindFalse() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x01, 0x02};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x03, 0x04};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1, (short) 0x00);
+
+        Assertions.assertEquals(0, carry);
+        byte[] expectedResult = {0x01, 0x04, 0x06};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
+    }
+
+    @Test
+    public void add_thisLonger_blindTrue() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x01, 0x02};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x03, 0x04};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1, (short) 0xffff);
+
+        Assertions.assertEquals(0, carry);
+        byte[] expectedResult = {0x01, 0x01, 0x02};
+        byte[] actualResult = new byte[3];
+        bn1.copyToByteArray(actualResult, (short) 0);
+        Assertions.assertArrayEquals(expectedResult, actualResult);
+    }
 }
