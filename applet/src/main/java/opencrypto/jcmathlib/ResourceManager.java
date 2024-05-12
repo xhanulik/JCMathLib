@@ -28,7 +28,7 @@ public class ResourceManager {
     static byte[] CONST_TWO = {0x02};
 
     BigNat BN_WORD;
-    BigNat BN_A, BN_B, BN_C, BN_D, BN_E, BN_F, BN_G, BN_H;
+    BigNat BN_A, BN_B, BN_C, BN_D, BN_E, BN_F, BN_G;
     BigNat EC_BN_A, EC_BN_B, EC_BN_C, EC_BN_D, EC_BN_E, EC_BN_F;
     public static BigNat TWO, THREE, ONE_COORD;
 
@@ -96,7 +96,6 @@ public class ResourceManager {
         BN_E = new BigNat(MAX_BIGNAT_SIZE, memAlloc.getAllocatorType(ObjectAllocator.BN_E), this);
         BN_F = new BigNat(MAX_SQ_LENGTH, memAlloc.getAllocatorType(ObjectAllocator.BN_F), this);
         BN_G = new BigNat(MAX_SQ_LENGTH, memAlloc.getAllocatorType(ObjectAllocator.BN_G), this);
-        BN_H = new BigNat(MAX_BIGNAT_SIZE, memAlloc.getAllocatorType(ObjectAllocator.BN_G), this);
 
         EC_BN_A = new BigNat(MAX_POINT_SIZE, memAlloc.getAllocatorType(ObjectAllocator.EC_BN_A), this);
         EC_BN_B = new BigNat(MAX_COORD_SIZE, memAlloc.getAllocatorType(ObjectAllocator.EC_BN_B), this);
@@ -226,7 +225,6 @@ public class ResourceManager {
         BN_E.erase();
         BN_F.erase();
         BN_G.erase();
-        BN_H.erase();
 
         EC_BN_A.erase();
         EC_BN_B.erase();
@@ -295,9 +293,6 @@ public class ResourceManager {
         }
         if (BN_G.isLocked()) {
             BN_G.unlock();
-        }
-        if (BN_H.isLocked()) {
-            BN_H.unlock();
         }
 
         if (EC_BN_A.isLocked()) {

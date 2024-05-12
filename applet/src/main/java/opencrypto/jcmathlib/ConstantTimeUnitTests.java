@@ -122,10 +122,6 @@ public class ConstantTimeUnitTests extends Applet {
         memoryInfoOffset = snapshotAvailableMemory((short) 8, memoryInfo, memoryInfoOffset);
         bn2 = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
         bn3 = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
-
-        short intLen = 4;
-        int1 = new Integer(intLen, rm);
-        int2 = new Integer(intLen, rm);
         initialized = true;
     }
 
