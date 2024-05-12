@@ -1507,7 +1507,7 @@ public class BigNatInternal {
         }
 
         short divisorIndex = divisor.offset;
-        while (divisor.value[divisorIndex] == 0) { // move to first nonzero digit
+        while (divisorIndex < (short) (divisor.value.length - 1) && divisor.value[divisorIndex] == 0) { // move to first nonzero digit
             divisorIndex++;
         }
 
@@ -1637,7 +1637,7 @@ public class BigNatInternal {
             index += ConstantTime.ctSelect(validI, (short) 1, (short) 0);
         }
 
-        for (short i = 0; i < this.value.length * 8; i++) {
+        for (short i = 0; i < (short) (this.value.length * 8); i++) {
             // we care only about bits int thisSize
             short invalidBit = ConstantTime.ctGreaterOrEqual(i, (short) (newThisSize * 8));
             // shift right
@@ -1645,7 +1645,6 @@ public class BigNatInternal {
             //subtract with borrow
             tmp.ctCopy(this);
             byte borrow = tmp.ctSubtract(modulus);
-            System.out.println(borrow);
             // update this
             short blind = ConstantTime.ctIsNonZero(borrow);
             this.ctCopy(tmp, blind);
@@ -1676,7 +1675,7 @@ public class BigNatInternal {
             index += ConstantTime.ctSelect(validI, (short) 1, (short) 0);
         }
 
-        for (short i = 0; i < this.value.length * 8; i++) {
+        for (short i = 0; i < (short) (this.value.length * 8); i++) {
             // we care only about bits int thisSize
             short invalidBit = ConstantTime.ctGreaterOrEqual(i, (short) (newThisSize * 8));
             // shift right
@@ -1684,7 +1683,6 @@ public class BigNatInternal {
             //subtract with borrow
             tmp.ctCopy(this);
             byte borrow = tmp.ctSubtract(modulus);
-            System.out.println(borrow);
             // update this
             short blind = (short) (ConstantTime.ctIsNonZero(borrow) | blindResult);
             this.ctCopy(tmp, blind);

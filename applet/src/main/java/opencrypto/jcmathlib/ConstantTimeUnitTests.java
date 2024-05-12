@@ -431,12 +431,14 @@ public class ConstantTimeUnitTests extends Applet {
     void testBnMod(APDU apdu, short dataLen) {
         byte[] apduBuffer = apdu.getBuffer();
         short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+        BigNat tmp = rm.BN_B;
+        tmp.lock();
 
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
-        bn1.mod(bn2);
-        short len = bn1.copyToByteArray(apduBuffer, (short) 0);
-        apdu.setOutgoingAndSend((short) 0, len);
+        bn1.ctMod(bn2, tmp);
+        tmp.unlock();
+        apdu.setOutgoingAndSend((short) 0, (short) 0);
     }
 
     void testBnSetValue(APDU apdu, short dataLen) {
