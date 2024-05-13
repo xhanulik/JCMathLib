@@ -122,8 +122,13 @@ public class ConstantTimeUnitTests extends Applet {
         memoryInfoOffset = snapshotAvailableMemory((short) 8, memoryInfo, memoryInfoOffset);
         bn2 = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
         bn3 = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
+
+        short intLen = 4;
+        int1 = new Integer(intLen, rm);
+        int2 = new Integer(intLen, rm);
         initialized = true;
     }
+
 
     public static void install(byte[] ignoredArray, short ignoredOffset, byte ignoredLength) {
         new ConstantTimeUnitTests().register();
@@ -156,6 +161,7 @@ public class ConstantTimeUnitTests extends Applet {
             }
 
             switch (apduBuffer[ISO7816.OFFSET_INS]) {
+                /* Mainatiner steps */
                 case INS_CLEANUP:
                     rm.unlockAll();
                     break;
@@ -181,6 +187,7 @@ public class ConstantTimeUnitTests extends Applet {
                     apdu.setOutgoingAndSend((short) 0, (short) rm.locker.profileLockedObjects.length);
                     break;
 
+                    /* BigNumInternal tests */
                 case INS_BN_TOARRAY:
                     testBnToArray(apdu, dataLen);
                     break;
@@ -214,29 +221,6 @@ public class ConstantTimeUnitTests extends Applet {
                 case INS_BN_SET_VALUE:
                     testBnSetValue(apdu, dataLen);
                     break;
-
-                case INS_BN_ADD_MOD:
-                    testBnAddMod(apdu, dataLen);
-                    break;
-                case INS_BN_SUB_MOD:
-                    testBnSubMod(apdu, dataLen);
-                    break;
-                case INS_BN_MUL_MOD:
-                    testBnMulMod(apdu, dataLen);
-                    break;
-                case INS_BN_EXP_MOD:
-                    testBnExpMod(apdu, dataLen);
-                    break;
-                case INS_BN_SQ_MOD:
-                    testBnSqMod(apdu, dataLen);
-                    break;
-                case INS_BN_INV_MOD:
-                    testBnInvMod(apdu, dataLen);
-                    break;
-                case INS_BN_SQRT_MOD:
-                    testBnModSqrt(apdu, dataLen);
-                    break;
-
                 case INS_BN_LESSER:
                     testBnLesser(apdu, dataLen);
                     break;
@@ -272,6 +256,29 @@ public class ConstantTimeUnitTests extends Applet {
                     break;
                 case INS_BN_DIV:
                     testBnDiv(apdu, dataLen);
+                    break;
+
+                /* BigNat tests */
+                case INS_BN_ADD_MOD:
+                    testBnAddMod(apdu, dataLen);
+                    break;
+                case INS_BN_SUB_MOD:
+                    testBnSubMod(apdu, dataLen);
+                    break;
+                case INS_BN_MUL_MOD:
+                    testBnMulMod(apdu, dataLen);
+                    break;
+                case INS_BN_EXP_MOD:
+                    testBnExpMod(apdu, dataLen);
+                    break;
+                case INS_BN_SQ_MOD:
+                    testBnSqMod(apdu, dataLen);
+                    break;
+                case INS_BN_INV_MOD:
+                    testBnInvMod(apdu, dataLen);
+                    break;
+                case INS_BN_SQRT_MOD:
+                    testBnModSqrt(apdu, dataLen);
                     break;
                 case INS_BN_NEG_MOD:
                     testBnNegMod(apdu, dataLen);
@@ -375,7 +382,7 @@ public class ConstantTimeUnitTests extends Applet {
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
         bn3.clone(bn1);
-        bn3.mult(bn2);
+        bn3.ctMult(bn2);
         short len = bn3.copyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
     }
@@ -384,7 +391,7 @@ public class ConstantTimeUnitTests extends Applet {
         byte[] apduBuffer = apdu.getBuffer();
 
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
-        bn1.sq();
+        bn1.ctSq();
         short len = bn1.copyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
     }
