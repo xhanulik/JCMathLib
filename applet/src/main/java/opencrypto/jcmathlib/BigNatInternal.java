@@ -41,10 +41,10 @@ public class BigNatInternal {
     /**
      * Get position of first bit of specified value in this number.
      *
-     * @param bit bit value to find
+     * @param bit a bit value to find
      * @return Bit index of first bit of specified value in this number.
      */
-    public short getFirstBitPosition(byte bit) {
+    public short ctGetFirstBitPosition(byte bit) {
         short position = (short) (size * 8); // bogus value out of size - maximal bit in number
         for (short byteIndex = (short) (value.length - 1); byteIndex >= 0; byteIndex--) {
             for (short bitIndex = 0; bitIndex < 8; bitIndex++) {
@@ -359,7 +359,7 @@ public class BigNatInternal {
         for (i = 0; i < value.length; i++) { // Compute size of non-zero part
             byte isNonZeroValue = (byte) ~ConstantTime.ctIsZero(value[i]);
             foundNonZero = (byte) (isNonZeroValue | foundNonZero);
-            short value = ConstantTime.ctSelect((short) foundNonZero, (short) 0, (short) 1);
+            short value = ConstantTime.ctSelect(foundNonZero, (short) 0, (short) 1);
             newSize -= value;
         }
 

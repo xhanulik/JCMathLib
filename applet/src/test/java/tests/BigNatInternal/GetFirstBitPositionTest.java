@@ -16,7 +16,7 @@ public class GetFirstBitPositionTest {
         byte[] data = {(byte) 0xff};
         bn.fromByteArray(data, (short) 0, (short) data.length);
 
-        short position = bn.getFirstBitPosition((byte) 0);
+        short position = bn.ctGetFirstBitPosition((byte) 0);
         Assertions.assertEquals((short) 8, position); /* no zero bit */
     }
 
@@ -29,7 +29,7 @@ public class GetFirstBitPositionTest {
         byte[] data = {(byte) 0x00};
         bn.fromByteArray(data, (short) 0, (short) data.length);
 
-        short position = bn.getFirstBitPosition((byte) 1);
+        short position = bn.ctGetFirstBitPosition((byte) 1);
         Assertions.assertEquals((short) 8, position); /* no zero bit */
     }
 
@@ -42,7 +42,7 @@ public class GetFirstBitPositionTest {
         byte[] data = {(byte) 0x1f};
         bn.fromByteArray(data, (short) 0, (short) data.length);
 
-        short position = bn.getFirstBitPosition((byte) 0);
+        short position = bn.ctGetFirstBitPosition((byte) 0);
         Assertions.assertEquals((short) 5, position);
     }
 
@@ -55,7 +55,7 @@ public class GetFirstBitPositionTest {
         byte[] data = {(byte) 0x20};
         bn.fromByteArray(data, (short) 0, (short) data.length);
 
-        short position = bn.getFirstBitPosition((byte) 1);
+        short position = bn.ctGetFirstBitPosition((byte) 1);
         Assertions.assertEquals((short) 5, position);
     }
 
@@ -68,7 +68,7 @@ public class GetFirstBitPositionTest {
         byte[] data = {(byte) 0x3F, (byte) 0xff};
         bn.fromByteArray(data, (short) 0, (short) data.length);
 
-        short position = bn.getFirstBitPosition((byte) 0);
+        short position = bn.ctGetFirstBitPosition((byte) 0);
         Assertions.assertEquals((short) 14, position);
     }
 
@@ -81,7 +81,7 @@ public class GetFirstBitPositionTest {
         byte[] data = {(byte) 0xC0, (byte) 0x00};
         bn.fromByteArray(data, (short) 0, (short) data.length);
 
-        short position = bn.getFirstBitPosition((byte) 1);
+        short position = bn.ctGetFirstBitPosition((byte) 1);
         Assertions.assertEquals((short) 14, position);
     }
 }

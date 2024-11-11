@@ -994,7 +994,7 @@ public class BigNat extends BigNatInternal {
         q.lock();
         q.ctClone(p1);
 
-        short s = getFirstBitPosition((byte) 0);
+        short s = ctGetFirstBitPosition((byte) 0);
         ctShiftRight(s);
 
         // 2. Find the first quadratic non-residue z by brute-force search
