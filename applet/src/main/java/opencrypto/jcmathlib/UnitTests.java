@@ -84,6 +84,16 @@ public class UnitTests extends Applet {
     public final static byte INS_BN_DIV = (byte) 0x5C;
     public final static byte INS_BN_NEG_MOD = (byte) 0x5D;
 
+    // Constant time primitives
+    public final static byte INS_CT_ZERO = (byte) 0x60;
+    public final static byte INS_CT_NONZERO = (byte) 0x61;
+    public final static byte INS_CT_LESSTHAN = (byte) 0x62;
+    public final static byte INS_CT_GREATEROREQUAl = (byte) 0x63;
+    public final static byte INS_CT_GREATER = (byte) 0x64;
+    public final static byte INS_CT_EQUAL = (byte) 0x65;
+    public final static byte INS_CT_POSITIVE = (byte) 0x66;
+    public final static byte INS_CT_NEGATIVE = (byte) 0x67;
+
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
     public final static short SW_Exception                      = (short) 0xff01;
@@ -352,6 +362,30 @@ public class UnitTests extends Applet {
                     break;
                 case INS_BN_NEG_MOD:
                     testBnNegMod(apdu, dataLen);
+                    break;
+
+                case INS_CT_ZERO:
+                    testCtIsZero(apdu, dataLen);
+                    break;
+                case INS_CT_NONZERO:
+                    testCtIsNonZero(apdu, dataLen);
+                    break;
+                case INS_CT_LESSTHAN:
+                    testCtLessThan(apdu, dataLen);
+                    break;
+                case INS_CT_GREATEROREQUAl:
+                    testCtGreaterOrEqual(apdu, dataLen);
+                    break;
+                case INS_CT_GREATER:
+                    testCtGreater(apdu, dataLen);
+                case INS_CT_EQUAL:
+                    testCtEqual(apdu, dataLen);
+                    break;
+                case INS_CT_POSITIVE:
+                    testCtIsPositive(apdu, dataLen);
+                    break;
+                case INS_CT_NEGATIVE:
+                    testCtIsNegative(apdu, dataLen);
                     break;
                 default:
                     ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
@@ -921,5 +955,66 @@ public class UnitTests extends Applet {
         bn1.modNegate(bn2);
         short len = bn1.copyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
+    }
+
+    // Constant time primitives
+    void testCtIsZero(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        byte cByte = apduBuffer[ISO7816.OFFSET_CDATA];
+        byte result = ConstantTime.ctIsZero(cByte);
+        apdu.setOutgoingAndSend((short) 0, result);
+    }
+
+    void testCtIsNonZero(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        byte cByte = apduBuffer[ISO7816.OFFSET_CDATA];
+        byte result = ConstantTime.ctIsNonZero(cByte);
+        apdu.setOutgoingAndSend((short) 0, result);
+    }
+
+    void testCtLessThan(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        byte a = apduBuffer[ISO7816.OFFSET_CDATA];
+        byte b = apduBuffer[ISO7816.OFFSET_CDATA + 1];
+        byte result = ConstantTime.ctLessThan(a, b);
+        apdu.setOutgoingAndSend((short) 0, result);
+    }
+
+    void testCtGreaterOrEqual(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        byte a = apduBuffer[ISO7816.OFFSET_CDATA];
+        byte b = apduBuffer[ISO7816.OFFSET_CDATA + 1];
+        byte result = ConstantTime.ctGreaterOrEqual(a, b);
+        apdu.setOutgoingAndSend((short) 0, result);
+    }
+
+    void testCtGreater(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        byte a = apduBuffer[ISO7816.OFFSET_CDATA];
+        byte b = apduBuffer[ISO7816.OFFSET_CDATA + 1];
+        byte result = ConstantTime.ctGreater(a, b);
+        apdu.setOutgoingAndSend((short) 0, result);
+    }
+
+    void testCtEqual(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        byte a = apduBuffer[ISO7816.OFFSET_CDATA];
+        byte b = apduBuffer[ISO7816.OFFSET_CDATA + 1];
+        byte result = ConstantTime.ctGreater(a, b);
+        apdu.setOutgoingAndSend((short) 0, result);
+    }
+
+    void testCtIsPositive(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        byte a = apduBuffer[ISO7816.OFFSET_CDATA];
+        byte result = ConstantTime.ctIsPositive(a);
+        apdu.setOutgoingAndSend((short) 0, result);
+    }
+
+    void testCtIsNegative(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        byte a = apduBuffer[ISO7816.OFFSET_CDATA];
+        byte result = ConstantTime.ctIsPositive(a);
+        apdu.setOutgoingAndSend((short) 0, result);
     }
 }
