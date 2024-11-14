@@ -18,8 +18,7 @@ public class ConstantTime {
      * @return      0 or (short) 65535
      */
     public static short ctMsb(short a) {
-        short mask = (short) 0xffff;
-        return (short) (((a & mask) >> 15) & mask);
+        return (short) ((-((a & 0xffff) >> 15)) & 0xffff);
     }
 
     /**

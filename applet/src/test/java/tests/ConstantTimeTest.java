@@ -31,6 +31,7 @@ public class ConstantTimeTest {
         Assertions.assertNotEquals(0b1111111111111111, resultShort);
         Assertions.assertEquals(0b0000000000000000, resultShort);
     }
+
     @Test
     public void ctMsb_one_138() {
         byte result = ConstantTime.ctMsb((byte) 138);
@@ -63,9 +64,6 @@ public class ConstantTimeTest {
     public void ctIsZero_true() {
         Assertions.assertEquals((byte) 0xff, ConstantTime.ctIsZero((byte) 0));
         Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsZero((short) 0));
-
-        byte zero = 0;
-        Assertions.assertEquals((short) 0xffff, ConstantTime.ctIsZero((short) zero));
     }
 
     /* ctIsNonZero tests */
