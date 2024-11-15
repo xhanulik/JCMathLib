@@ -84,4 +84,17 @@ public class GetFirstBitPositionTest {
         short position = bn.ctGetFirstBitPosition((byte) 1);
         Assertions.assertEquals((short) 14, position);
     }
+
+    @Test
+    public void invalidParameter() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn = new BigNat((short) 3, memoryType, rm);
+
+        byte[] data = {(byte) 0xC0, (byte) 0x00};
+        bn.fromByteArray(data, (short) 0, (short) data.length);
+
+        short position = bn.ctGetFirstBitPosition((byte) 3);
+        Assertions.assertEquals((short) 2 * 8, position); // out of range
+    }
 }
