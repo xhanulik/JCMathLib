@@ -13,8 +13,9 @@ public class SetSizeTest {
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         BigNat bn1 = new BigNat((short) 10, memoryType, rm);
 
-        bn1.ctSetSize((short) 3, (short) 0);
+       short error =  bn1.ctSetSizeReturnError((short) 3, (short) 0);
         Assertions.assertEquals((short) 3, bn1.length());
+        Assertions.assertEquals((short) 0, error);
     }
 
     @Test
@@ -25,5 +26,16 @@ public class SetSizeTest {
 
         bn1.ctSetSize((short) 3, (short) 0xffff);
         Assertions.assertEquals((short) 10, bn1.length());
+    }
+
+    @Test
+    public void setSizeNotBlind_error() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        short error =  bn1.ctSetSizeReturnError((short) -1, (short) 0);
+        Assertions.assertEquals((short) 10, bn1.length());
+        Assertions.assertEquals((short) 0xffff, error);
     }
 }

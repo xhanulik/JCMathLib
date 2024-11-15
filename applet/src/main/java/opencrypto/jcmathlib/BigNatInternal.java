@@ -42,7 +42,7 @@ public class BigNatInternal {
      * Get position of first bit of specified value in this number.
      *
      * @param bit a bit value to find
-     * @return Bit index of first bit of specified value in this number.
+     * @return Bit index of first bit of specified value in this number. If input parameter has invalid value, return out of size position.
      */
     public short ctGetFirstBitPosition(byte bit) {
         short position = (short) (size * 8); // bogus value out of size - maximal bit in number
@@ -52,10 +52,10 @@ public class BigNatInternal {
                 byte bitValue = this.value[byteIndex];
                 bitValue >>= bitIndex;
                 bitValue &= (byte) 0x01;
-                short wantedBitValue = ConstantTime.ctEqual(bit, bitValue);
+                short bitFound = ConstantTime.ctEqual(bit, bitValue);
                 short newPosition = (short) ((short) (value.length - 1 - byteIndex) * 8 + bitIndex);
-                short save = ConstantTime.ctLessThan(newPosition, position);
-                position = ConstantTime.ctSelect((short) (save & validIndex & wantedBitValue), newPosition, position);
+                short savePosition = ConstantTime.ctLessThan(newPosition, position);
+                position = ConstantTime.ctSelect((short) (savePosition & validIndex & bitFound), newPosition, position);
             }
         }
         return position;
@@ -157,7 +157,6 @@ public class BigNatInternal {
 
     /**
      * Sets the size of this BigNat in bytes.
-     *
      * Previous value is kept so value is either non-destructively trimmed or enlarged.
      *
      * @param newSize the new size
@@ -170,10 +169,31 @@ public class BigNatInternal {
         offset = (short) (value.length - size);
     }
 
+    /**
+     * Sets the size of this BigNat in bytes.
+     * Previous value is kept so value is either non-destructively trimmed or enlarged.
+     *
+     * @param newSize the new size
+     * @param blind blind operation to it does not have any effect
+     * @return 0xffff if error occurs, 0 otherwise
+     */
+    public short ctSetSizeReturnError(short newSize, short blind) {
+        short error = (short) (ConstantTime.ctIsNegative(newSize) | ConstantTime.ctGreater(newSize, (short) value.length));
+        size = ConstantTime.ctSelect((short) (blind | error), size, newSize);
+        short newOffset = (short) (value.length - size);
+        offset = ConstantTime.ctSelect((short) (blind | error), offset, newOffset);
+        return error;
+    }
+
+    /**
+     * Sets the size of this BigNat in bytes.
+     * Previous value is kept so value is either non-destructively trimmed or enlarged.
+     *
+     * @param newSize the new size
+     * @param blind blind operation to it does not have any effect
+     */
     public void ctSetSize(short newSize, short blind) {
-        if (blind == (short) 0x0000 && (newSize < 0 || newSize > value.length)) {
-            ISOException.throwIt(ReturnCodes.SW_BIGNAT_RESIZETOLONGER);
-        }
+        blind |= (short) (ConstantTime.ctIsNegative(newSize) | ConstantTime.ctGreater(newSize, (short) value.length));
         size = ConstantTime.ctSelect(blind, size, newSize);
         short newOffset = (short) (value.length - size);
         offset = ConstantTime.ctSelect(blind, offset, newOffset);
