@@ -1522,28 +1522,6 @@ public class BigNatInternal {
         ctMod(modulus, tmp, (short) 0x00);
     }
 
-    public byte ctGetBit(int bit) {
-        int byteIndex = bit >> 3; // bit / 8;
-        int bitIndex = bit & 7; // bit % 8
-        byte result = this.value[this.value.length - 1 - byteIndex];
-        byte mask = (byte) (0x01 << bitIndex);
-        result &= mask;
-        result >>= bitIndex;
-        return (byte) (result & 0x01);
-    }
-
-    public void ctSetBit(byte value, int bit, short blind) {
-        int byteIndex = bit >> 3; // bit / 8;
-        int bitIndex = bit & 7; // bit % 8
-        byte mask = (byte) (0x01 << bitIndex);
-        int index = this.value.length - 1 - byteIndex;
-        this.value[index] = (byte) ((this.value[index] & ~mask) | (-value & mask) & ~blind);
-    }
-
-    public void ctSetBit(byte value, int bit) {
-        ctSetBit(value, bit, (short) 0x00);
-    }
-
     public void ctRemainderDivide(BigNatInternal divisor, BigNatInternal quotient, BigNatInternal remainder, short blind) {
         // nominator N = this
         // denominator D = divisor
@@ -1561,14 +1539,16 @@ public class BigNatInternal {
             /* R := R << 1 */
             remainder.ctShiftLeftBits((short) 1, blind);
             /* R(0) := N(i) */
-            remainder.ctSetBit(this.ctGetBit(i), 0);
+            byte bitValue =  CTUtil.ctGetBit(this.value, (short) this.value.length, i);
+            CTUtil.ctSetBit(remainder.value, (short) remainder.value.length, bitValue, 0);
             /* if R ≥ D then */
             short blindSubtraction = (short) (remainder.ctIsLesser(divisor) | blind);
             /* R := R - D */
             remainder.ctSubtract(divisor, blindSubtraction);
             /* Q(i) := 1 */
-            byte quotientBit = ConstantTime.ctSelect(blindSubtraction, quotient.ctGetBit(i), (byte) 1);
-            quotient.ctSetBit(quotientBit, i, blind);
+            byte quotientBit = CTUtil.ctGetBit(quotient.value, (short) quotient.value.length, i);
+            quotientBit = ConstantTime.ctSelect(blindSubtraction, quotientBit, (byte) 1);
+            CTUtil.ctSetBit(quotient.value, (short) quotient.value.length, quotientBit, i, blind);
         }
         quotient.ctShrink();
         remainder.ctShrink();

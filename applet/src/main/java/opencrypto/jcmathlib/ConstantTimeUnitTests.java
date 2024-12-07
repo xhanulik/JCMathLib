@@ -682,17 +682,13 @@ public class ConstantTimeUnitTests extends Applet {
     void testBnGetBit(APDU apdu, short dataLen) {
         byte[] apduBuffer = apdu.getBuffer();
         short bitNum = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
-        bn1.ctGetBit(bitNum);
+        CTUtil.ctGetBit(apduBuffer, (short) apduBuffer.length, bitNum);
     }
 
     void testBnSetBit(APDU apdu, short dataLen) {
         byte[] apduBuffer = apdu.getBuffer();
         short bitNum = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
-
-        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
-        bn1.ctGetBit(bitNum);
+        CTUtil.ctSetBit(apduBuffer, (short) apduBuffer.length, (byte) 0, bitNum);
     }
 
     void testBnNegMod(APDU apdu, short dataLen) {

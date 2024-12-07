@@ -54,6 +54,28 @@ public class CTUtil {
         }
     }
 
+    public static byte ctGetBit(byte[] src, short srcLength, int bit) {
+        int byteIndex = bit >> 3; // bit / 8;
+        int bitIndex = bit & 7; // bit % 8
+        byte result = src[srcLength - 1 - byteIndex];
+        byte mask = (byte) (0x01 << bitIndex);
+        result &= mask;
+        result >>= bitIndex;
+        return (byte) (result & 0x01);
+    }
+
+    public static void ctSetBit(byte[] src, short srcLength, byte value, int bit, short blind) {
+        int byteIndex = bit >> 3; // bit / 8;
+        int bitIndex = bit & 7; // bit % 8
+        byte mask = (byte) (0x01 << bitIndex);
+        int index = srcLength - 1 - byteIndex;
+        src[index] = (byte) ((src[index] & ~mask) | (-value & mask) & ~blind);
+    }
+
+    public static void ctSetBit(byte[] src, short srcLength, byte value, int bit) {
+        ctSetBit(src, srcLength, value, bit, (short) 0x00);
+    }
+
     /**
      * Copies an array from the specified source array, beginning at the specified position, to the specified position of the destination array (non-atomically).
      * @param src source byte array
