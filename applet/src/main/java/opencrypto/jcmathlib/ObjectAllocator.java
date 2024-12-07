@@ -68,7 +68,7 @@ public class ObjectAllocator {
         // Set initial allocators into EEPROM
         setAllAllocatorsEEPROM();
         
-        // Put only the most perfromance relevant ones into RAM
+        // Put only the most performance relevant ones into RAM
         ALLOCATOR_TYPE_ARRAY[ARRAY_A] = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         ALLOCATOR_TYPE_ARRAY[ARRAY_B] = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
         ALLOCATOR_TYPE_ARRAY[BN_WORD] = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;

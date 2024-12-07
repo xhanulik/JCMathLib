@@ -58,6 +58,10 @@ public class ConstantTimeUnitTests extends Applet {
     public final static byte INS_BN_NEG_MOD = (byte) 0x5D;
     public final static byte INS_BN_FROMARRAY = (byte) 0x5E;
 
+    /* Util tests */
+    public final static byte INS_BN_GET_BIT = (byte) 0x60;
+    public final static byte INS_BN_SET_BIT = (byte) 0x61;
+
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
     public final static short SW_Exception                      = (short) 0xff01;
@@ -257,6 +261,12 @@ public class ConstantTimeUnitTests extends Applet {
                 case INS_BN_DIV:
                     testBnDiv(apdu, dataLen);
                     break;
+                case INS_BN_GET_BIT:
+                    testBnGetBit(apdu, dataLen);
+                    break;
+                case INS_BN_SET_BIT:
+                    testBnSetBit(apdu, dataLen);
+                    break;
 
                 /* BigNat tests */
                 case INS_BN_ADD_MOD:
@@ -411,7 +421,7 @@ public class ConstantTimeUnitTests extends Applet {
         short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
 
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
-        bn1.ctShiftLeft(p1);
+        bn1.ctShiftLeftBits(p1);
         short len = bn1.copyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
     }
@@ -667,6 +677,22 @@ public class ConstantTimeUnitTests extends Applet {
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
         bn1.remainderDivide(bn2, null);
         apdu.setOutgoingAndSend((short) 0, (short) 0);
+    }
+
+    void testBnGetBit(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short bitNum = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
+        bn1.ctGetBit(bitNum);
+    }
+
+    void testBnSetBit(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short bitNum = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
+        bn1.ctGetBit(bitNum);
     }
 
     void testBnNegMod(APDU apdu, short dataLen) {

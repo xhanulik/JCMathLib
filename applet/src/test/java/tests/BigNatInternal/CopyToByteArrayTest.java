@@ -8,6 +8,19 @@ import org.junit.jupiter.api.Test;
 
 public class CopyToByteArrayTest {
     @Test
+    public void copyToByteArray_shortDestination() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+
+        byte[] actualDst = new byte[3];
+        Assertions.assertThrows(ArrayIndexOutOfBoundsException.class, () -> bn1.ctCopyToByteArray(actualDst, (short) 0));
+    }
+
+    @Test
     public void copyToByteArray_dstlonger_offset_0() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;

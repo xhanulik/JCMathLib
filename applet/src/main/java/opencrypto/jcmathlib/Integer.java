@@ -428,7 +428,7 @@ public class Integer {
         this.add(other);
         // Restore original sign for other
         other.negate();
-    }BigNat tmp = rm.BN_A;
+    }
 
     public void subtractAtomic(Integer other) {
         other.negate(); // Potentially problematic - failure and exception in subsequent function will cause other to stay negated
@@ -513,7 +513,7 @@ public class Integer {
 
         tmp.lock();
         tmp.ctClone(this.magnitude);
-        tmp.ctRemainderDivide(other.getMagnitude(), this.magnitude);
+        tmp.remainderDivide(other.getMagnitude(), this.magnitude);
         tmp.unlock();
     }
 

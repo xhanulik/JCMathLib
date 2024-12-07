@@ -585,7 +585,7 @@ public class UnitTests extends Applet {
         short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
 
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
-        bn1.shiftLeft(p1);
+        bn1.shiftLeftBits(p1);
         short len = bn1.copyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
     }

@@ -20,6 +20,14 @@ public class ctArrayCopyNonAtomicTest {
     }
 
     @Test
+    public void sameLength_zeroOffset_blind() {
+        byte[] src = {0, 1, 2, 3, 4, 5};
+        byte[] dest = new byte[6];
+        CTUtil.ctArrayCopyNonAtomic(src, (short) 0, dest, (short) 0, (short) 6, (short) 0xffff);
+        Assertions.assertArrayEquals(new byte[6], dest);
+    }
+
+    @Test
     public void sameLength_zeroOffset() {
         byte[] src = {0, 1, 2, 3, 4, 5};
         byte[] dest = new byte[6];

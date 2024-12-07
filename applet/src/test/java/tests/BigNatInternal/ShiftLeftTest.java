@@ -16,7 +16,7 @@ public class ShiftLeftTest {
 
         byte[] data1 = {0x05, 0x08};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.ctShiftLeft((short) 0);
+        bn1.ctShiftLeftBits((short) 0);
 
         byte[] expectedResult = {0x05, 0x08};
         byte[] actualResult = new byte[2];
@@ -32,7 +32,7 @@ public class ShiftLeftTest {
 
         byte[] data1 = {0x05, 0x08};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.ctShiftLeft((short) 1);
+        bn1.ctShiftLeftBits((short) 1);
 
         byte[] expectedResult = {0x0A, 0x10};
         byte[] actualResult = new byte[2];
@@ -48,7 +48,7 @@ public class ShiftLeftTest {
 
         byte[] data1 = {0x05, 0x08};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.shiftLeft((short) 5);
+        bn1.shiftLeftBits((short) 5);
 
         byte[] expectedResult = {(byte) 0xA1, (byte) 0x00};
         byte[] actualResult = new byte[2];
@@ -64,7 +64,7 @@ public class ShiftLeftTest {
 
         byte[] data1 = {0x05, 0x08};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.shiftLeft((short) 7);
+        bn1.shiftLeftBits((short) 7);
 
         byte[] expectedResult = {(byte) 0x02, (byte) 0x84, (byte) 0x00};
         byte[] actualResult = new byte[3];
@@ -80,7 +80,7 @@ public class ShiftLeftTest {
 
         byte[] data1 = {0x00, 0x01};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.ctShiftLeft((short) 1, (short) 1);
+        bn1.ctShiftLeftBits((short) 1, (short) 1);
 
         byte[] expectedResult = {0x00, 0x03};
         byte[] actualResult = new byte[2];
@@ -96,7 +96,7 @@ public class ShiftLeftTest {
 
         byte[] data1 = {0x00, 0x01};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.ctShiftLeft((short) 1, (short) 4);
+        bn1.ctShiftLeftBits((short) 1, (short) 4);
 
         byte[] expectedResult = {0x00, 0x06};
         byte[] actualResult = new byte[2];

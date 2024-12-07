@@ -28,6 +28,23 @@ public class AppendZerosTest {
     }
 
     @Test
+    public void outputOverflow() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+
+        byte[] data1 = {0x01, 0x02, 0x03};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+
+        byte[] outBuffer = new byte[10];
+        Arrays.fill(outBuffer, (byte) 0xff);
+        byte[] rBuffer = new byte[] {(byte) 0xff, (byte) 0xff, 0x01, 0x02, 0x03, 0, 0, 0, 0, 0};
+
+        bn1.ctAppendZeros((short) 10, outBuffer, (short) 2);
+        Assertions.assertArrayEquals(rBuffer, outBuffer);
+    }
+
+    @Test
     public void oneMissing() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
@@ -82,7 +99,7 @@ public class AppendZerosTest {
     public void fromStartOneByteFullBuffer() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn1 = new BigNat((short) 3, memoryType, rm);
 
         byte[] data1 = {0x01, 0x02, 0x03};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);

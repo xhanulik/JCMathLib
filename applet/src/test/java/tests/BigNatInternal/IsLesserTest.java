@@ -366,4 +366,19 @@ public class IsLesserTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         Assertions.assertEquals((short) 0xffff, bn1.ctIsLesser(bn2, (short) 2, (short) 4));
     }
+
+    // bug
+    @Test
+    public void isLesser_bug() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat((short) 2, memoryType, rm);
+        BigNat bn2 = new BigNat((short) 2, memoryType, rm);
+
+        byte[] data1 = {-50};
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {1, 0};
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        Assertions.assertEquals((short) 0x00, bn2.ctIsLesser(bn1));
+    }
 }

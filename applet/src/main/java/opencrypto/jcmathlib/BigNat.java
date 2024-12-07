@@ -37,7 +37,7 @@ public class BigNat extends BigNatInternal {
 
         tmp.lock();
         tmp.ctClone( this);
-        tmp.ctRemainderDivide(other, this);
+        tmp.remainderDivide(other, this);
         ctCopy(tmp);
         tmp.unlock();
     }
@@ -947,7 +947,7 @@ public class BigNat extends BigNatInternal {
             tmp.setSize((short) 1);
             tmp.setValue((byte) 1);
             while(s != 0) {
-                tmp.shiftLeft((short) 1);
+                tmp.shiftLeftBits((short) 1);
                 --s;
             }
             b.modExp(tmp, p);
@@ -1072,7 +1072,7 @@ public class BigNat extends BigNatInternal {
             tmp.setSize((short) 1);
             tmp.setValue((byte) 1);
             while(s != 0) {
-                tmp.shiftLeft((short) 1);
+                tmp.shiftLeftBits((short) 1);
                 --s;
             }
             b.modExp(tmp, p);
