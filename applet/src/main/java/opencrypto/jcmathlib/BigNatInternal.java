@@ -418,9 +418,9 @@ public class BigNatInternal {
         }
     }
 
-    public void ctErase() {
-        ctErase((short) 0x00);
-    }
+//    public void ctErase() {
+//        ctErase((short) 0x00);
+//    }
 
     /**
      * Set this BigNat to a given value. Previous size is kept.
@@ -430,10 +430,10 @@ public class BigNatInternal {
         value[(short) (value.length - 1)] = (byte) (newValue & DIGIT_MASK);
     }
 
-    public void ctSetValue(byte newValue) {
-        ctZero();
-        value[(short) (value.length - 1)] = (byte) (newValue & DIGIT_MASK);
-    }
+//    public void ctSetValue(byte newValue) {
+//        ctZero();
+//        value[(short) (value.length - 1)] = (byte) (newValue & DIGIT_MASK);
+//    }
 
     /**
      * Set this BigNat to a given value. Previous size is kept.
@@ -444,11 +444,11 @@ public class BigNatInternal {
         value[(short) (value.length - 2)] = (byte) ((short) (newValue >> 8) & DIGIT_MASK);
     }
 
-    public void ctSetValue(short newValue) {
-        ctZero();
-        value[(short) (value.length - 1)] = (byte) (newValue & DIGIT_MASK);
-        value[(short) (value.length - 2)] = (byte) ((short) (newValue >> 8) & DIGIT_MASK);
-    }
+//    public void ctSetValue(short newValue) {
+//        ctZero();
+//        value[(short) (value.length - 1)] = (byte) (newValue & DIGIT_MASK);
+//        value[(short) (value.length - 2)] = (byte) ((short) (newValue >> 8) & DIGIT_MASK);
+//    }
 
     /**
      * Copies a BigNat into this without changing size. May throw an exception if this is too small.

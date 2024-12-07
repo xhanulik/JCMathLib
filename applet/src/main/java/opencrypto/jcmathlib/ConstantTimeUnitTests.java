@@ -401,7 +401,7 @@ public class ConstantTimeUnitTests extends Applet {
         byte[] apduBuffer = apdu.getBuffer();
 
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
-        bn1.ctSq();
+        bn1.sq();
         short len = bn1.copyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
     }

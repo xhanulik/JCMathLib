@@ -526,7 +526,7 @@ public class Integer {
         this.magnitude.mod(other.getMagnitude());
     }
 
-    public void ctModulo(Integer other) {
-        this.magnitude.ctMod(other.getMagnitude());
-    }
+//    public void ctModulo(Integer other) {
+//        this.magnitude.ctMod(other.getMagnitude());
+//    }
 }
