@@ -543,6 +543,7 @@ public class BigNatInternal {
     }
 
     /**
+<<<<<<< HEAD
      * Copies a BigNat into this including its size. May require reallocation, which is not supported yet.
      *
      * @param other number to be cloned
@@ -613,6 +614,20 @@ public class BigNatInternal {
         short upperZero = ctIsZero((short) 0, (short) ((short) value.length - 1));
         short lowerByte = value[(short) (value.length - 1)];
         return (short) (ConstantTime.ctEqual(lowerByte, (short) 0x01) & upperZero);
+    }
+
+    /**
+
+    /**
+     * Test equality with two.
+     */
+    public boolean isTwo() {
+        for (short i = offset; i < (short) (value.length - 1); i++) {
+            if (value[i] != 0) {
+                return false; // CTO
+            }
+        }
+        return value[(short) (value.length - 1)] == (byte) 0x02;
     }
 
     /**
@@ -788,6 +803,7 @@ public class BigNatInternal {
     }
 
     /**
+<<<<<<< HEAD
      * Test equality with a byte.
      */
     public boolean equals(byte b) {
@@ -805,6 +821,8 @@ public class BigNatInternal {
     }
 
     /**
+=======
+>>>>>>> e71e493 (feat: add quadratic residuosity check)
      * Increment this BigNat.
      * @apiNote Does not increase size.
      */

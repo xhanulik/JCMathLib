@@ -751,14 +751,15 @@ public class ECPoint {
      * @param xOffset offset in the byte array
      * @param xLen    length of the X coordinate
      */
-    public void fromX(byte[] xCoord, short xOffset, short xLen) {
+    public boolean fromX(byte[] xCoord, short xOffset, short xLen) {
         BigNat x = rm.EC_BN_F;
 
         x.lock();
         x.setSize(xLen);
         x.fromByteArray(xCoord, xOffset, xLen);
-        fromX(x);
+        boolean result = fromX(x);
         x.unlock();
+        return result;
     }
 
     /**
@@ -766,7 +767,7 @@ public class ECPoint {
      *
      * @param x the x coordinate
      */
-    private void fromX(BigNat x) {
+    private boolean fromX(BigNat x) {
         BigNat ySq = rm.EC_BN_C;
         BigNat y = rm.EC_BN_D;
         byte[] pointBuffer = rm.POINT_ARRAY_A;
@@ -780,6 +781,9 @@ public class ECPoint {
         ySq.modAdd(curve.bBN, curve.pBN);
         y.lock();
         y.clone(ySq);
+        if (!y.isQuadraticResidue(curve.pBN)) {
+            return false;
+        }
         ySq.unlock();
         y.modSqrt(curve.pBN);
 
@@ -791,6 +795,7 @@ public class ECPoint {
         y.unlock();
         setW(pointBuffer, (short) 0, curve.POINT_SIZE);
         rm.unlock(pointBuffer);
+        return true;
     }
 
     /**
