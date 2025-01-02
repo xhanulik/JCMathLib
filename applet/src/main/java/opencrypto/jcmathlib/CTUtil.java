@@ -55,9 +55,9 @@ public class CTUtil {
     }
 
     public static byte ctGetBit(byte[] src, short srcLength, int bit) {
-        int byteIndex = bit >> 3; // bit / 8;
-        int bitIndex = bit & 7; // bit % 8
-        byte result = src[srcLength - 1 - byteIndex];
+        short byteIndex = (short) (bit >> 3); // bit / 8;
+        short bitIndex = (short) (bit & 7); // bit % 8
+        byte result = src[(short)(srcLength - 1 - byteIndex)];
         byte mask = (byte) (0x01 << bitIndex);
         result &= mask;
         result >>= bitIndex;
@@ -65,10 +65,10 @@ public class CTUtil {
     }
 
     public static void ctSetBit(byte[] src, short srcLength, byte value, int bit, short blind) {
-        int byteIndex = bit >> 3; // bit / 8;
-        int bitIndex = bit & 7; // bit % 8
+        short byteIndex = (short) (bit >> 3); // bit / 8;
+        short bitIndex = (short) (bit & 7); // bit % 8
         byte mask = (byte) (0x01 << bitIndex);
-        int index = srcLength - 1 - byteIndex;
+        short index = (short) (srcLength - 1 - byteIndex);
         src[index] = (byte) ((src[index] & ~mask) | (-value & mask) & ~blind);
     }
 

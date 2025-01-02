@@ -1,5 +1,6 @@
 package tests.BigNatInternal;
 
+import cz.muni.fi.crocs.rcard.client.Util;
 import javacard.framework.JCSystem;
 import opencrypto.jcmathlib.BigNat;
 import opencrypto.jcmathlib.ResourceManager;
@@ -380,5 +381,19 @@ public class IsLesserTest {
         byte[] data2 = {1, 0};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         Assertions.assertEquals((short) 0x00, bn2.ctIsLesser(bn1));
+    }
+
+    @Test
+    public void test() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat bn1 = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
+        BigNat bn2 = new BigNat(rm.MAX_BIGNAT_SIZE, memoryType, rm);
+
+        byte[] data1 = Util.hexStringToByteArray("B6BAA45E79B830920C9AFF2DF4369560524D75DFF32F5E614BE9B134D995B0667901E554A591293154F2502F4C1C2FF83597B9809097A51FBB160B58AD4A36DF");
+        byte[] data2 = Util.hexStringToByteArray("C4C8F1EA6C5CA5DE7178D6D2A312D2438D8DC44400BF54DC8F5A539114281B8648EDB5442379879156B122DC783C8C905B621132A313FA2ED62F20E3F8B6F3C0");
+        bn1.fromByteArray(data1, (short) 0, (short) data1.length);
+        bn2.fromByteArray(data2, (short) 0, (short) data2.length);
+        Assertions.assertEquals((short) 0xFF, bn1.ctIsLesser(bn2) & 0xff);
     }
 }

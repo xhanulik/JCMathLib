@@ -62,6 +62,8 @@ public class ConstantTimeUnitTests extends Applet {
     public final static byte INS_BN_GET_BIT = (byte) 0x60;
     public final static byte INS_BN_SET_BIT = (byte) 0x61;
 
+    public final static byte INS_BN_APPEND_ZEROES = (byte) 0x62;
+
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
     public final static short SW_Exception                      = (short) 0xff01;
@@ -267,6 +269,9 @@ public class ConstantTimeUnitTests extends Applet {
                 case INS_BN_SET_BIT:
                     testBnSetBit(apdu, dataLen);
                     break;
+                case INS_BN_APPEND_ZEROES:
+                    testBnAppendZeroes(apdu, dataLen);
+                    break;
 
                 /* BigNat tests */
                 case INS_BN_ADD_MOD:
@@ -355,7 +360,7 @@ public class ConstantTimeUnitTests extends Applet {
 
         bn1.ctFromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
         short len = bn1.copyToByteArray(apduBuffer, (short) 0);
-        //apdu.setOutgoingAndSend((short) 0, len);
+
     }
 
     void testBnAdd(APDU apdu, short dataLen) {
@@ -689,6 +694,14 @@ public class ConstantTimeUnitTests extends Applet {
         byte[] apduBuffer = apdu.getBuffer();
         short bitNum = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
         CTUtil.ctSetBit(apduBuffer, (short) apduBuffer.length, (byte) 0, bitNum);
+    }
+
+    void testBnAppendZeroes(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short targetLength = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
+        bn1.appendZeros(targetLength, apduBuffer, (short) 0);
     }
 
     void testBnNegMod(APDU apdu, short dataLen) {

@@ -1,7 +1,7 @@
 package opencrypto.jcmathlib;
 
 public class ConstantTime {
-    /**
+        /**
      * Returns the given byte value with the MSB copied to all the other bits.
      *
      * @param  a    value to be checked
@@ -10,6 +10,11 @@ public class ConstantTime {
     public static byte ctMsb(byte a) {
         return (byte) ((-((a & 0xff) >> 7)) & 0xff);
     }
+
+//    static byte[] msbTable = { 0x00, (byte) 0xFF};
+//    public static byte ctMsbLookUp(byte a) {
+//        return msbTable[(a >> 7) & 0x01];
+//    }
 
     /**
      * Returns the given short value with the MSB copied to all the other bits.
@@ -28,7 +33,8 @@ public class ConstantTime {
      * @return      (byte) 255 if zero, 0 otherwise
      */
     public static byte ctIsZero(byte a) {
-        return ctMsb((byte) (~a & ((0xff & a) - 1)));
+        /* return ctMsb((byte) (~a & (a - 1))); */
+        return (byte) ((-((((byte) (~a & (a - 1))) & 0xff) >> 7)) & 0xff);
     }
 
     /**
@@ -38,7 +44,8 @@ public class ConstantTime {
      * @return      (short) 65535 if zero, 0 otherwise
      */
     public static short ctIsZero(short a) {
-        return ctMsb((short) (~a & ((a & (short) 0xffff) - 1)));
+        /* return ctMsb((short) (~a & (a - 1))); */
+        return (short) ((-((((short) (~a & (a - 1))) & 0xffff) >> 15)) & 0xffff);
     }
 
     /**
@@ -48,7 +55,8 @@ public class ConstantTime {
      * @return      (byte) 255 if zero, 0 otherwise
      */
     public static byte ctIsNonZero(byte a){
-        return (byte) ~ctMsb((byte) (~a & ((0xff & a) - 1)));
+        /* return (byte) ~ctMsb((byte) (~a & ((0xff & a) - 1))); */
+        return (byte) ~((-((((byte) (~a & (a - 1))) & 0xff) >> 7)) & 0xff);
     }
 
     /**
@@ -58,11 +66,13 @@ public class ConstantTime {
      * @return      (short) 65535 if zero, 0 otherwise
      */
     public static short ctIsNonZero(short a){
-        return (short) ~ctMsb((short) (~a & (((short) 0xffff & a) - 1)));
+        /* return (short) ~ctMsb((short) (~a & (((short) 0xffff & a) - 1))); */
+        return (short) ~((-((((short) (~a & (a - 1))) & 0xffff) >> 15)) & 0xffff);
     }
 
     /**
      * Compares two byte values for the first value being less than the second value.
+     * Values are not signed.
      *
      * @param a the first byte value to compare
      * @param b the second byte value to compare
@@ -74,6 +84,7 @@ public class ConstantTime {
 
     /**
      * Compares two short values for the first value being less than the second value.
+     * Values are not signed.
      *
      * @param a the first short value to compare
      * @param b the second short value to compare
@@ -85,6 +96,7 @@ public class ConstantTime {
 
     /**
      * Compares two byte values for the first value being greater or equal to the second value.
+     * Values are not signed.
      *
      * @param a the first byte value to compare
      * @param b the second byte value to compare
@@ -96,6 +108,7 @@ public class ConstantTime {
 
     /**
      * Compares two short values for the first value being greater or equal to the second value.
+     * Values are not signed.
      *
      * @param a the first short value to compare
      * @param b the second short value to compare
@@ -107,6 +120,7 @@ public class ConstantTime {
 
     /**
      * Compares two byte values for the first value being greater to the second value.
+     * Values are not signed.
      *
      * @param a the first byte value to compare
      * @param b the second byte value to compare
@@ -118,6 +132,7 @@ public class ConstantTime {
 
     /**
      * Compares two short values for the first value being greater to the second value.
+     * Values are not signed.
      *
      * @param a the first short value to compare
      * @param b the second short value to compare
@@ -199,7 +214,7 @@ public class ConstantTime {
      * @param a value to check for positivity
      * @return 0xff if a is positive, 0 otherwise
      */
-    public static byte ctIsPositive(byte a) {
+    public static byte ctIsPositiveCmp(byte a) {
         return (byte) (ctLessThan(a, (byte) 0x80) & ~ctIsZero(a));
     }
 
@@ -214,12 +229,20 @@ public class ConstantTime {
      * @param a value to check for negativity
      * @return 0xff if a is positive, 0 otherwise
      */
-    public static byte ctIsNegative(byte a) {
+    public static byte ctIsNegativeCmp(byte a) {
         return ctGreaterOrEqual(a, (byte) 0x80);
     }
 
-    public static short ctIsNegative(short a) {
+    public static byte ctIsNegative(byte a) {
+        return ctMsb(a);
+    }
+
+    public static short ctIsNegativeCmp(short a) {
         return ctGreaterOrEqual(a, (short) 0x8000);
+    }
+
+    public static short ctIsNegative(short a) {
+        return ctMsb(a);
     }
 
     /**
@@ -229,12 +252,24 @@ public class ConstantTime {
      * @param a value to check for non-negativity
      * @return 0xff if a is positive, 0 otherwise
      */
-    public static byte ctIsNonNegative(byte a) {
+    public static byte ctIsNonNegativeCmp(byte a) {
         return (byte) (ctLessThan(a, (byte) 0x80) | ctIsZero(a));
     }
 
-    public static short ctIsNonNegative(short a) {
+    public static byte ctIsNonNegative(byte a) {
+        return (byte) ~ctMsb(a);
+    }
+
+    public static short ctIsNonNegativeCmp(short a) {
         return (short) (ctLessThan(a, (short) 0x8000) | ctIsZero(a));
+    }
+
+    public static short ctIsNonNegativeLookUp(short a) {
+        return (short) (ctLessThan(a, (short) 0x8000) | ctIsZero(a));
+    }
+
+    public static short ctIsNonNegative(short a) {
+        return (short) ~ctMsb(a);
     }
 
     /**
@@ -245,10 +280,10 @@ public class ConstantTime {
      * @return 0xff if a is positive, 0 otherwise
      */
     public static byte ctIsNonPositive(byte a) {
-        return (byte) (ctGreaterOrEqual(a, (byte) 0x80) | ctIsZero(a));
+        return (byte) (ctMsb(a) | ctIsZero(a));
     }
 
     public static short ctIsNonPositive(short a) {
-        return (short) (ctGreaterOrEqual(a, (short) 0x80) | ctIsZero(a));
+        return (short) (ctMsb(a) | ctIsZero(a));
     }
 }

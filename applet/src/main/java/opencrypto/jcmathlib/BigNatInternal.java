@@ -1,6 +1,7 @@
 package opencrypto.jcmathlib;
 
 
+import com.sun.org.apache.bcel.internal.Const;
 import javacard.framework.ISOException;
 import javacard.framework.Util;
 
@@ -284,10 +285,10 @@ public class BigNatInternal {
     public void ctAppendZeros(short targetLength, byte[] outBuffer, short outOffset) {
         short j = 0;
         for (short i = 0; i < outBuffer.length; i++) {
-            short before = ConstantTime.ctLessThan(i, outOffset);
-            short after = ConstantTime.ctGreaterOrEqual(i, (short) (outOffset + size));
-            short zeroes = (short) (after & ConstantTime.ctLessThan(i, (short) (outOffset + targetLength)));
-            short validOutRange = (short) (~before & ~after & ~zeroes);
+            short beforeOutRange = ConstantTime.ctLessThan(i, outOffset);
+            short afterOutRange = ConstantTime.ctGreaterOrEqual(i, (short) (outOffset + size));
+            short zeroPaddingRange = (short) (afterOutRange & ConstantTime.ctLessThan(i, (short) (outOffset + targetLength)));
+            short validOutRange = (short) (~beforeOutRange & ~afterOutRange & ~zeroPaddingRange);
 
             short validThisRange = ctLessThan(j, size);
             short thisIndex = ConstantTime.ctSelect(validThisRange, j, (short) 0);
@@ -297,7 +298,7 @@ public class BigNatInternal {
             byte outBufferValue = outBuffer[i];
             outBufferValue = ConstantTime.ctSelect((short) (validOutRange & validThisRange), thisValue, outBufferValue);
             /* Append zeroes after value to get target length */
-            outBuffer[i] = ConstantTime.ctSelect(zeroes, (byte) 0, outBufferValue);
+            outBuffer[i] = ConstantTime.ctSelect(zeroPaddingRange, (byte) 0, outBufferValue);
             j += ConstantTime.ctSelect(validOutRange, (short) 1, (short) 0);
         }
     }
@@ -487,37 +488,32 @@ public class BigNatInternal {
      */
     public void ctCopy(BigNatInternal other, short blind) {
         short diff = (short) (size - other.size);
-        short movedThisOffset = (short) (diff + offset);
-        short movedOtherOffset = (short) (other.offset - diff);
-        short thisStart = ConstantTime.ctSelect(ConstantTime.ctIsNonNegative(diff), movedThisOffset, offset);
-        short otherStart = ConstantTime.ctSelect(ConstantTime.ctIsNonNegative(diff), other.offset, movedOtherOffset);
-        short len = diff >= 0 ? other.size : size;
+        short thisStart = ConstantTime.ctSelect(ConstantTime.ctIsNonNegative(diff), (short) (diff + offset), offset);
+        short otherStart = ConstantTime.ctSelect(ConstantTime.ctIsNonNegative(diff), other.offset, (short) (other.offset - diff));
+        short len = ConstantTime.ctSelect(ConstantTime.ctIsNonNegative(diff), other.size, size);
         short problem = 0;
 
         // Verify here that other have leading zeroes up to otherStart to report possible problem and not change result later
         for (short i = 0; i < other.value.length; i++) {
-            short validIndex = ConstantTime.ctLessThan(i, otherStart);
-            short nonZero = (short) ~ConstantTime.ctIsZero((short) other.value[i]);
-            short otherLonger = ConstantTime.ctIsNegative(diff);
-            problem = (short) ((nonZero & validIndex & otherLonger & ~blind) | problem);
+            problem = (short) (((short) ~ConstantTime.ctIsZero((short) other.value[i]) // non-zero value
+                    & ConstantTime.ctLessThan(i, otherStart) // valid index in this
+                    & ConstantTime.ctIsNegative(diff) // other value longer
+                    & ~blind) | problem);
         }
 
-        short otherIndex = otherStart;
         short copiedBytes = 0;
         for (short thisIndex = 0; thisIndex < value.length; thisIndex++) {
             /* Check whether index is in this area for copied bytes */
             short isInThisValue = ConstantTime.ctGreaterOrEqual(thisIndex, thisStart);
             isInThisValue = (short) (ConstantTime.ctLessThan(copiedBytes, len) & isInThisValue & ~problem);
             /* Read bytes from other array */
-            short tmpOtherIndex = ConstantTime.ctSelect(ctLessThan(otherIndex, (short) other.value.length), otherIndex, (short)0);
-            byte otherValue = other.value[tmpOtherIndex];
+            byte otherValue = other.value[ConstantTime.ctSelect(ctLessThan(otherStart, (short) other.value.length), otherStart, (short)0)];
             byte thisValue = this.value[thisIndex];
             thisValue = ConstantTime.ctSelect((byte) (problem | blind), thisValue, (byte) 0);
             /* Store byte into index */
-            value[thisIndex] = ConstantTime.ctSelect((short) (isInThisValue & ~blind), otherValue, thisValue);
+            value[thisIndex] = ConstantTime.ctSelect((short) (isInThisValue & ~blind & ~problem), otherValue, thisValue);
             /* Increment index in other */
-            short incr = ConstantTime.ctSelect((byte) isInThisValue, (byte) 1, (byte) 0);
-            otherIndex += incr;
+            otherStart += ConstantTime.ctSelect((byte) isInThisValue, (byte) 1, (byte) 0);
         }
 
         if ((problem & (short) 0xffff) == (short) 0xffff) {
@@ -696,8 +692,9 @@ public class BigNatInternal {
             short thisValue = (short) (value[i] & DIGIT_MASK);
             short validThisIndex = ConstantTime.ctGreaterOrEqual (i, (short) (start + offset));
 
-            short validOtherIndex = (short) (ConstantTime.ctGreaterOrEqual(j, other.offset) & ConstantTime.ctIsNonNegative(j)); // lower
-            validOtherIndex &= (short) (ConstantTime.ctLessThan(j, (short) other.value.length) & ConstantTime.ctIsNonNegative(j)); // upper
+            short validOtherIndex = (short) (ConstantTime.ctGreaterOrEqual(j, other.offset) // lower bound
+                    & ConstantTime.ctLessThan(j, (short) other.value.length) // upper bound
+                    & ConstantTime.ctIsNonNegative(j)); // upper
             short otherIndex = ConstantTime.ctSelect(validOtherIndex, j, (short) 0); // substitute bogus index when negative
             short otherValue = ConstantTime.ctSelect(validOtherIndex, (short) (other.value[otherIndex] & DIGIT_MASK), (short) 0);
 
@@ -759,6 +756,7 @@ public class BigNatInternal {
         short thisStart = ConstantTime.ctSelect(ConstantTime.ctIsPositive(diff), newThisOffset, offset);
         short otherStart = ConstantTime.ctSelect(ConstantTime.ctIsNegative(diff), newOtherOffset, other.offset);
 
+        // If other is longer, check that there are only zeroes
         short nonZeroPrefixOther = 0;
         for (short i = 0; i < other.value.length; ++i) {
             short nonZero = ConstantTime.ctGreaterOrEqual(i, other.offset); // valid lower bound
@@ -767,6 +765,7 @@ public class BigNatInternal {
             nonZeroPrefixOther = (short) (nonZero | nonZeroPrefixOther);
         }
 
+        // If this is longer, check that there are only zeroes
         short nonZeroPrefixThis = 0;
         for (short i = (short) 0; i < value.length; ++i) {
             short nonZero = ConstantTime.ctGreaterOrEqual(i, offset); // valid lower bound
@@ -778,6 +777,7 @@ public class BigNatInternal {
         short result = ConstantTime.ctSelect(ConstantTime.ctIsNegative(diff), (short) ~nonZeroPrefixOther, (short) 0xffff);
         result = ConstantTime.ctSelect(ConstantTime.ctIsPositive(diff), (short) ~nonZeroPrefixThis, result);
 
+        // Check corresponding parts
         short j = otherStart;
         for (short i = 0; i < value.length; i++) {
             short validThisIndex = ConstantTime.ctGreaterOrEqual(i, thisStart);
@@ -787,7 +787,6 @@ public class BigNatInternal {
         }
         return result;
     }
-
 
     /**
      * Test equality with a byte.
@@ -1072,7 +1071,7 @@ public class BigNatInternal {
     /**
      * Refactored, computes over only valid indexes inside offsets.
      */
-    public void ctSubtractShift(BigNatInternal other, short shift, short multiplier) {
+    public void ctSubtractShift(BigNatInternal other, short shift, short multiplier, short blind) {
         short acc = 0;
         short otherIndex = (short) (other.size - 1 + other.offset);
 
@@ -1097,10 +1096,14 @@ public class BigNatInternal {
 
             // set new value only when in valid range
             byte thisValue = value[thisValidIndex];
-            value[thisValidIndex] = (byte) ConstantTime.ctSelect(thisValidRange, valueToSet, thisValue);
+            value[thisValidIndex] = (byte) ConstantTime.ctSelect((short) (thisValidRange & ~blind), valueToSet, thisValue);
             acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
             acc += ConstantTime.ctSelect((short) (ConstantTime.ctIsNegative(valueToSet) & thisValidRange), (short) 1, (short) (0));
         }
+    }
+
+    public void ctSubtractShift(BigNatInternal other, short shift, short multiplier) {
+        ctSubtractShift(other, shift, multiplier, (short) 0x00);
     }
 
     /**
@@ -1392,8 +1395,12 @@ public class BigNatInternal {
         byte secondDivisorDigit = divisorIndex < (short) (divisor.value.length - 1) ? divisor.value[(short) (divisorIndex + 1)] : 0;
         byte thirdDivisorDigit = divisorIndex < (short) (divisor.value.length - 2) ? divisor.value[(short) (divisorIndex + 2)] : 0;
 
+        short outer = 0;
+        short inner = 0;
         while (divisorShift >= 0) {
+            System.out.println("outer = " + outer);
             while (!isLesser(divisor, divisorShift, (short) (divisionRound > 0 ? divisionRound - 1 : 0))) {
+                System.out.println("inner = " + inner);
                 short divisionRoundOffset = (short) (divisionRound + offset);
                 short dividentDigits = divisionRound == 0 ? 0 : (short) ((short) (value[(short) (divisionRoundOffset - 1)]) << DIGIT_LEN);
                 dividentDigits |= (short) (value[(short) (divisionRound + offset)] & DIGIT_MASK);
@@ -1426,16 +1433,147 @@ public class BigNatInternal {
                     short quotientDigit = (short) ((quotient.value[(short) (quotient.size - 1 - divisorShiftOffset)] & DIGIT_MASK) + multiple);
                     quotient.value[(short) (quotient.size - 1 - divisorShiftOffset)] = (byte) quotientDigit;
                 }
+                inner++;
+            }
+            divisionRound++;
+            divisorShift--;
+            outer++;
+        }
+    }
+
+    public void ctRemainderDivideOptimialized2(BigNatInternal divisor, BigNatInternal quotient) {
+        if (quotient != null) { // zero result buffer
+            quotient.zero();
+        }
+
+        short divisorIndex = divisor.offset;
+        while (divisorIndex < (short) (divisor.value.length - 1) && divisor.value[divisorIndex] == 0) { // move to first nonzero digit
+            divisorIndex++;
+        }
+
+        short divisorShift = (short) (size - divisor.size + divisorIndex - divisor.offset);
+        short divisionRound = 0;
+        short firstDivisorDigit = (short) (divisor.value[divisorIndex] & DIGIT_MASK); // first nonzero digit
+        short divisorBitShift = (short) (ctHighestOneBit((short) (firstDivisorDigit + 1)) - 1); // in short from left -1
+        byte secondDivisorDigit = divisorIndex < (short) (divisor.value.length - 1) ? divisor.value[(short) (divisorIndex + 1)] : 0;
+        byte thirdDivisorDigit = divisorIndex < (short) (divisor.value.length - 2) ? divisor.value[(short) (divisorIndex + 2)] : 0;
+
+
+        while (divisorShift >= 0) {
+            while (ctIsLesser(divisor, divisorShift, (short) (divisionRound > 0 ? divisionRound - 1 : 0)) == 0x00) {
+                short divisionRoundOffset = (short) (divisionRound + offset);
+                short dividentDigits = divisionRound == 0 ? 0 : (short) ((short) (value[(short) (divisionRoundOffset - 1)]) << DIGIT_LEN);
+                dividentDigits |= (short) (value[(short) (divisionRound + offset)] & DIGIT_MASK);
+
+                short divisorDigit;
+                if (dividentDigits < 0) {
+                    dividentDigits = (short) ((dividentDigits >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK);
+                    divisorDigit = (short) ((firstDivisorDigit >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK);
+                } else {
+                    System.out.println("highestOneBit = " + (highestOneBit(dividentDigits) - 1) + ", ctHighestOneBit = " + (ctHighestOneBit(dividentDigits) - 1));
+                    short dividentBitShift = (short) (ctHighestOneBit(dividentDigits) - 1);
+                    short bitShift = dividentBitShift <= divisorBitShift ? dividentBitShift : divisorBitShift;
+
+                    dividentDigits = shiftBits(
+                            dividentDigits, divisionRound < (short) (size - 1) ? value[(short) (divisionRoundOffset + 1)] : 0,
+                            divisionRound < (short) (size - 2) ? value[(short) (divisionRoundOffset + 2)] : 0,
+                            bitShift
+                    );
+                    divisorDigit = shiftBits(firstDivisorDigit, secondDivisorDigit, thirdDivisorDigit, bitShift);
+                }
+
+                short multiple = (short) (dividentDigits / (short) (divisorDigit + 1));
+                if (multiple < 1) {
+                    multiple = 1;
+                }
+
+                subtract(divisor, divisorShift, multiple);
+
+                if (quotient != null) {
+                    short divisorShiftOffset = (short) (divisorShift - quotient.offset);
+                    short quotientDigit = (short) ((quotient.value[(short) (quotient.size - 1 - divisorShiftOffset)] & DIGIT_MASK) + multiple);
+                    quotient.value[(short) (quotient.size - 1 - divisorShiftOffset)] = (byte) quotientDigit;
+                }
             }
             divisionRound++;
             divisorShift--;
         }
     }
 
+    public void ctRemainderDivideOptimialized(BigNatInternal divisor, BigNatInternal quotient) {
+        quotient.zero();
+
+        short divisorIndex = divisor.offset;
+        for (short i = 0; i < divisor.value.length; i++) {// move to first nonzero digit
+            short mask = (short) (ConstantTime.ctLessThan(divisorIndex, (short) (divisor.value.length - 1)) & ConstantTime.ctIsZero(divisor.value[divisorIndex]));
+            divisorIndex += ConstantTime.ctSelect(mask, (short) 1, (short) 0);
+        }
+
+        short divisorShift = (short) (size - divisor.size + divisorIndex - divisor.offset);
+        short divisionRound = 0;
+        short firstDivisorDigit = (short) (divisor.value[divisorIndex] & DIGIT_MASK); // first nonzero digit
+        short divisorBitShift = (short) (ctHighestOneBit((short) (firstDivisorDigit + 1)) - 1); // in short from left -1
+        short index = ConstantTime.ctSelect(ConstantTime.ctGreater((short) (divisor.value.length - 1), divisorIndex), (short) (divisorIndex + 1), (short) 0);
+        byte secondDivisorDigit = ConstantTime.ctSelect(ConstantTime.ctGreater((short) (divisor.value.length - 1), divisorIndex), divisor.value[index], (byte) 0);
+        index = ConstantTime.ctSelect(ConstantTime.ctGreater((short) (divisor.value.length - 2), divisorIndex), (short) (divisorIndex + 2), (short) 0);
+        byte thirdDivisorDigit = ConstantTime.ctSelect(ConstantTime.ctGreater((short) (divisor.value.length - 2), divisorIndex), divisor.value[index], (byte) 0);
+
+        short MAX_CYCLES = 15;
+        for (int i = 0; i < MAX_CYCLES; i++) {
+            // !isLesser branch condition
+            short divisorShiftNegative = ConstantTime.ctIsNegative(divisorShift);
+            short isLesserStart = ConstantTime.ctSelect(ConstantTime.ctIsPositive(divisionRound), (short) (divisionRound - 1), (short) 0);
+            short isLesserDivisor = ctIsLesser(divisor, divisorShift, isLesserStart);
+            short doSubtract = ((short) (~divisorShiftNegative & ~isLesserDivisor));
+
+            // inside of the branch
+            short divisionRoundOffset = (short) (divisionRound + offset);
+            index = ConstantTime.ctSelect(doSubtract, (short) (divisionRoundOffset - 1), (short) 0);
+            short newDividentDigits = (short) ((short) (value[index]) << DIGIT_LEN);
+            index = ConstantTime.ctSelect(doSubtract, (short) (divisionRound + offset), (short) 0);
+            short dividentDigits = (short) (ConstantTime.ctSelect(ConstantTime.ctIsZero(divisionRound), (short) 0, newDividentDigits)
+                    | (short) (value[index] & DIGIT_MASK));
+            short dividentDigitsNegative = ConstantTime.ctIsNegative(dividentDigits);
+            short dividentBitShift = (short) (ctHighestOneBit(dividentDigits) - 1);
+            short bitShift = ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(divisorBitShift, dividentBitShift), dividentBitShift, divisorBitShift);
+
+            index = ConstantTime.ctSelect((short) (doSubtract
+                                                & ConstantTime.ctGreater((short) (size - 1), divisionRound)
+                                                & ConstantTime.ctGreater(size, (short) 0)),
+                    (short) (divisionRoundOffset + 1), (short) 0);
+            byte a = ConstantTime.ctSelect(ConstantTime.ctGreater((short) (size - 1), divisionRound), value[index], (byte) 0);
+            index = ConstantTime.ctSelect((short) (doSubtract
+                                                & ConstantTime.ctGreater((short) (size - 2), divisionRound)
+                                                & ConstantTime.ctGreater(size, (short) 1)),
+                    (short) (divisionRoundOffset + 2), (short) 0);
+            byte b = ConstantTime.ctSelect(ConstantTime.ctGreater((short) (size - 2), divisionRound), value[index], (byte) 0);
+
+            dividentDigits = ConstantTime.ctSelect(dividentDigitsNegative,
+                    (short) ((dividentDigits >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK),
+                    ctShiftBits(dividentDigits, a, b, bitShift));
+            short divisorDigit = ConstantTime.ctSelect(dividentDigitsNegative,
+                    (short) ((firstDivisorDigit >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK),
+                    ctShiftBits(firstDivisorDigit, secondDivisorDigit, thirdDivisorDigit, bitShift));
+            short multiple = (short) (dividentDigits / (short) (divisorDigit + 1));
+            multiple = ConstantTime.ctSelect((short) (ConstantTime.ctIsZero(multiple) | ConstantTime.ctIsNegative(multiple)), (short) 1, multiple);
+
+            ctSubtractShift(divisor, ConstantTime.ctSelect(ConstantTime.ctIsNegative(divisorShift), (short) 0, divisorShift), multiple, (short) ~doSubtract);
+
+            short divisorShiftOffset = (short) (divisorShift - quotient.offset);
+            index = ConstantTime.ctSelect(doSubtract, (short) (quotient.size - 1 - divisorShiftOffset), (short) 0);
+            short quotientDigit = (short) ((quotient.value[index] & DIGIT_MASK) + multiple);
+            index = ConstantTime.ctSelect(doSubtract, (short) (quotient.size - 1 - divisorShiftOffset), (short) 0);
+            quotient.value[index] = (byte) ConstantTime.ctSelect(doSubtract, quotientDigit, quotient.value[index]);
+
+            divisionRound += ConstantTime.ctSelect((short) (isLesserDivisor & ~divisorShiftNegative), (byte) 1, (byte) 0);
+            divisorShift -= ConstantTime.ctSelect((short) (isLesserDivisor & ~divisorShiftNegative), (byte) 1, (byte) 0);
+        }
+    }
+
     /**
      * Get the index of the highest bit set to 1. Used in remainderDivide.
      */
-    private static short highestOneBit(short x) {
+    public static short highestOneBit(short x) {
         for (short i = 0; i < DOUBLE_DIGIT_LEN; ++i) {
             if (x < 0) {
                 return i;
@@ -1443,6 +1581,16 @@ public class BigNatInternal {
             x <<= 1;
         }
         return DOUBLE_DIGIT_LEN;
+    }
+
+    public static short ctHighestOneBit(short x) {
+        short index = 0;
+        for (short i = 0; i < DOUBLE_DIGIT_LEN; ++i) {
+            short isZero = ConstantTime.ctIsZero(x);
+            index += ConstantTime.ctSelect(isZero, (short) 0, (short) 1);
+            x >>= ConstantTime.ctSelect(isZero, (short) 0, (short) 1);;
+        }
+        return (short) (DOUBLE_DIGIT_LEN - index);
     }
 
     /**
@@ -1454,7 +1602,7 @@ public class BigNatInternal {
      * @param shift the left shift
      * @return most significant 16 bits as short
      */
-    private static short shiftBits(short high, byte middle, byte low, short shift) {
+    public static short shiftBits(short high, byte middle, byte low, short shift) {
         // shift high
         high <<= shift;
 
@@ -1476,6 +1624,26 @@ public class BigNatInternal {
         mask = (byte) (DIGIT_MASK << DOUBLE_DIGIT_LEN - shift);
         bits = (short) ((((short) (low & mask) & DIGIT_MASK) >> DOUBLE_DIGIT_LEN - shift));
         high |= bits;
+
+        return high;
+    }
+
+    public static short ctShiftBits(short high, byte middle, byte low, short shift) {
+        // shift high
+        high <<= shift;
+
+        // merge middle bits
+        byte mask = (byte) (DIGIT_MASK << ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(shift, DIGIT_LEN), (short) 0, (short) (DIGIT_LEN - shift)));
+        short bits = (short) ((short) (middle & mask) & DIGIT_MASK);
+        bits <<= ConstantTime.ctSelect(ConstantTime.ctLessThan(DIGIT_LEN, shift), (short) (shift - DIGIT_LEN), (short) 0);
+        bits >>>= ConstantTime.ctSelect((short) ~(ConstantTime.ctLessThan(DIGIT_LEN, shift)), (short) (DIGIT_LEN - shift), (short) 0);
+        high |= bits;
+
+        // merge low bits
+        mask = (byte) (DIGIT_MASK << DOUBLE_DIGIT_LEN - shift);
+        bits = (short) ((((short) (low & mask) & DIGIT_MASK) >> DOUBLE_DIGIT_LEN - shift));
+
+        high |= ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(DIGIT_LEN, shift), (short) 0, bits);
 
         return high;
     }
