@@ -1438,65 +1438,7 @@ public class BigNatInternal {
         }
     }
 
-    public void ctRemainderDivideOptimialized2(BigNatInternal divisor, BigNatInternal quotient) {
-        if (quotient != null) { // zero result buffer
-            quotient.zero();
-        }
-
-        short divisorIndex = divisor.offset;
-        while (divisorIndex < (short) (divisor.value.length - 1) && divisor.value[divisorIndex] == 0) { // move to first nonzero digit
-            divisorIndex++;
-        }
-
-        short divisorShift = (short) (size - divisor.size + divisorIndex - divisor.offset);
-        short divisionRound = 0;
-        short firstDivisorDigit = (short) (divisor.value[divisorIndex] & DIGIT_MASK); // first nonzero digit
-        short divisorBitShift = (short) (ctHighestOneBit((short) (firstDivisorDigit + 1)) - 1); // in short from left -1
-        byte secondDivisorDigit = divisorIndex < (short) (divisor.value.length - 1) ? divisor.value[(short) (divisorIndex + 1)] : 0;
-        byte thirdDivisorDigit = divisorIndex < (short) (divisor.value.length - 2) ? divisor.value[(short) (divisorIndex + 2)] : 0;
-
-
-        while (divisorShift >= 0) {
-            while (ctIsLesser(divisor, divisorShift, (short) (divisionRound > 0 ? divisionRound - 1 : 0)) == 0x00) {
-                short divisionRoundOffset = (short) (divisionRound + offset);
-                short dividentDigits = divisionRound == 0 ? 0 : (short) ((short) (value[(short) (divisionRoundOffset - 1)]) << DIGIT_LEN);
-                dividentDigits |= (short) (value[(short) (divisionRound + offset)] & DIGIT_MASK);
-
-                short divisorDigit;
-                if (dividentDigits < 0) {
-                    dividentDigits = (short) ((dividentDigits >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK);
-                    divisorDigit = (short) ((firstDivisorDigit >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK);
-                } else {
-                    short dividentBitShift = (short) (ctHighestOneBit(dividentDigits) - 1);
-                    short bitShift = dividentBitShift <= divisorBitShift ? dividentBitShift : divisorBitShift;
-
-                    dividentDigits = shiftBits(
-                            dividentDigits, divisionRound < (short) (size - 1) ? value[(short) (divisionRoundOffset + 1)] : 0,
-                            divisionRound < (short) (size - 2) ? value[(short) (divisionRoundOffset + 2)] : 0,
-                            bitShift
-                    );
-                    divisorDigit = shiftBits(firstDivisorDigit, secondDivisorDigit, thirdDivisorDigit, bitShift);
-                }
-
-                short multiple = (short) (dividentDigits / (short) (divisorDigit + 1));
-                if (multiple < 1) {
-                    multiple = 1;
-                }
-
-                subtract(divisor, divisorShift, multiple);
-
-                if (quotient != null) {
-                    short divisorShiftOffset = (short) (divisorShift - quotient.offset);
-                    short quotientDigit = (short) ((quotient.value[(short) (quotient.size - 1 - divisorShiftOffset)] & DIGIT_MASK) + multiple);
-                    quotient.value[(short) (quotient.size - 1 - divisorShiftOffset)] = (byte) quotientDigit;
-                }
-            }
-            divisionRound++;
-            divisorShift--;
-        }
-    }
-
-    public void ctRemainderDivideOptimialized(BigNatInternal divisor, BigNatInternal quotient) {
+    public void ctRemainderDivideOptimized(BigNatInternal divisor, BigNatInternal quotient) {
         quotient.zero();
 
         short divisorIndex = divisor.offset;

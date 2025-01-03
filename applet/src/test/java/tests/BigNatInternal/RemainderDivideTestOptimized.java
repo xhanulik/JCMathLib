@@ -7,7 +7,7 @@ import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class RemainderDivideTestOptimalized {
+public class RemainderDivideTestOptimized {
 
     // Simple one byte divisions
     @Test
@@ -22,7 +22,7 @@ public class RemainderDivideTestOptimalized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0b100};
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimialized(denominator, quotient);
+        nominator.ctRemainderDivideOptimized(denominator, quotient);
 
         byte[] actualResult = new byte[1];
         quotient.copyToByteArray(actualResult, (short) 0);
@@ -41,7 +41,7 @@ public class RemainderDivideTestOptimalized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0b101};
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimialized(denominator, quotient);
+        nominator.ctRemainderDivideOptimized(denominator, quotient);
 
         byte[] actualResult = new byte[1];
         quotient.copyToByteArray(actualResult, (short) 0);
@@ -63,7 +63,7 @@ public class RemainderDivideTestOptimalized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x05};
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimialized(denominator, quotient);
+        nominator.ctRemainderDivideOptimized(denominator, quotient);
 
         byte[] actualResult = new byte[2];
         quotient.copyToByteArray(actualResult, (short) 0);
@@ -83,7 +83,7 @@ public class RemainderDivideTestOptimalized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x05};
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimialized(denominator, quotient);
+        nominator.ctRemainderDivideOptimized(denominator, quotient);
 
         Assertions.assertEquals(2, quotient.length());
         byte[] actualResult = new byte[2];
@@ -103,7 +103,7 @@ public class RemainderDivideTestOptimalized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x2B};
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimialized(denominator, quotient);
+        nominator.ctRemainderDivideOptimized(denominator, quotient);
 
         Assertions.assertEquals(2, quotient.length());
         byte[] actualResult = new byte[2];
@@ -123,7 +123,7 @@ public class RemainderDivideTestOptimalized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x2D};
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimialized(denominator, quotient);
+        nominator.ctRemainderDivideOptimized(denominator, quotient);
 
         byte[] actualResult = new byte[2];
         Assertions.assertEquals(2, quotient.length());
@@ -142,7 +142,7 @@ public class RemainderDivideTestOptimalized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01};
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimialized(denominator, quotient);
+        nominator.ctRemainderDivideOptimized(denominator, quotient);
 
         Assertions.assertEquals(2, quotient.length());
         byte[] actualResult = new byte[2];
@@ -163,7 +163,7 @@ public class RemainderDivideTestOptimalized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01};
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimialized(denominator, quotient);
+        nominator.ctRemainderDivideOptimized(denominator, quotient);
 
         Assertions.assertEquals(4, quotient.length());
         byte[] actualResult = new byte[4];
@@ -183,7 +183,7 @@ public class RemainderDivideTestOptimalized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x00, 0x02};
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimialized(denominator, quotient);
+        nominator.ctRemainderDivideOptimized(denominator, quotient);
 
         Assertions.assertEquals(4, quotient.length());
         byte[] actualResult = new byte[4];
@@ -203,7 +203,7 @@ public class RemainderDivideTestOptimalized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0x88, (byte) 0xCE, (byte) 0x6D};
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimialized(denominator, quotient);
+        nominator.ctRemainderDivideOptimized(denominator, quotient);
 
         Assertions.assertEquals(6, quotient.length());
         byte[] actualResult = new byte[6];
@@ -224,7 +224,7 @@ public class RemainderDivideTestOptimalized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0x70, (byte) 0x48, (byte) 0x86, (byte) 0x0D, (byte) 0xDF, (byte) 0x4C};
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimialized(denominator, quotient);
+        nominator.ctRemainderDivideOptimized(denominator, quotient);
 
         Assertions.assertEquals(6, quotient.length());
         byte[] actualResult = new byte[6];
@@ -245,7 +245,7 @@ public class RemainderDivideTestOptimalized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = Util.hexStringToByteArray("03");
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimialized(denominator, quotient);
+        nominator.ctRemainderDivideOptimized(denominator, quotient);
 
         byte[] correct = Util.hexStringToByteArray("005601015702");
         quotient.copyToByteArray(correct, (short) 0);
