@@ -162,7 +162,7 @@ javacard {
             sources 'src/main/java/opencrypto'
             targetsdk JC305
             applet {
-                className 'opencrypto.jcmathlib.SPAUnitTests'
+                className 'opencrypto.jcmathlib.ConstantTimeUnitTests'
                 aid '4a:43:4d:61:74:68:4c:69:62:55:54'
             }
         }
@@ -175,7 +175,7 @@ javacard {
             sources 'src/main/java/opencrypto'
             targetsdk JC305
             applet {
-                className 'opencrypto.jcmathlib.SPAUnitTests'
+                className 'opencrypto.jcmathlib.ConstantTimeUnitTests'
                 aid '4a:43:4d:61:74:68:4c:69:62:55:54'
             }
         }

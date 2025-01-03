@@ -21,7 +21,7 @@ public class CTUtil {
     public static byte ctGetSafe(byte[] array, short length, short index) {
         byte result = 0;
         short problem = (short) (ConstantTime.ctIsNegative(index) | ConstantTime.ctGreaterOrEqual(index, length));
-        if ((problem & 0xffff) == 0xffff)
+        if ((problem & (short) 0xffff) == (short) 0xffff)
             throw new ArrayIndexOutOfBoundsException();
         for (short i = 0; i < length; i++) {
             byte mask = (byte) ConstantTime.ctEqual(i, index);
@@ -46,7 +46,7 @@ public class CTUtil {
 
     public static void ctSetSafe(byte[] array, short length, short index, byte value) {
         short problem = (short) (ConstantTime.ctIsNegative(index) | ConstantTime.ctGreaterOrEqual(index, length));
-        if ((problem & 0xffff) == 0xffff)
+        if ((problem & (short) 0xffff) == (short) 0xffff)
             throw new ArrayIndexOutOfBoundsException();
         for (short i = 0; i < length; i++) {
             byte mask = (byte) ConstantTime.ctEqual(i, index);
@@ -54,7 +54,7 @@ public class CTUtil {
         }
     }
 
-    public static byte ctGetBit(byte[] src, short srcLength, int bit) {
+    public static byte ctGetBit(byte[] src, short srcLength, short bit) {
         short byteIndex = (short) (bit >> 3); // bit / 8;
         short bitIndex = (short) (bit & 7); // bit % 8
         byte result = src[(short)(srcLength - 1 - byteIndex)];
@@ -64,7 +64,7 @@ public class CTUtil {
         return (byte) (result & 0x01);
     }
 
-    public static void ctSetBit(byte[] src, short srcLength, byte value, int bit, short blind) {
+    public static void ctSetBit(byte[] src, short srcLength, byte value, short bit, short blind) {
         short byteIndex = (short) (bit >> 3); // bit / 8;
         short bitIndex = (short) (bit & 7); // bit % 8
         byte mask = (byte) (0x01 << bitIndex);
@@ -72,7 +72,7 @@ public class CTUtil {
         src[index] = (byte) ((src[index] & ~mask) | (-value & mask) & ~blind);
     }
 
-    public static void ctSetBit(byte[] src, short srcLength, byte value, int bit) {
+    public static void ctSetBit(byte[] src, short srcLength, byte value, short bit) {
         ctSetBit(src, srcLength, value, bit, (short) 0x00);
     }
 
@@ -96,7 +96,7 @@ public class CTUtil {
         short error = (short) (ConstantTime.ctIsNegative(srcOff) | ConstantTime.ctIsNegative(destOff) | ConstantTime.ctIsNegative(length));
         error |= ConstantTime.ctGreater((short) (srcOff + length), (short) src.length)
                 | ConstantTime.ctGreater((short) (destOff + length), (short) dest.length);
-        if ((error & 0xffff) == 0xffff) {
+        if ((error & (short) 0xffff) == (short) 0xffff) {
             throw new ArrayIndexOutOfBoundsException();
         }
 
@@ -138,7 +138,7 @@ public class CTUtil {
             throw new NullPointerException();
         short error = (short) (ConstantTime.ctIsNegative(bOff) | ConstantTime.ctIsNegative(bLen));
         error |= ConstantTime.ctGreater((short) (bOff + bLen), (short) bArray.length);
-        if ((error & 0xffff) == 0xffff) {
+        if ((error & (short) 0xffff) == (short) 0xffff) {
             throw new ArrayIndexOutOfBoundsException();
         }
 

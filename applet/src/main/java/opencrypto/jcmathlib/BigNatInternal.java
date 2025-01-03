@@ -1,7 +1,6 @@
 package opencrypto.jcmathlib;
 
 
-import com.sun.org.apache.bcel.internal.Const;
 import javacard.framework.ISOException;
 import javacard.framework.Util;
 
@@ -1398,9 +1397,7 @@ public class BigNatInternal {
         short outer = 0;
         short inner = 0;
         while (divisorShift >= 0) {
-            System.out.println("outer = " + outer);
             while (!isLesser(divisor, divisorShift, (short) (divisionRound > 0 ? divisionRound - 1 : 0))) {
-                System.out.println("inner = " + inner);
                 short divisionRoundOffset = (short) (divisionRound + offset);
                 short dividentDigits = divisionRound == 0 ? 0 : (short) ((short) (value[(short) (divisionRoundOffset - 1)]) << DIGIT_LEN);
                 dividentDigits |= (short) (value[(short) (divisionRound + offset)] & DIGIT_MASK);
@@ -1470,7 +1467,6 @@ public class BigNatInternal {
                     dividentDigits = (short) ((dividentDigits >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK);
                     divisorDigit = (short) ((firstDivisorDigit >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK);
                 } else {
-                    System.out.println("highestOneBit = " + (highestOneBit(dividentDigits) - 1) + ", ctHighestOneBit = " + (ctHighestOneBit(dividentDigits) - 1));
                     short dividentBitShift = (short) (ctHighestOneBit(dividentDigits) - 1);
                     short bitShift = dividentBitShift <= divisorBitShift ? dividentBitShift : divisorBitShift;
 
@@ -1519,7 +1515,7 @@ public class BigNatInternal {
         byte thirdDivisorDigit = ConstantTime.ctSelect(ConstantTime.ctGreater((short) (divisor.value.length - 2), divisorIndex), divisor.value[index], (byte) 0);
 
         short MAX_CYCLES = 15;
-        for (int i = 0; i < MAX_CYCLES; i++) {
+        for (short i = 0; i < MAX_CYCLES; i++) {
             // !isLesser branch condition
             short divisorShiftNegative = ConstantTime.ctIsNegative(divisorShift);
             short isLesserStart = ConstantTime.ctSelect(ConstantTime.ctIsPositive(divisionRound), (short) (divisionRound - 1), (short) 0);
@@ -1703,12 +1699,12 @@ public class BigNatInternal {
         /* R := 0 */
         remainder.ctZero();
         /* for i := n - 1 .. 0 do (number of bits in N) */
-        for (int i = this.value.length * 8 - 1; i >= 0; i--) {
+        for (short i = (short) (this.value.length * 8 - 1); i >= 0; i--) {
             /* R := R << 1 */
             remainder.ctShiftLeftBits((short) 1, blind);
             /* R(0) := N(i) */
             byte bitValue =  CTUtil.ctGetBit(this.value, (short) this.value.length, i);
-            CTUtil.ctSetBit(remainder.value, (short) remainder.value.length, bitValue, 0);
+            CTUtil.ctSetBit(remainder.value, (short) remainder.value.length, bitValue, (short) 0);
             /* if R ≥ D then */
             short blindSubtraction = (short) (remainder.ctIsLesser(divisor) | blind);
             /* R := R - D */

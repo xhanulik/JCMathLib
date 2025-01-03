@@ -23,7 +23,7 @@ public class ConstantTime {
      * @return      0 or (short) 65535
      */
     public static short ctMsb(short a) {
-        return (short) ((-((a & 0xffff) >> 15)) & 0xffff);
+        return (short) ((-((a & (short) 0xffff) >> 15)) & (short) 0xffff);
     }
 
     /**
@@ -45,7 +45,7 @@ public class ConstantTime {
      */
     public static short ctIsZero(short a) {
         /* return ctMsb((short) (~a & (a - 1))); */
-        return (short) ((-((((short) (~a & (a - 1))) & 0xffff) >> 15)) & 0xffff);
+        return (short) ((-((((short) (~a & (a - 1))) & (short) 0xffff) >> 15)) & (short) 0xffff);
     }
 
     /**
@@ -67,7 +67,7 @@ public class ConstantTime {
      */
     public static short ctIsNonZero(short a){
         /* return (short) ~ctMsb((short) (~a & (((short) 0xffff & a) - 1))); */
-        return (short) ~((-((((short) (~a & (a - 1))) & 0xffff) >> 15)) & 0xffff);
+        return (short) ~((-((((short) (~a & (a - 1))) & (short) 0xffff) >> 15)) & (short) 0xffff);
     }
 
     /**
