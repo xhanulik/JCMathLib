@@ -1,6 +1,21 @@
 package opencrypto.jcmathlib;
 
+import javacard.framework.JCSystem;
+
 public class ConstantTime {
+    private static byte[] isNegativeTable = null;
+
+    public static void initializeLookUpTables() {
+        if (isNegativeTable == null) {
+            // TODO: use JCMathLib object allocator instead of standalone allocation
+            isNegativeTable = JCSystem.makeTransientByteArray((short) 256, JCSystem.CLEAR_ON_RESET);
+            for (short i = 0; i < 256; i++) {
+                byte value = (byte) i;
+                isNegativeTable[i] = (byte) ((value < 0) ? 0xFF : 0x00);
+            }
+        }
+    }
+
     /**
      * Returns the given byte value with the MSB copied to all the other bits.
      *
@@ -222,6 +237,10 @@ public class ConstantTime {
      */
     public static byte ctIsNegative(byte a) {
         return ctMsb(a);
+    }
+
+    public static byte ctIsNegativeLookUp(byte a) {
+        return isNegativeTable[a & 0xff];
     }
 
     public static short ctIsNegative(short a) {

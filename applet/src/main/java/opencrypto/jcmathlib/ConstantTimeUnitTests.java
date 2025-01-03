@@ -61,8 +61,8 @@ public class ConstantTimeUnitTests extends Applet {
     /* Util tests */
     public final static byte INS_BN_GET_BIT = (byte) 0x60;
     public final static byte INS_BN_SET_BIT = (byte) 0x61;
-
     public final static byte INS_BN_APPEND_ZEROES = (byte) 0x62;
+    public final static byte INS_BN_NEG_BYTE = (byte) 0x63;
 
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
@@ -271,6 +271,9 @@ public class ConstantTimeUnitTests extends Applet {
                     break;
                 case INS_BN_APPEND_ZEROES:
                     testBnAppendZeroes(apdu, dataLen);
+                    break;
+                case INS_BN_NEG_BYTE:
+                    testNegByte(apdu, dataLen);
                     break;
 
                 /* BigNat tests */
@@ -702,6 +705,19 @@ public class ConstantTimeUnitTests extends Applet {
 
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
         bn1.appendZeros(targetLength, apduBuffer, (short) 0);
+    }
+
+    void testNegByte(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        byte value = apduBuffer[ISO7816.OFFSET_CDATA];
+        byte result = 0;
+        ConstantTime.initializeLookUpTables();
+        for (short i = 0; i < 100; i++) {
+            result = ConstantTime.ctIsNegative(value);
+        }
+        for (short i = 0; i < 100; i++) {
+            result = ConstantTime.ctIsNegativeLookUp(value);
+        }
     }
 
     void testBnNegMod(APDU apdu, short dataLen) {
