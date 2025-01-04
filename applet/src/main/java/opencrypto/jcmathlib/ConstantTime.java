@@ -5,6 +5,7 @@ import javacard.framework.JCSystem;
 public class ConstantTime {
     private static byte[] isNegativeTable = null;
     private static byte[] lessThanTable = null;
+    private static byte[] greaterOrEqualTable = null;
 
     public static void initializeLookUpTables() {
         if (isNegativeTable == null) {
@@ -17,6 +18,10 @@ public class ConstantTime {
             lessThanTable = JCSystem.makeTransientByteArray((short) 511, JCSystem.CLEAR_ON_RESET);
             for (short d = -255; d <= 255; d++) {
                 lessThanTable[(short) (d + 255)] = (byte) ((d < 0) ? 0xFF : 0x00);
+            }
+            greaterOrEqualTable = JCSystem.makeTransientByteArray((short) 511, JCSystem.CLEAR_ON_RESET);
+            for (short d = -255; d <= 255; d++) {
+                greaterOrEqualTable[(short) (d + 255)] = (byte) ((d >= 0) ? 0xFF : 0x00);
             }
         }
     }
@@ -93,6 +98,10 @@ public class ConstantTime {
         return ctMsb((byte) (a ^ ((a ^ b) | ((a - b) ^ b))));
     }
 
+    public static byte ctLessThanUnwrap(byte a, byte b) {
+        return (byte) ((-((((byte) (a ^ ((a ^ b) | ((a - b) ^ b)))) >> 7) & 0x01)) & (byte) 0xff);
+    }
+
     public static byte ctLessThanLookUp(byte a, byte b) {
         return lessThanTable[(short) ((a & 0xFF) - (b & 0xFF) + 255)];
     }
@@ -119,6 +128,14 @@ public class ConstantTime {
      */
     public static byte ctGreaterOrEqual(byte a, byte b) {
         return (byte) (~ctLessThan(a, b) & 0xff);
+    }
+
+    public static byte ctGreaterOrEqualUnwrap(byte a, byte b) {
+        return (byte) (~((byte) ((-((((byte) (a ^ ((a ^ b) | ((a - b) ^ b)))) >> 7) & 0x01)) & (byte) 0xff)) & 0xff);
+    }
+
+    public static byte ctGreaterOrEqualLookUp(byte a, byte b) {
+        return greaterOrEqualTable[(short) ((a & 0xFF) - (b & 0xFF) + 255)];
     }
 
     /**
