@@ -135,6 +135,9 @@ public class ConstantTimeUnitTests extends Applet {
         short intLen = 4;
         int1 = new Integer(intLen, rm);
         int2 = new Integer(intLen, rm);
+
+        ConstantTime.initializeLookUpTables();
+
         initialized = true;
     }
 
@@ -401,7 +404,6 @@ public class ConstantTimeUnitTests extends Applet {
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
         bn3.setSize((short) (p1 + 1));
         bn3.copy(bn1);
-        ConstantTime.initializeLookUpTables();
         bn3.ctAddOptimized(bn2, (short) 0x00);
         short len = bn3.copyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
@@ -738,7 +740,6 @@ public class ConstantTimeUnitTests extends Applet {
         byte[] apduBuffer = apdu.getBuffer();
         byte value = apduBuffer[ISO7816.OFFSET_CDATA];
         byte result = 0;
-        ConstantTime.initializeLookUpTables();
         for (short i = 0; i < 100; i++) {
             result = ConstantTime.ctIsNegative(value);
         }
@@ -752,7 +753,6 @@ public class ConstantTimeUnitTests extends Applet {
         byte a = apduBuffer[ISO7816.OFFSET_CDATA];
         byte b = apduBuffer[ISO7816.OFFSET_CDATA + 1];
         byte result = 0;
-        ConstantTime.initializeLookUpTables();
         for (short i = 0; i < 100; i++) {
             result = ConstantTime.ctLessThan(a, b);
         }
@@ -769,7 +769,6 @@ public class ConstantTimeUnitTests extends Applet {
         byte a = apduBuffer[ISO7816.OFFSET_CDATA];
         byte b = apduBuffer[ISO7816.OFFSET_CDATA + 1];
         byte result = 0;
-        ConstantTime.initializeLookUpTables();
         for (short i = 0; i < 100; i++) {
             result = ConstantTime.ctGreaterOrEqual(a, b);
         }
