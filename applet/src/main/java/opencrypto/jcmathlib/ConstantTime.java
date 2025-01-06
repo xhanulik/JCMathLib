@@ -4,6 +4,7 @@ import javacard.framework.JCSystem;
 
 public class ConstantTime {
     private static byte[] isNegativeTable = null;
+    private static byte[] isNonNegativeTable = null;
     private static byte[] lessThanTable = null;
     private static byte[] greaterOrEqualTable = null;
 
@@ -14,6 +15,11 @@ public class ConstantTime {
             for (short i = 0; i < 256; i++) {
                 byte value = (byte) i;
                 isNegativeTable[i] = (byte) ((value < 0) ? 0xFF : 0x00);
+            }
+            isNonNegativeTable = JCSystem.makeTransientByteArray((short) 256, JCSystem.CLEAR_ON_RESET);
+            for (short i = 0; i < 256; i++) {
+                byte value = (byte) i;
+                isNonNegativeTable[i] = (byte) ((value >= 0) ? 0xFF : 0x00);
             }
             lessThanTable = JCSystem.makeTransientByteArray((short) 511, JCSystem.CLEAR_ON_RESET);
             for (short d = -255; d <= 255; d++) {
@@ -282,6 +288,10 @@ public class ConstantTime {
      */
     public static byte ctIsNonNegative(byte a) {
         return (byte) ~ctMsb(a);
+    }
+
+    public static byte ctIsNonNegativeLookUp(byte a) {
+        return isNonNegativeTable[a & 0xff];
     }
 
     public static short ctIsNonNegative(short a) {
