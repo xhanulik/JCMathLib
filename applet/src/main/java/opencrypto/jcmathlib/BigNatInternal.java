@@ -948,7 +948,6 @@ public class BigNatInternal {
     public byte ctAddOptimized(BigNatInternal other, short blind) {
         short acc = 0;
         byte otherIndex = (byte) (other.value.length - 1);
-        ConstantTime.initializeLookUpTables();
 
         for (byte thisIndex = (byte) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
             // index must be in range of size of this number

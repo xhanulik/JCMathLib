@@ -65,6 +65,7 @@ public class ConstantTimeUnitTests extends Applet {
     public final static byte INS_BN_NEG_BYTE = (byte) 0x63;
     public final static byte INS_BN_LESS_THAN_BYTE = (byte) 0x64;
     public final static byte INS_BN_GE_BYTE = (byte) 0x65;
+    public final static byte INS_BN_ADD_OPTIM = (byte) 0x66;
 
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
@@ -283,6 +284,9 @@ public class ConstantTimeUnitTests extends Applet {
                 case INS_BN_GE_BYTE:
                     testGreaterOrEqualByte(apdu, dataLen);
                     break;
+                case INS_BN_ADD_OPTIM:
+                    testBnAddOptimized(apdu, dataLen);
+                    break;
 
                 /* BigNat tests */
                 case INS_BN_ADD_MOD:
@@ -384,6 +388,21 @@ public class ConstantTimeUnitTests extends Applet {
         bn3.setSize((short) (p1 + 1));
         bn3.copy(bn1);
         bn3.ctAdd(bn2);
+        short len = bn3.copyToByteArray(apduBuffer, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, len);
+    }
+
+    void testBnAddOptimized(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+
+        bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
+        bn3.setSize((short) (p1 + 1));
+        bn3.copy(bn1);
+        ConstantTime.initializeLookUpTables();
+        bn3.ctAddOptimized(bn2, (short) 0x00);
         short len = bn3.copyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
     }
