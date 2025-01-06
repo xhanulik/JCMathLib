@@ -904,6 +904,7 @@ public class BigNatInternal {
      * Size of this must be large enough to fit the results.
      *
      * @param other BigNat to add
+     * @param blind do not process the operation, used for bogus operations
      * @return outputs carry bit if present
      */
     public byte ctAdd(BigNatInternal other, short blind) {
@@ -917,6 +918,46 @@ public class BigNatInternal {
             short otherValidRange = (short) (ConstantTime.ctGreaterOrEqual(otherIndex, other.offset) & ConstantTime.ctIsNonNegative(otherIndex));
             // prepare index for other - valid or bogus (just for some reading)
             short newOtherIndex = ConstantTime.ctSelect(otherValidRange, otherIndex, (short) 0);
+            // always read something from other
+            short otherBogusValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
+            // get value from other - if out of other bounds, use 0
+            short otherValue = ConstantTime.ctSelect(otherValidRange, otherBogusValue, (short) 0);
+            // compute new value
+            short thisValue = (short) (value[thisIndex] & DIGIT_MASK);
+            // if we are out of size for this, add only 0
+            acc += ConstantTime.ctSelect(thisValidRange, (short) (thisValue + otherValue), (short) 0);
+            // set new value into this if in valid range
+            short tmp = (byte) (acc & DIGIT_MASK);
+            this.value[thisIndex] = ConstantTime.ctSelect((short) (thisValidRange & ~blind), (byte) tmp, (byte) thisValue);
+            // preserve acc from last valid byte in this
+            tmp = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            acc = ConstantTime.ctSelect(thisValidRange, tmp, acc);
+        }
+        // output carry bit if present
+        return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
+    }
+
+    /**
+     * Implementation of addition method for number with size at most 128 bytes
+     *
+     * @param other number to be added
+     * @param blind do not process the operation, used for bogus operations
+     * @return outputs carry bit if present
+     * @implNote 256 byte length not supported yet, since explicit checking for overflow with minus sign would be needed
+     */
+    public byte ctAddOptimized(BigNatInternal other, short blind) {
+        short acc = 0;
+        byte otherIndex = (byte) (other.value.length - 1);
+        ConstantTime.initializeLookUpTables();
+
+        for (byte thisIndex = (byte) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
+            // index must be in range of size of this number
+            byte thisValidRange = ConstantTime.ctGreaterOrEqualLookUp(thisIndex, (byte) offset);
+            // index in other should be in bounds of other.value
+            byte otherValidRange = (byte) (ConstantTime.ctGreaterOrEqualLookUp(otherIndex, (byte) other.offset)
+                    & ConstantTime.ctIsNonNegativeLookUp(otherIndex));
+            // prepare index for other - valid or bogus (just for some reading)
+            byte newOtherIndex = ConstantTime.ctSelect(otherValidRange, otherIndex, (byte) 0);
             // always read something from other
             short otherBogusValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
             // get value from other - if out of other bounds, use 0
