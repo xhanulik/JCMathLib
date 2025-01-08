@@ -956,15 +956,15 @@ public class BigNatInternal {
             byte otherValidRange = (byte) (ConstantTime.ctGreaterOrEqualLookUp(otherIndex, (byte) other.offset)
                     & ConstantTime.ctIsNonNegativeLookUp(otherIndex));
             // prepare index for other - valid or bogus (just for some reading)
-            byte newOtherIndex = ConstantTime.ctSelect(otherValidRange, otherIndex, (byte) 0);
+            byte newOtherIndex = (byte) (otherValidRange & otherIndex);
             // always read something from other
             short otherBogusValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
             // get value from other - if out of other bounds, use 0
-            short otherValue = ConstantTime.ctSelect(otherValidRange, otherBogusValue, (short) 0);
+            short otherValue = (short) (otherValidRange & otherBogusValue);
             // compute new value
             short thisValue = (short) (value[thisIndex] & DIGIT_MASK);
             // if we are out of size for this, add only 0
-            acc += ConstantTime.ctSelect(thisValidRange, (short) (thisValue + otherValue), (short) 0);
+            acc += (short) (thisValidRange & (short) (thisValue + otherValue));
             // set new value into this if in valid range
             short tmp = (byte) (acc & DIGIT_MASK);
             this.value[thisIndex] = ConstantTime.ctSelect((short) (thisValidRange & ~blind), (byte) tmp, (byte) thisValue);
