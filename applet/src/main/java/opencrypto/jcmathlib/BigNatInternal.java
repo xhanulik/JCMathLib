@@ -1418,8 +1418,8 @@ public class BigNatInternal {
      * @param quotient may be null
      */
     public void remainderDivide(BigNatInternal divisor, BigNatInternal quotient) {
-        if (quotient != null) { // zero result buffer
-            quotient.zero();
+        if (quotient != null) {
+            quotient.setSizeToMax(true);
         }
 
         short divisorIndex = divisor.offset;
@@ -1434,8 +1434,6 @@ public class BigNatInternal {
         byte secondDivisorDigit = divisorIndex < (short) (divisor.value.length - 1) ? divisor.value[(short) (divisorIndex + 1)] : 0;
         byte thirdDivisorDigit = divisorIndex < (short) (divisor.value.length - 2) ? divisor.value[(short) (divisorIndex + 2)] : 0;
 
-        short outer = 0;
-        short inner = 0;
         while (divisorShift >= 0) {
             while (!isLesser(divisor, divisorShift, (short) (divisionRound > 0 ? divisionRound - 1 : 0))) {
                 short divisionRoundOffset = (short) (divisionRound + offset);
@@ -1470,11 +1468,12 @@ public class BigNatInternal {
                     short quotientDigit = (short) ((quotient.value[(short) (quotient.size - 1 - divisorShiftOffset)] & DIGIT_MASK) + multiple);
                     quotient.value[(short) (quotient.size - 1 - divisorShiftOffset)] = (byte) quotientDigit;
                 }
-                inner++;
             }
             divisionRound++;
             divisorShift--;
-            outer++;
+        }
+        if (quotient != null) {
+            quotient.shrink();
         }
     }
 
