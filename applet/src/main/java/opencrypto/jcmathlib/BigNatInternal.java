@@ -50,7 +50,7 @@ public class BigNatInternal {
             for (short bitIndex = 0; bitIndex < 8; bitIndex++) {
                 short validIndex = ConstantTime.ctGreaterOrEqual(byteIndex, offset);
                 byte bitValue = this.value[byteIndex];
-                bitValue >>= bitIndex;
+                bitValue >>>= bitIndex;
                 bitValue &= (byte) 0x01;
                 short bitFound = ConstantTime.ctEqual(bit, bitValue);
                 short newPosition = (short) ((short) (value.length - 1 - byteIndex) * 8 + bitIndex);
@@ -1351,7 +1351,7 @@ public class BigNatInternal {
             throw new ArrayIndexOutOfBoundsException();
         }
 
-        short bytes = (short) (bits / 8);
+        short bytes = (short) (bits >>> 3); // bits / 8
         bits = (short) (bits - (bytes * 8));
         ctShiftRightBytes(bytes);
         ctShiftRightBits(bits);
@@ -1375,7 +1375,7 @@ public class BigNatInternal {
             current <<= bits;
             value[i] = (byte) (current | carry);
             carry = (short) (previous & mask);
-            carry >>= (8 - bits);
+            carry >>>= (8 - bits);
         }
 
         if (carry != 0) {
@@ -1402,7 +1402,7 @@ public class BigNatInternal {
             value[i] = (byte) ConstantTime.ctSelect(validRange, current, thisValue);
 
             /* update carry if in valid range */
-            current = (short) ((short) (previous & mask) >> (short) (8 - bits));
+            current = (short) ((short) (previous & mask) >>> (short) (8 - bits));
             carry = ConstantTime.ctSelect(validRange, current, carry);
         }
 
@@ -1549,7 +1549,7 @@ public class BigNatInternal {
             short divisorDigit = ConstantTime.ctSelect(dividentDigitsNegative,
                     (short) ((firstDivisorDigit >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK),
                     ctShiftBits(firstDivisorDigit, secondDivisorDigit, thirdDivisorDigit, bitShift));
-            short multiple = (short) (dividentDigits / (short) (divisorDigit + 1));
+            short multiple = (short) (dividentDigits / (short) (divisorDigit + 1)); // division cannot be optimized
             multiple = ConstantTime.ctSelect((short) (ConstantTime.ctIsZero(multiple) | ConstantTime.ctIsNegative(multiple)), (short) 1, multiple);
 
             ctSubtractShift(divisor, ConstantTime.ctSelect(ConstantTime.ctIsNegative(divisorShift), (short) 0, divisorShift), multiple, (short) ~doSubtract);
@@ -1583,7 +1583,7 @@ public class BigNatInternal {
         for (short i = 0; i < DOUBLE_DIGIT_LEN; ++i) {
             short isZero = ConstantTime.ctIsZero(x);
             index += ConstantTime.ctSelect(isZero, (short) 0, (short) 1);
-            x >>= ConstantTime.ctSelect(isZero, (short) 0, (short) 1);;
+            x >>>= ConstantTime.ctSelect(isZero, (short) 0, (short) 1);
         }
         return (short) (DOUBLE_DIGIT_LEN - index);
     }
@@ -1617,7 +1617,7 @@ public class BigNatInternal {
 
         // merge low bits
         mask = (byte) (DIGIT_MASK << DOUBLE_DIGIT_LEN - shift);
-        bits = (short) ((((short) (low & mask) & DIGIT_MASK) >> DOUBLE_DIGIT_LEN - shift));
+        bits = (short) ((((short) (low & mask) & DIGIT_MASK) >>> DOUBLE_DIGIT_LEN - shift));
         high |= bits;
 
         return high;
@@ -1636,7 +1636,7 @@ public class BigNatInternal {
 
         // merge low bits
         mask = (byte) (DIGIT_MASK << DOUBLE_DIGIT_LEN - shift);
-        bits = (short) ((((short) (low & mask) & DIGIT_MASK) >> DOUBLE_DIGIT_LEN - shift));
+        bits = (short) ((((short) (low & mask) & DIGIT_MASK) >>> DOUBLE_DIGIT_LEN - shift));
 
         high |= ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(DIGIT_LEN, shift), (short) 0, bits);
 
@@ -1644,8 +1644,8 @@ public class BigNatInternal {
     }
 
     public void ctMod(BigNatInternal modulus, BigNatInternal tmp, short blindResult) {
-        short newModulusSize = modulus.length() % 8 == 0 ? modulus.length() : (short) ((modulus.length() / 8 + 1) * 8);
-        short newThisSize = this.length() % 8 == 0 ? this.length() : (short) ((this.length() / 8 + 1) * 8);
+        short newModulusSize = modulus.length() % 8 == 0 ? modulus.length() : (short) (((modulus.length() >>> 3 /* / 8*/) + 1) * 8);
+        short newThisSize = this.length() % 8 == 0 ? this.length() : (short) (((this.length() >>> 3) + 1) * 8);
 
         short newSize = (short) (newThisSize + newModulusSize);
         if (newSize > value.length || newSize > modulus.value.length || newSize > tmp.value.length) {
