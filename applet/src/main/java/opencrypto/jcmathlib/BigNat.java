@@ -36,8 +36,7 @@ public class BigNat extends BigNatInternal {
 //
 //        tmp.lock();
 //        tmp.ctClone( this);
-//        tmp.remainderDivide(other, this);
-//        ctCopy(tmp);
+//        tmp.ctRemainderDivide(other, this);
 //        tmp.unlock();
 //    }
 
@@ -251,43 +250,39 @@ public class BigNat extends BigNatInternal {
         result.unlock();
     }
 
-//    public void ctMult(BigNat other) {
-//        short isOne = ctEquals((byte) 1);
-//        short onlyClone = (short) (OperationSupport.getInstance().RSA_CHECK_ONE & isOne);
-//        ctClone(other, (short) ~onlyClone);
-//        short noRSASQ = (short) (~OperationSupport.getInstance().RSA_SQ | ConstantTime.ctGreaterOrEqual((short) 16, length()));
-//        super.ctMult(other, noRSASQ);
-//        short blind = (short) (onlyClone | noRSASQ);
-//
-//        BigNat result = rm.BN_F;
-//        BigNat tmp = rm.BN_G;
-//
-//        result.lock();
-//        result.setSize((short) ((length() > other.length() ? length() : other.length()) + 1));
-//        result.ctCopy(this);
-//        result.ctAdd(other);
-//        result.ctSq();
-//
-//        tmp.lock();
-//        short isOtherLesser = ctIsLesser(other);
-//        /* this < other */
-//        tmp.ctClone(other, (short) (~isOtherLesser));
-//        tmp.ctSubtract(this, (short) (~isOtherLesser));
-//        /* this >= other */
-//        tmp.ctClone(this, isOtherLesser);
-//        tmp.ctSubtract(other, isOtherLesser);
-//
-//        tmp.ctSq();
-//
-//        result.ctSubtract(tmp);
-//        tmp.unlock();
-//        result.ctShiftRightBits((short) 2);
-//
-//        ctSetSizeToMax(false, (short) 0x0000);
-//        ctCopy(result, blind);
-//        ctShrink(blind);
-//        result.unlock();
+//    public void ctMultNaive(BigNat other) {
+//        super.mult(other);
 //    }
+
+    public void ctMultSq(BigNat other) {
+        BigNat result = rm.BN_F;
+        BigNat tmp = rm.BN_G;
+
+        result.lock();
+        result.ctSetSize((short) ((length() > other.length() ? length() : other.length()) + 1));
+        result.ctCopy(this);
+        result.ctAdd(other);
+        result.sq();
+
+        tmp.lock();
+        if (isLesser(other)) {
+            tmp.clone(other);
+            tmp.subtract(this);
+        } else {
+            tmp.clone(this);
+            tmp.subtract(other);
+        }
+        tmp.sq();
+
+        result.subtract(tmp);
+        tmp.unlock();
+        result.shiftRightBits((short) 2);
+
+        setSizeToMax(false);
+        copy(result);
+        shrink();
+        result.unlock();
+    }
 
     /**
      * Computes modulo and stores the result in this.
@@ -296,33 +291,19 @@ public class BigNat extends BigNatInternal {
         remainderDivide(mod, null);
     }
 
-//    public void ctMod(BigNat mod) {
-//        BigNat tmpModulus = rm.BN_A;
-//        BigNat tmp = rm.BN_B;
-//
-//        tmpModulus.lock();
-//        tmp.lock();
-//        tmpModulus.ctClone(mod);
-//
-//        ctMod(tmpModulus, tmp);
-//
-//        tmp.unlock();
-//        tmpModulus.unlock();
-//    }
+    public void ctMod(BigNat mod) {
+        BigNat tmpModulus = rm.BN_A;
+        BigNat tmp = rm.BN_B;
 
-//    public void ctMod(BigNat mod, short blind) {
-//        BigNat tmpModulus = rm.BN_A;
-//        BigNat tmp = rm.BN_B;
-//
-//        tmpModulus.lock();
-//        tmp.lock();
-//        tmpModulus.ctClone(mod);
-//
-//        ctMod(tmpModulus, tmp, blind);
-//
-//        tmp.unlock();
-//        tmpModulus.unlock();
-//    }
+        tmpModulus.lock();
+        tmp.lock();
+        tmpModulus.ctClone(mod);
+
+        ctMod(tmpModulus, tmp);
+
+        tmp.unlock();
+        tmpModulus.unlock();
+    }
 
     /**
      * Negate current BigNat modulo provided modulus.
@@ -338,16 +319,16 @@ public class BigNat extends BigNatInternal {
         tmp.unlock();
     }
 
-//    public void ctModNegate(BigNat mod) {
-//        BigNat tmp = rm.BN_B;
-//
-//        tmp.lock();
-//        tmp.ctClone(mod);
-//        tmp.ctSubtract(this);
-//        setSize(mod.length());
-//        ctCopy(tmp);
-//        tmp.unlock();
-//    }
+    public void ctModNegate(BigNat mod) {
+        BigNat tmp = rm.BN_B;
+
+        tmp.lock();
+        tmp.ctClone(mod);
+        tmp.ctSubtract(this);
+        setSize(mod.length());
+        ctCopy(tmp);
+        tmp.unlock();
+    }
 
     /**
      * Modular addition of a BigNat to this.

@@ -1244,7 +1244,7 @@ public class BigNatInternal {
     /**
      * Right bit shift with carry
      *
-     * @param bits number of bits to shift by
+     * @param bits number of bits to shift this by
      * @param carry XORed into the highest byte
      */
     public void shiftRightBits(short bits, short carry) {
