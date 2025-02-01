@@ -14,7 +14,7 @@ public class RemainderDivideTestOptimized {
     public void n12_d4_q3_r0() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat nominator = new BigNat((short) 1, memoryType, rm);
+        BigNat nominator = new BigNat((short) 4, memoryType, rm);
         BigNat denominator = new BigNat((short) 1, memoryType, rm);
         BigNat quotient = new BigNat((short) 1, memoryType, rm);
 
@@ -22,7 +22,7 @@ public class RemainderDivideTestOptimized {
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0b100};
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
-        nominator.ctRemainderDivideOptimized(denominator, quotient);
+        nominator.remainderDivide(denominator, quotient);
 
         byte[] actualResult = new byte[1];
         quotient.copyToByteArray(actualResult, (short) 0);
@@ -65,10 +65,10 @@ public class RemainderDivideTestOptimized {
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
         nominator.ctRemainderDivideOptimized(denominator, quotient);
 
-        byte[] actualResult = new byte[2];
+        byte[] actualResult = new byte[1];
         quotient.copyToByteArray(actualResult, (short) 0);
-        Assertions.assertArrayEquals(new byte[]{0, 0x3C}, actualResult);
-        Assertions.assertEquals(2, quotient.length());
+        Assertions.assertArrayEquals(new byte[]{0x3C}, actualResult);
+        Assertions.assertEquals(1, quotient.length());
     }
 
     @Test
@@ -85,10 +85,10 @@ public class RemainderDivideTestOptimized {
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
         nominator.ctRemainderDivideOptimized(denominator, quotient);
 
-        Assertions.assertEquals(2, quotient.length());
-        byte[] actualResult = new byte[2];
+        Assertions.assertEquals(1, quotient.length());
+        byte[] actualResult = new byte[1];
         quotient.copyToByteArray(actualResult, (short) 0);
-        Assertions.assertArrayEquals(new byte[]{0, 0x3C}, actualResult);
+        Assertions.assertArrayEquals(new byte[]{0x3C}, actualResult);
     }
 
     @Test
@@ -105,10 +105,10 @@ public class RemainderDivideTestOptimized {
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
         nominator.ctRemainderDivideOptimized(denominator, quotient);
 
-        Assertions.assertEquals(2, quotient.length());
-        byte[] actualResult = new byte[2];
+        Assertions.assertEquals(1, quotient.length());
+        byte[] actualResult = new byte[1];
         quotient.copyToByteArray(actualResult, (short) 0);
-        Assertions.assertArrayEquals(new byte[]{0, 0x01}, actualResult);
+        Assertions.assertArrayEquals(new byte[]{0x01}, actualResult);
     }
 
     @Test
@@ -125,9 +125,7 @@ public class RemainderDivideTestOptimized {
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
         nominator.ctRemainderDivideOptimized(denominator, quotient);
 
-        byte[] actualResult = new byte[2];
-        Assertions.assertEquals(2, quotient.length());
-        Assertions.assertArrayEquals(new byte[]{0, 0}, actualResult);
+        Assertions.assertEquals(0, quotient.length());
     }
 
     @Test
@@ -185,10 +183,10 @@ public class RemainderDivideTestOptimized {
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
         nominator.ctRemainderDivideOptimized(denominator, quotient);
 
-        Assertions.assertEquals(4, quotient.length());
-        byte[] actualResult = new byte[4];
+        Assertions.assertEquals(3, quotient.length());
+        byte[] actualResult = new byte[3];
         quotient.copyToByteArray(actualResult, (short) 0);
-        Assertions.assertArrayEquals(new byte[]{0, (byte) 0xE4, 0x33, 0x15}, actualResult);
+        Assertions.assertArrayEquals(new byte[]{(byte) 0xE4, 0x33, 0x15}, actualResult);
     }
 
     @Test
@@ -205,10 +203,10 @@ public class RemainderDivideTestOptimized {
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
         nominator.ctRemainderDivideOptimized(denominator, quotient);
 
-        Assertions.assertEquals(6, quotient.length());
-        byte[] actualResult = new byte[6];
+        Assertions.assertEquals(3, quotient.length());
+        byte[] actualResult = new byte[3];
         quotient.copyToByteArray(actualResult, (short) 0);
-        byte[] correct = new byte[]{0, 0, 0, (byte) 0x3C, (byte) 0xEB, (byte) 0x06};
+        byte[] correct = new byte[]{(byte) 0x3C, (byte) 0xEB, (byte) 0x06};
         Assertions.assertArrayEquals(correct, actualResult);
     }
 
@@ -216,9 +214,9 @@ public class RemainderDivideTestOptimized {
     public void n12345678901234567_d123456789012300_q100_r4567() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat nominator = new BigNat((short) 6, memoryType, rm);
-        BigNat denominator = new BigNat((short) 6, memoryType, rm);
-        BigNat quotient = new BigNat((short) 6, memoryType, rm);
+        BigNat nominator = new BigNat((short) 122, memoryType, rm);
+        BigNat denominator = new BigNat((short) 7, memoryType, rm);
+        BigNat quotient = new BigNat((short) 7, memoryType, rm);
 
         byte[] data1 = {(byte) 0x2B, (byte) 0xDC, (byte) 0x54, (byte) 0x5D, (byte) 0x6B, (byte) 0x4B, (byte) 0x87};
         nominator.fromByteArray(data1, (short) 0, (short) data1.length);
@@ -226,10 +224,10 @@ public class RemainderDivideTestOptimized {
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
         nominator.ctRemainderDivideOptimized(denominator, quotient);
 
-        Assertions.assertEquals(6, quotient.length());
-        byte[] actualResult = new byte[6];
+        Assertions.assertEquals(1, quotient.length());
+        byte[] actualResult = new byte[1];
         quotient.copyToByteArray(actualResult, (short) 0);
-        byte[] correct = new byte[]{0, 0, 0, 0, 0, 0x64};
+        byte[] correct = new byte[]{0x64};
         Assertions.assertArrayEquals(correct, actualResult);
     }
 
@@ -247,9 +245,9 @@ public class RemainderDivideTestOptimized {
         denominator.fromByteArray(data2, (short) 0, (short) data2.length);
         nominator.ctRemainderDivideOptimized(denominator, quotient);
 
-        byte[] correct = Util.hexStringToByteArray("005601015702");
+        byte[] correct = Util.hexStringToByteArray("5601015702");
         quotient.copyToByteArray(correct, (short) 0);
-        Assertions.assertArrayEquals(Util.hexStringToByteArray("005601015702"),
+        Assertions.assertArrayEquals(Util.hexStringToByteArray("5601015702"),
                 correct);
     }
 }

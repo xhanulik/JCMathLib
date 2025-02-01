@@ -146,7 +146,7 @@ public class Integer {
     }
 
     public void ctZero(short blind) {
-        byte newSign = ConstantTime.ctSelect(blind, this.sign, (byte) 0);
+        this.sign = ConstantTime.ctSelect(blind, this.sign, (byte) 0);
         this.magnitude.ctZero(blind);
     }
 
@@ -297,7 +297,7 @@ public class Integer {
     }
 
     public short ctIsPositive() {
-        return ConstantTime.ctEqual(this.sign, (short) 0);
+        return ConstantTime.ctIsZero(this.sign);
     }
 
     /**

@@ -18,7 +18,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x05, 0x01, 0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
         bn1.resize((short) (bn1.length() + 1));
         byte[] expectedResult = {0x00, 0x02, 0x01};
@@ -38,7 +38,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x05, 0x01, 0x03};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
         bn1.resize((short) (bn1.length() + 1));
         byte[] expectedResult = {0x00, 0x01, (byte) 0xff};
@@ -58,7 +58,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
         bn1.resize((short) (bn1.length() + 1));
         byte[] expectedResult = {0x00, 0x02, 0x01};
@@ -78,7 +78,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x03};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
         byte[] expectedResult = {0x01, (byte) 0xff};
         byte[] actualResult = new byte[2];
@@ -97,7 +97,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02, 0x03};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
         byte[] expectedResult = {0x00, (byte) 0xff};
         byte[] actualResult = new byte[2];
@@ -116,7 +116,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
         byte[] expectedResult = {(byte) 0xff, 0x01};
         byte[] actualResult = new byte[2];
@@ -135,7 +135,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
         byte[] expectedResult = {(byte) 0xfe, (byte) 0xff};
         byte[] actualResult = new byte[2];
@@ -154,7 +154,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
         bn1.resize((short) (bn1.length() + 1));
         byte[] expectedResult = {0x00, 0x03, 0x02, 0x01};
@@ -174,7 +174,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x03, 0x03};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
         byte[] expectedResult = {0x02, (byte) 0xff, (byte) 0xff};
         byte[] actualResult = new byte[3];
@@ -193,7 +193,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
         byte[] expectedResult = {0x01, 0x01, 0x01, 0x01, 0x01, 0x00};
         byte[] actualResult = new byte[6];
@@ -212,7 +212,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 0xff};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
         byte[] expectedResult = {0x01, 0x01, 0x01, 0x01, 0x00, 0x02};
         byte[] actualResult = new byte[6];
@@ -231,7 +231,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
         byte[] expectedResult = {0x01, 0x01, 0x01, 0x01, 0x00, 0x00};
         byte[] actualResult = new byte[6];
@@ -250,7 +250,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 0, (short) 2);
+        bn1.ctSubtractShift(bn2, (byte) 0, (short) 2);
 
         byte[] expectedResult = {(byte) 0x03, (byte) 0x04};
         byte[] actualResult = new byte[2];
@@ -269,7 +269,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 2, (short) 0);
+        bn1.ctSubtractShift(bn2, (byte) 2, (short) 0);
 
         byte[] expectedResult = {0x05, 0x08};
         byte[] actualResult = new byte[2];
@@ -288,7 +288,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01, 0x02};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.ctSubtractShift(bn2, (short) 1, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 1, (short) 1);
 
         byte[] expectedResult = {0x03, 0x08};
         byte[] actualResult = new byte[2];
