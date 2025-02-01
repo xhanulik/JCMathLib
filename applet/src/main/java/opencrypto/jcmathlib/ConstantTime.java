@@ -7,6 +7,7 @@ public class ConstantTime {
     private static byte[] isNonNegativeTable = null;
     private static byte[] lessThanTable = null;
     private static byte[] greaterOrEqualTable = null;
+    private static byte[] greaterThanTable = null;
 
     public static void initializeLookUpTables() {
         if (isNegativeTable == null) {
@@ -22,12 +23,12 @@ public class ConstantTime {
                 isNonNegativeTable[i] = (byte) ((value >= 0) ? 0xFF : 0x00);
             }
             lessThanTable = JCSystem.makeTransientByteArray((short) 511, JCSystem.CLEAR_ON_RESET);
+            greaterOrEqualTable = JCSystem.makeTransientByteArray((short) 511, JCSystem.CLEAR_ON_RESET);
+            greaterThanTable = JCSystem.makeTransientByteArray((short) 511, JCSystem.CLEAR_ON_RESET);
             for (short d = -255; d <= 255; d++) {
                 lessThanTable[(short) (d + 255)] = (byte) ((d < 0) ? 0xFF : 0x00);
-            }
-            greaterOrEqualTable = JCSystem.makeTransientByteArray((short) 511, JCSystem.CLEAR_ON_RESET);
-            for (short d = -255; d <= 255; d++) {
                 greaterOrEqualTable[(short) (d + 255)] = (byte) ((d >= 0) ? 0xFF : 0x00);
+                greaterThanTable[(short) (d + 255)] = (byte) ((d > 0) ? 0xFF : 0x00);
             }
         }
     }
@@ -39,7 +40,7 @@ public class ConstantTime {
      * @return      0 or (byte) 255
      */
     public static byte ctMsb(byte a) {
-        return (byte) ((-((a >> 7) & 0x01)) & (byte) 0xff);
+        return (byte) ((-((a >>> 7) & 0x01)) & (byte) 0xff);
     }
 
     /**
@@ -49,7 +50,7 @@ public class ConstantTime {
      * @return      0 or (short) 65535
      */
     public static short ctMsb(short a) {
-        return (short) ((-((a >> 15) & 0x01)) & (short) 0xffff);
+        return (short) ((-((a >>> 15) & 0x01)) & (short) 0xffff);
     }
 
     /**
@@ -62,6 +63,10 @@ public class ConstantTime {
         return ctMsb((byte) (~a & ((a & 0xff) - 1)));
     }
 
+    public static byte ctIsZeroUnwrap(byte a) {
+        return (byte) ((-(((byte) (~a & ((a & 0xff) - 1)) >>> 7) & 0x01)) & (byte) 0xff);
+    }
+
     /**
      * Constant time check for zero short value.
      *
@@ -72,6 +77,10 @@ public class ConstantTime {
         return ctMsb((short) (~a & ((a & (short) 0xffff) - 1)));
     }
 
+    public static short ctIsZeroUnwrap(short a) {
+        return (short) ((-(((short) (~a & ((a & (short) 0xffff) - 1)) >>> 15) & 0x01)) & (short) 0xffff);
+    }
+
     /**
      * Constant time check for non-zero byte value.
      *
@@ -80,6 +89,10 @@ public class ConstantTime {
      */
     public static byte ctIsNonZero(byte a){
         return (byte) ~ctMsb((byte) (~a & ((0xff & a) - 1)));
+    }
+
+    public static byte ctIsNonZeroUnwrap(byte a){
+        return (byte) ~((-(((byte) (~a & ((a & 0xff) - 1)) >>> 7) & 0x01)) & (byte) 0xff);
     }
 
     /**
@@ -166,6 +179,10 @@ public class ConstantTime {
      */
     public static byte ctGreater(byte a, byte b) {
         return (byte) (ctLessThan(b, a) & 0xff);
+    }
+
+    public static byte ctGreaterLookUp(byte a, byte b) {
+        return greaterThanTable[(short) ((a & 0xFF) - (b & 0xFF) + 255)];
     }
 
     /**
@@ -277,6 +294,10 @@ public class ConstantTime {
 
     public static short ctIsNegative(short a) {
         return ctMsb(a);
+    }
+
+    public static short ctIsNegativeUnwrap(short a) {
+        return (short) ((-((a >>> 15) & 0x01)) & (short) 0xffff);
     }
 
     /**

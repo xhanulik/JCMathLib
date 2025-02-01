@@ -66,6 +66,7 @@ public class ConstantTimeUnitTests extends Applet {
     public final static byte INS_BN_LESS_THAN_BYTE = (byte) 0x64;
     public final static byte INS_BN_GE_BYTE = (byte) 0x65;
     public final static byte INS_BN_ADD_OPTIM = (byte) 0x66;
+    public final static byte INS_BYTECODE = (byte) 0x67;
 
     // Specific codes to propagate exceptions caught
     // lower byte of exception is value as defined in JCSDK/api_classic/constant-values.htm
@@ -290,6 +291,9 @@ public class ConstantTimeUnitTests extends Applet {
                 case INS_BN_ADD_OPTIM:
                     testBnAddOptimized(apdu, dataLen);
                     break;
+                case INS_BYTECODE:
+                    testByteCode(apdu, dataLen);
+                    break;
 
                 /* BigNat tests */
                 case INS_BN_ADD_MOD:
@@ -407,6 +411,16 @@ public class ConstantTimeUnitTests extends Applet {
         bn3.ctAddOptimized(bn2, (short) 0x00);
         short len = bn3.copyToByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
+    }
+
+    void testByteCode(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+
+        byte result = 0;
+        for (short index = 0; index < dataLen; index++) {
+            result |= apduBuffer[index];
+        }
+        apdu.setOutgoingAndSend((short) 0, result);
     }
 
     void testBnSub(APDU apdu, short dataLen) {
@@ -712,7 +726,7 @@ public class ConstantTimeUnitTests extends Applet {
 
         bn1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
-        bn1.remainderDivide(bn2, null);
+        bn1.ctRemainderDivideOptimized(bn2, bn3);
         apdu.setOutgoingAndSend((short) 0, (short) 0);
     }
 
