@@ -27,7 +27,7 @@ public class ShiftRightTest {
     public void shiftRight_1() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat bn1 = new BigNat((short) 10, memoryType, rm);
+        BigNat bn1 = new BigNat((short) 3, memoryType, rm);
 
         byte[] data1 = {0x05, 0x08};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);

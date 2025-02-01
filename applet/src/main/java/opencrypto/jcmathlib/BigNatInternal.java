@@ -1,6 +1,7 @@
 package opencrypto.jcmathlib;
 
 
+import com.sun.org.apache.bcel.internal.Const;
 import javacard.framework.ISOException;
 import javacard.framework.Util;
 
@@ -18,6 +19,10 @@ public class BigNatInternal {
     private byte[] value;
     private short size; // The current size of internal representation in bytes.
     private short offset;
+
+    public static final short MAX_LEN = 64;
+    public static final short INTERVAL_NUM = 4;
+    public static final byte MAX_DIV_CYCLES = 15;
 
     /**
      * Construct a BigNat of at least a given size in bytes.
@@ -391,6 +396,10 @@ public class BigNatInternal {
     /**
      * Keep values before offset
      */
+    public void ctZero() {
+        Util.arrayFillNonAtomic(value, (short) 0, (short) value.length, (byte) 0);
+    }
+
     public void ctZero(short blind) {
         for (short i = 0; i < value.length; i++) {
             short validIndex = ConstantTime.ctGreaterOrEqual(i, offset);
@@ -399,9 +408,9 @@ public class BigNatInternal {
         }
     }
 
-    public void ctZero() {
-        ctZero((short) 0x00);
-    }
+//    public void ctZero() {
+//        ctZero((short) 0x00);
+//    }
 
     /**
      * Erase the internal array of this BigNat.
@@ -684,46 +693,47 @@ public class BigNatInternal {
     }
 
     public short ctIsLesser(BigNatInternal other, short shift, short start) {
+        ConstantTime.initializeLookUpTables();
         // index, where the byte positions in other corresponding to the positions in this
         // (after shifting, starting from start index)
         // j can be negative
-        short j = (short) (other.size + shift - size + start + other.offset);
+        byte j = (byte) (other.size + shift - size + start + other.offset);
 
-        short otherBigger = 0;
+        byte otherBigger = 0;
         // check the bytes by which other is longer than this
         // if they are non-zero, then other is strictly greater than this
-        for (short i = 0; i < other.value.length; ++i) {
-            short nonZeroValue = ConstantTime.ctGreaterOrEqual(i, (short) (start + other.offset)); // lower index in range
-            nonZeroValue &= (short) (ConstantTime.ctLessThan(i, j) & ConstantTime.ctIsNonNegative(j)); // upper index in range
-            nonZeroValue &= ConstantTime.ctIsNonZero(other.value[i]); // non-zero value
-            otherBigger = (short) (nonZeroValue | otherBigger);
+        for (byte i = 0; i < other.value.length; ++i) {
+            byte nonZeroValue = ConstantTime.ctGreaterOrEqualLookUp(i, (byte) (start + other.offset)); // lower index in range
+            nonZeroValue &= (byte) (ConstantTime.ctLessThanLookUp(i, j) & ConstantTime.ctIsNonNegativeLookUp(j)); // upper index in range
+            nonZeroValue &= ConstantTime.ctIsNonZeroUnwrap(other.value[i]); // non-zero value
+            otherBigger = (byte) (nonZeroValue | otherBigger);
         }
 
-        short thisLesser = 0x00;
-        short lesserNotSeenYet = (short) 0xffff;
+        byte thisLesser = 0x00;
+        byte lesserNotSeenYet = (byte) 0xff;
         // check all bytes at positions that correspond to the number other in this
-        for (short i = 0; i < (short) value.length; i++) {
-            short thisValue = (short) (value[i] & DIGIT_MASK);
-            short validThisIndex = ConstantTime.ctGreaterOrEqual (i, (short) (start + offset));
+        for (byte i = 0; i < (byte) value.length; i++) {
+            byte thisValue = (byte) (value[i] & DIGIT_MASK);
+            byte validThisIndex = ConstantTime.ctGreaterOrEqualLookUp(i, (byte) (start + offset));
 
-            short validOtherIndex = (short) (ConstantTime.ctGreaterOrEqual(j, other.offset) // lower bound
-                    & ConstantTime.ctLessThan(j, (short) other.value.length) // upper bound
-                    & ConstantTime.ctIsNonNegative(j)); // upper
-            short otherIndex = ConstantTime.ctSelect(validOtherIndex, j, (short) 0); // substitute bogus index when negative
-            short otherValue = ConstantTime.ctSelect(validOtherIndex, (short) (other.value[otherIndex] & DIGIT_MASK), (short) 0);
+            byte validOtherIndex = (byte) (ConstantTime.ctGreaterOrEqualLookUp(j, (byte) other.offset) // lower bound
+                    & ConstantTime.ctLessThanLookUp(j, (byte) other.value.length) // upper bound
+                    & ConstantTime.ctIsNonNegativeLookUp(j)); // upper
+            byte otherIndex = (byte) (validOtherIndex & j); // substitute bogus index when negative
+            byte otherValue = (byte) (validOtherIndex & (byte) (other.value[otherIndex] & DIGIT_MASK));
 
             // we already checked for longer other
             // when thi range is valid, compare with other, if other is invalid, it is zero anyway
-            short thisSmaller = (short) (ConstantTime.ctLessThan(thisValue, otherValue) & validThisIndex);
-            short thisBigger = (short) (ConstantTime.ctLessThan(otherValue, thisValue) & validThisIndex);
+            byte thisSmaller = (byte) (ConstantTime.ctLessThanLookUp(thisValue, otherValue) & validThisIndex);
+            byte thisBigger = (byte) (ConstantTime.ctLessThanLookUp(otherValue, thisValue) & validThisIndex);
 
             // this is lesser, no previous bytes in other were lesser
-            thisLesser = ConstantTime.ctSelect((short) (lesserNotSeenYet & thisSmaller), (short) 0xffff, thisLesser);
+            thisLesser = ConstantTime.ctSelect((byte) (lesserNotSeenYet & thisSmaller), (byte) 0xff, thisLesser);
             // first lesser byte seen, do not take next bytes into account
-            lesserNotSeenYet = ConstantTime.ctSelect((short) (lesserNotSeenYet & thisSmaller), (short) 0x00, lesserNotSeenYet);
+            lesserNotSeenYet = (byte) ((byte) ~(lesserNotSeenYet & thisSmaller) & lesserNotSeenYet);
             // larger bytes in this observed before any smaller byte, this cannot be smaller than other
-            lesserNotSeenYet = ConstantTime.ctSelect((short) (lesserNotSeenYet & thisBigger), (short) 0x00, lesserNotSeenYet);
-            j += ConstantTime.ctSelect(validThisIndex, (short) 1, (short) 0);
+            lesserNotSeenYet = (byte) (~(lesserNotSeenYet & thisBigger) & lesserNotSeenYet);
+            j += validThisIndex & 1;
         }
 
         return (short) (otherBigger | thisLesser);
@@ -929,7 +939,50 @@ public class BigNatInternal {
         short acc = 0;
         short otherIndex = (short) (other.value.length - 1);
 
-        for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
+        short length = ConstantTime.ctSelect(ConstantTime.ctIsZero(MAX_LEN), (short) this.value.length, MAX_LEN);
+        length = ConstantTime.ctSelect(ConstantTime.ctLessThan(MAX_LEN, (short) this.value.length), length, (short) this.value.length);
+
+        for (short thisIndex = (short) (length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
+            // index must be in range of size of this number
+            short thisValidRange = ConstantTime.ctGreaterOrEqual(thisIndex, offset);
+            // index in other should be in bounds of other.value
+            short otherValidRange = (short) (ConstantTime.ctGreaterOrEqual(otherIndex, other.offset) & ConstantTime.ctIsNonNegative(otherIndex));
+            // prepare index for other - valid or bogus (just for some reading)
+            short newOtherIndex = ConstantTime.ctSelect(otherValidRange, otherIndex, (short) 0);
+            // always read something from other
+            short otherBogusValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
+            // get value from other - if out of other bounds, use 0
+            short otherValue = ConstantTime.ctSelect(otherValidRange, otherBogusValue, (short) 0);
+            // compute new value
+            short thisValue = (short) (value[thisIndex] & DIGIT_MASK);
+            // if we are out of size for this, add only 0
+            acc += ConstantTime.ctSelect(thisValidRange, (short) (thisValue + otherValue), (short) 0);
+            // set new value into this if in valid range
+            short tmp = (byte) (acc & DIGIT_MASK);
+            this.value[thisIndex] = ConstantTime.ctSelect((short) (thisValidRange & ~blind), (byte) tmp, (byte) thisValue);
+            // preserve acc from last valid byte in this
+            tmp = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
+            acc = ConstantTime.ctSelect(thisValidRange, tmp, acc);
+        }
+        // output carry bit if present
+        return (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7);
+    }
+
+    public byte ctAddPartitioned(BigNatInternal other, short blind) {
+        short acc = 0;
+        short otherIndex = (short) (other.value.length - 1);
+
+        short partSize = (short) (this.value.length / INTERVAL_NUM);
+        short length = 0;
+        for (short i = 1; i <= INTERVAL_NUM; i++) {
+            if (offset < i * partSize) {
+                length += partSize;
+            }
+        }
+        if (length >= this.value.length)
+            length = (short) this.value.length;
+
+        for (short thisIndex = (short) (length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
             // index must be in range of size of this number
             short thisValidRange = ConstantTime.ctGreaterOrEqual(thisIndex, offset);
             // index in other should be in bounds of other.value
@@ -1095,19 +1148,20 @@ public class BigNatInternal {
      * @param other BigNat to be subtracted from this
      */
     public byte ctSubtract(BigNatInternal other, short blind) {
+        ConstantTime.initializeLookUpTables();
         short acc = 0;
-        short otherIndex = (short) (other.value.length - 1);
-        for (short thisIndex = (short) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
+        byte otherIndex = (byte) (other.value.length - 1);
+        for (byte thisIndex = (byte) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
             // compute only on valid this indexes
-            short validThisIndex = ConstantTime.ctGreaterOrEqual(thisIndex, offset);
+            byte validThisIndex = ConstantTime.ctGreaterOrEqualLookUp(thisIndex, (byte) offset);
 
             // check non-negative other index or set to 0
-            short validOtherIndex = ConstantTime.ctIsNonNegative(otherIndex);
-            short newOtherIndex = ConstantTime.ctSelect(validOtherIndex, otherIndex, (short) 0);
+            byte validOtherIndex = ConstantTime.ctIsNonNegativeLookUp(otherIndex);
+            byte newOtherIndex = (byte) (validOtherIndex & otherIndex);
 
             // add value to acc and subtract
             short newValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
-            acc += ConstantTime.ctSelect((short) (validThisIndex & validOtherIndex), newValue, (short) 0);
+            acc += (short) (validThisIndex & validOtherIndex) & newValue;
             short thisValue = value[thisIndex];
             short tmp = (short) ((thisValue & DIGIT_MASK) - (acc & DIGIT_MASK));
 
@@ -1127,39 +1181,43 @@ public class BigNatInternal {
 
     /**
      * Refactored, computes over only valid indexes inside offsets.
+     * @
      */
-    public void ctSubtractShift(BigNatInternal other, short shift, short multiplier, short blind) {
+    public void ctSubtractShift(BigNatInternal other, byte shift, short multiplier, short blind) {
+        ConstantTime.initializeLookUpTables();
         short acc = 0;
-        short otherIndex = (short) (other.size - 1 + other.offset);
+        byte otherIndex = (byte) (other.size - 1 + other.offset);
 
-        for (short i = (short) (this.value.length - 1); i >= 0; i--, otherIndex--) {
-            short thisShiftedIndex = (short) (i - shift);
+        for (byte i = (byte) (this.value.length - 1); i >= 0; i--, otherIndex--) {
+            byte thisShiftedIndex = (byte) (i - shift);
 
             // shifted index must be in range of this number
-            short thisValidRange = (short) (ConstantTime.ctIsNonNegative(thisShiftedIndex) & ConstantTime.ctGreaterOrEqual(thisShiftedIndex, offset));
-            short thisValidIndex = ConstantTime.ctSelect(thisValidRange, thisShiftedIndex, (short) 0);
+            byte thisValidRange = (byte) (ConstantTime.ctIsNonNegativeLookUp(thisShiftedIndex)
+                    & ConstantTime.ctGreaterOrEqualLookUp(thisShiftedIndex, (byte) offset));
+            byte thisValidIndex = (byte) (thisValidRange & thisShiftedIndex);
 
             // index in other should be in range
-            short otherValidRange = (short) (ConstantTime.ctGreaterOrEqual(otherIndex, other.offset) & ConstantTime.ctIsNonNegative(otherIndex));
-            short otherValidIndex = ConstantTime.ctSelect(otherValidRange, otherIndex, (short) 0);
+            byte otherValidRange = (byte) (ConstantTime.ctGreaterOrEqualLookUp(otherIndex, (byte) other.offset)
+                    & ConstantTime.ctIsNonNegativeLookUp(otherIndex));
+            byte otherValidIndex = (byte) (otherValidRange & otherIndex);
 
             // computation for corresponding bytes
             short otherValue = (short) (multiplier * (other.value[otherValidIndex] & DIGIT_MASK));
-            otherValue = ConstantTime.ctSelect(otherValidRange, otherValue, (short) 0);
+            otherValue = (short) (otherValidRange & otherValue);
 
             // compute new value if in valid range
-            acc += ConstantTime.ctSelect((short) (thisValidRange & otherValidRange), otherValue, (short) 0);
+            acc += (short) (thisValidRange & otherValidRange) & otherValue;
             short valueToSet = (short) ((value[thisValidIndex] & DIGIT_MASK) - (acc & DIGIT_MASK));
 
             // set new value only when in valid range
             byte thisValue = value[thisValidIndex];
             value[thisValidIndex] = (byte) ConstantTime.ctSelect((short) (thisValidRange & ~blind), valueToSet, thisValue);
             acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            acc += ConstantTime.ctSelect((short) (ConstantTime.ctIsNegative(valueToSet) & thisValidRange), (short) 1, (short) (0));
+            acc += (short) (ConstantTime.ctIsNegative(valueToSet) & thisValidRange) & (short) 1;
         }
     }
 
-    public void ctSubtractShift(BigNatInternal other, short shift, short multiplier) {
+    public void ctSubtractShift(BigNatInternal other, byte shift, short multiplier) {
         ctSubtractShift(other, shift, multiplier, (short) 0x00);
     }
 
@@ -1322,7 +1380,7 @@ public class BigNatInternal {
 
         for (short index = (short) (value.length - 1); index >= 0; index--) {
             short indexFrom = (short) (index - bytes);
-            short validIndexFrom = ConstantTime.ctGreaterOrEqual(index, bytes);
+            short validIndexFrom = (short) (ConstantTime.ctGreaterOrEqual(index, bytes) & ConstantTime.ctGreaterOrEqual(indexFrom, offset));
             short validIndex = ConstantTime.ctGreaterOrEqual(index, offset);
             short mask = (short) (validIndexFrom & validIndex);
             byte valueFrom = value[ConstantTime.ctSelect(mask, indexFrom, (short) 0)];
@@ -1346,6 +1404,7 @@ public class BigNatInternal {
         shiftRightBits(bits);
     }
 
+
     public void ctShiftRight(short bits) {
         if (bits < 0) {
             throw new ArrayIndexOutOfBoundsException();
@@ -1355,6 +1414,26 @@ public class BigNatInternal {
         bits = (short) (bits - (bytes * 8));
         ctShiftRightBytes(bytes);
         ctShiftRightBits(bits);
+    }
+
+    /**
+     * Left byte shift
+     *
+     * @param bytes number of bytes to shift by
+     */
+    public void ctShiftLeftBytes(short bytes) {
+        if (bytes < 0) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+        short newOffset = offset;
+        for (short index = 0; index < value.length; index++) {
+            short indexFrom = (short) (index + bytes);
+            short validIndexFrom = (short) (ConstantTime.ctGreaterOrEqual(indexFrom, offset) & ConstantTime.ctLessThan(indexFrom, (short) value.length));
+            newOffset = ConstantTime.ctSelect((short) (validIndexFrom & ConstantTime.ctLessThan(index, newOffset)), index, newOffset);
+            byte valueFrom = value[ConstantTime.ctSelect(validIndexFrom, indexFrom, (short) 0)];
+            value[index] = ConstantTime.ctSelect(validIndexFrom, valueFrom, (byte) 0);
+        }
+        ctSetSize((short) (size + (offset - newOffset)));
     }
 
     /**
@@ -1406,12 +1485,12 @@ public class BigNatInternal {
             carry = ConstantTime.ctSelect(validRange, current, carry);
         }
 
-        short nonZeroCarry = ConstantTime.ctIsNonZero(carry);
-        short valueAtOffset = value[offset];
         short newSize = (short) (size + 1);
-        newSize = ConstantTime.ctSelect(nonZeroCarry, newSize, size);
+        short sizeMask = (short) (ConstantTime.ctIsNonZero(carry) & ctLessThan(newSize, (short) value.length));
+        newSize = ConstantTime.ctSelect(sizeMask, newSize, size);
         setSize(newSize);
-        value[offset] = (byte) ConstantTime.ctSelect(nonZeroCarry, carry, valueAtOffset);
+        short valueAtOffset = value[offset];
+        value[offset] = (byte) ConstantTime.ctSelect(sizeMask, carry, valueAtOffset);
     }
 
     /**
@@ -1425,6 +1504,22 @@ public class BigNatInternal {
 
     public void ctShiftLeftBits(short bits) {
         ctShiftLeftBits(bits, (short) 0);
+    }
+
+    /**
+     * Left bit shift
+     *
+     * @param bits number of bytes to shift by
+     */
+    public void ctShiftLeft(short bits) {
+        if (bits < 0) {
+            throw new ArrayIndexOutOfBoundsException();
+        }
+
+        short bytes = (short) (bits >>> 3); // bits / 8
+        bits = (short) (bits - (bytes * 8));
+        ctShiftLeftBytes(bytes);
+        ctShiftLeftBits(bits);
     }
 
     /**
@@ -1495,8 +1590,93 @@ public class BigNatInternal {
         }
     }
 
+    /**
+     *
+     * @param divisor
+     * @param quotient
+     * @implNote max size of number -> 128 bytes
+     */
     public void ctRemainderDivideOptimized(BigNatInternal divisor, BigNatInternal quotient) {
-        quotient.zero();
+        ConstantTime.initializeLookUpTables();
+
+        quotient.zero(); // make it faster with JavaCard implementation
+
+        byte divisorIndex = (byte) divisor.offset;
+        for (byte i = 0; i < divisor.value.length; i++) {// move to first nonzero digit
+            byte mask = (byte) (ConstantTime.ctLessThanLookUp(divisorIndex, (byte) (divisor.value.length - 1))
+                    & ConstantTime.ctIsZeroUnwrap(divisor.value[divisorIndex]));
+            divisorIndex += (mask & 1);
+        }
+
+        byte divisorShift = (byte) (size - divisor.size + divisorIndex - divisor.offset);
+        System.out.println("divisorShift = " + divisorShift);
+        byte divisionRound = 0;
+        short firstDivisorDigit = (short) (divisor.value[divisorIndex] & DIGIT_MASK); // first nonzero digit
+        short divisorBitShift = (short) (ctHighestOneBit((short) (firstDivisorDigit + 1)) - 1); // in short from left -1
+        short tmpIndex = (short) (ConstantTime.ctGreater((short) (divisor.value.length - 1), divisorIndex) & (short) (divisorIndex + 1)); // ctSelect
+        byte secondDivisorDigit = (byte) (ConstantTime.ctGreaterLookUp((byte) (divisor.value.length - 1), divisorIndex) & divisor.value[tmpIndex]);  // ctSelect
+        tmpIndex = (short) (ConstantTime.ctGreater((short) (divisor.value.length - 2), divisorIndex) & (short) (divisorIndex + 2)); // ctSelect
+        byte thirdDivisorDigit = (byte) (ConstantTime.ctGreaterLookUp((byte) (divisor.value.length - 2), divisorIndex) & divisor.value[tmpIndex]); // ctSelect
+
+        for (byte i = 0; i < MAX_DIV_CYCLES; i++) {
+            // !isLesser branch condition
+            short divisorShiftNegative = ConstantTime.ctIsNegative(divisorShift);
+            System.out.println((short) (ConstantTime.ctIsPositive(divisionRound) & (short) (divisionRound - 1)));
+            short isLesserDivisor = ctIsLesser(divisor, divisorShift, (short) (ConstantTime.ctIsPositive(divisionRound) & (short) (divisionRound - 1)));
+            short doSubtract = ((short) (~divisorShiftNegative & ~isLesserDivisor));
+            System.out.println("i = " + i + ": divisorShiftNegative = " + divisorShiftNegative + ", isLesserDivisor = " + isLesserDivisor + " doSubtract = " + doSubtract);
+
+            // inside the branch
+            short divisionRoundOffset = (short) (divisionRound + offset);
+            tmpIndex = (short) (doSubtract & (short) (divisionRoundOffset - 1)); // ctSelect
+            short newDividentDigits = (short) ((short) (value[tmpIndex]) << DIGIT_LEN);
+            tmpIndex = (short) (doSubtract & (short) (divisionRound + offset));  // ctSelect
+            short dividentDigits = (short) (~ConstantTime.ctIsZeroUnwrap(divisionRound) & newDividentDigits // ctSelect
+                    | (short) (value[tmpIndex] & DIGIT_MASK));
+            short dividentDigitsNegative = ConstantTime.ctIsNegativeUnwrap(dividentDigits);
+            short dividentBitShift = (short) (ctHighestOneBit(dividentDigits) - 1);
+            short bitShift = ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(divisorBitShift, dividentBitShift), dividentBitShift, divisorBitShift);
+
+            tmpIndex = ConstantTime.ctSelect((short) (doSubtract
+                                                & ConstantTime.ctGreaterLookUp((byte) (size - 1), divisionRound)
+                                                & ConstantTime.ctGreaterLookUp((byte) size, (byte) 0)),
+                    (short) (divisionRoundOffset + 1), (short) 0);
+            byte a = (byte) (ConstantTime.ctGreaterLookUp((byte) (size - 1), divisionRound) & value[tmpIndex]); // ctSelect
+            tmpIndex = ConstantTime.ctSelect((short) (doSubtract
+                                                & ConstantTime.ctGreaterLookUp((byte) (size - 2), divisionRound)
+                                                & ConstantTime.ctGreaterLookUp((byte) size, (byte) 1)),
+                    (short) (divisionRoundOffset + 2), (short) 0);
+            byte b = (byte) (ConstantTime.ctGreaterLookUp((byte) (size - 2), divisionRound) & value[tmpIndex]);
+            dividentDigits = ConstantTime.ctSelect(dividentDigitsNegative,
+                    (short) ((dividentDigits >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK),
+                    ctShiftBits(dividentDigits,
+                            a,
+                            b,
+                            (byte) bitShift));
+
+            short divisorDigit = ConstantTime.ctSelect(dividentDigitsNegative,
+                    (short) ((firstDivisorDigit >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK),
+                    ctShiftBits(firstDivisorDigit, secondDivisorDigit, thirdDivisorDigit, (byte) bitShift));
+            short multiple = (short) (dividentDigits / (short) (divisorDigit + 1)); // division cannot be optimized here
+            multiple = ConstantTime.ctSelect((short) (ConstantTime.ctIsZeroUnwrap(multiple)
+                    | ConstantTime.ctIsNegativeUnwrap(multiple)), (short) 1, multiple);
+
+            ctSubtractShift(divisor, (byte) (~ctIsNegative(divisorShift) & divisorShift), multiple, (short) ~doSubtract);
+
+            short divisorShiftOffset = (short) (divisorShift - quotient.offset);
+            tmpIndex = (short) (doSubtract & (short) (quotient.size - 1 - divisorShiftOffset));
+            short quotientDigit = (short) ((quotient.value[tmpIndex] & DIGIT_MASK) + multiple);
+            tmpIndex = (short) (doSubtract & (short) (quotient.size - 1 - divisorShiftOffset));
+            quotient.value[tmpIndex] = (byte) ConstantTime.ctSelect(doSubtract, quotientDigit, quotient.value[tmpIndex]);
+
+            divisionRound += (isLesserDivisor & ~divisorShiftNegative) & (byte) 1;
+            divisorShift -= (byte) (isLesserDivisor & ~divisorShiftNegative) & (byte) 1;
+        }
+        quotient.ctShrink();
+    }
+
+    /*    public void ctRemainderDivideOptimized(BigNatInternal divisor, BigNatInternal quotient) {
+        quotient.zero(); // make it faster with JavaCard implementation
 
         short divisorIndex = divisor.offset;
         for (short i = 0; i < divisor.value.length; i++) {// move to first nonzero digit
@@ -1564,6 +1744,7 @@ public class BigNatInternal {
             divisorShift -= ConstantTime.ctSelect((short) (isLesserDivisor & ~divisorShiftNegative), (byte) 1, (byte) 0);
         }
     }
+     */
 
     /**
      * Get the index of the highest bit set to 1. Used in remainderDivide.
@@ -1581,9 +1762,9 @@ public class BigNatInternal {
     public static short ctHighestOneBit(short x) {
         short index = 0;
         for (short i = 0; i < DOUBLE_DIGIT_LEN; ++i) {
-            short isZero = ConstantTime.ctIsZero(x);
-            index += ConstantTime.ctSelect(isZero, (short) 0, (short) 1);
-            x >>>= ConstantTime.ctSelect(isZero, (short) 0, (short) 1);
+            short isNonZero = ConstantTime.ctIsNonZero(x);
+            index += isNonZero & 1;
+            x >>>= isNonZero & 1;
         }
         return (short) (DOUBLE_DIGIT_LEN - index);
     }
@@ -1623,22 +1804,23 @@ public class BigNatInternal {
         return high;
     }
 
-    public static short ctShiftBits(short high, byte middle, byte low, short shift) {
+    public static short ctShiftBits(short high, byte middle, byte low, byte shift) {
+        ConstantTime.initializeLookUpTables();
         // shift high
         high <<= shift;
 
         // merge middle bits
-        byte mask = (byte) (DIGIT_MASK << ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(shift, DIGIT_LEN), (short) 0, (short) (DIGIT_LEN - shift)));
+        byte mask = (byte) (DIGIT_MASK << (ConstantTime.ctLessThanLookUp(shift, (byte) 8) & ((byte) 8 - shift)));
         short bits = (short) ((short) (middle & mask) & DIGIT_MASK);
-        bits <<= ConstantTime.ctSelect(ConstantTime.ctLessThan(DIGIT_LEN, shift), (short) (shift - DIGIT_LEN), (short) 0);
-        bits >>>= ConstantTime.ctSelect((short) ~(ConstantTime.ctLessThan(DIGIT_LEN, shift)), (short) (DIGIT_LEN - shift), (short) 0);
+        bits <<= ConstantTime.ctLessThanLookUp((byte) 8, shift) & (short) (shift - (byte) 8);
+        bits >>>= ConstantTime.ctGreaterOrEqualLookUp((byte) 8, shift) & (short) ((byte) 8 - shift);
         high |= bits;
 
         // merge low bits
         mask = (byte) (DIGIT_MASK << DOUBLE_DIGIT_LEN - shift);
         bits = (short) ((((short) (low & mask) & DIGIT_MASK) >>> DOUBLE_DIGIT_LEN - shift));
 
-        high |= ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(DIGIT_LEN, shift), (short) 0, bits);
+        high |= ConstantTime.ctLessThanLookUp((byte) 8, shift) & bits;
 
         return high;
     }
@@ -1719,6 +1901,31 @@ public class BigNatInternal {
 
     public void ctRemainderDivide(BigNatInternal divisor, BigNatInternal quotient, BigNatInternal remainder) {
         ctRemainderDivide(divisor, quotient, remainder, (short) 0x00);
+    }
+
+    public short ctShiftRightByTrailingZeroes() {
+        byte firstNonZeroBit = 0x00;
+        short result = 0;
+        for (short index = (short) (value.length - 1); index >= 0; index--) {
+            short validIndex = ConstantTime.ctGreaterOrEqual(index, offset);
+            byte thisValue = value[index];
+            // xxxx xxx1, xxxx xx10, xxxx x100, xxxx 1000, xxx1 0000, xx10 0000, x100 0000, 1000 0000, 0000 0000
+            byte zero = (byte) (ConstantTime.ctIsZeroUnwrap(thisValue) & 8);
+            byte second = (byte) (ConstantTime.ctEqual((byte) (0b00000011 & thisValue), (byte) 0b00000010) & 1);
+            byte third = (byte) (ConstantTime.ctEqual((byte) (0b00000111 & thisValue), (byte) 0b00000100) & 2);
+            byte fourth = (byte) (ConstantTime.ctEqual((byte) (0b00001111 & thisValue), (byte) 0b00001000) & 3);
+            byte fifth = (byte) (ConstantTime.ctEqual((byte) (0b00011111 & thisValue), (byte) 0b00010000) & 4);
+            byte sixth = (byte) (ConstantTime.ctEqual((byte) (0b00111111 & thisValue), (byte) 0b00100000) & 5);
+            byte seventh = (byte) (ConstantTime.ctEqual((byte) (0b01111111 & thisValue), (byte) 0b01000000) & 6);
+            byte eighth = (byte) (ConstantTime.ctEqual((byte) (0b11111111 & thisValue), (byte) 0b10000000) & 7);
+            short addition = ((short) (second + third + fourth + fifth + sixth + seventh + eighth));
+            result += ConstantTime.ctSelect((byte) (firstNonZeroBit & validIndex), (byte) 0, (byte) (addition + zero));
+            firstNonZeroBit = ConstantTime.ctSelect(
+                    (byte) (ConstantTime.ctIsZero(firstNonZeroBit) & validIndex & (ctIsPositive(addition) | ctEqual((byte) (0b00000001 & thisValue), (byte) 0b00000001))),
+                    (byte) 0xff, (byte) 0);
+        }
+        ctShiftRight(result);
+        return result;
     }
 
 

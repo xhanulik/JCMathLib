@@ -31,14 +31,14 @@ public class BigNat extends BigNatInternal {
         tmp.unlock();
     }
 
-//    public void ctDivide(BigNat other) {
-//        BigNat tmp = rm.BN_E;
-//
-//        tmp.lock();
-//        tmp.ctClone( this);
-//        tmp.ctRemainderDivide(other, this);
-//        tmp.unlock();
-//    }
+    public void ctDivide(BigNat other) {
+        BigNat tmp = rm.BN_A; // rm.BN_Eis too big for ctIsLesser implementation over 128B numbers
+
+        tmp.lock();
+        tmp.ctClone( this);
+        tmp.ctRemainderDivideOptimized(other, this);
+        tmp.unlock();
+    }
 
     /**
      * Greatest common divisor of this BigNat with other BigNat. Result is stored into this.
@@ -53,7 +53,7 @@ public class BigNat extends BigNatInternal {
         tmpOther.clone(other);
 
         // TODO: optimise?
-        while (!other.isZero()) {
+        while (!tmpOther.isZero()) {
             tmp.clone(tmpOther);
             mod(tmpOther);
             tmpOther.clone(this);
@@ -62,30 +62,40 @@ public class BigNat extends BigNatInternal {
 
         tmp.unlock();
         tmpOther.unlock();
+        shrink();
     }
 
-//    public void ctGcd(BigNat other) {
-//        BigNat tmp = rm.BN_A;
-//        BigNat tmpOther = rm.BN_B;
-//        BigNat tmpMod = rm.BN_C;
-//
-//        tmp.lock();
-//        tmpOther.lock();
-//        tmpMod.lock();
-//
-//        tmpOther.ctClone(other);
-//
-//        while (!other.equals((byte) 0)) { // TODO: make constant time
-//            tmp.ctClone(tmpOther);
-//            ctMod(tmpOther, tmpMod);
-//            tmpOther.ctClone(this);
-//            ctClone(tmp);
-//        }
-//
-//        tmp.unlock();
-//        tmpOther.unlock();
-//        tmpMod.unlock();
-//    }
+    public void ctGcd(BigNat other) {
+        BigNat tmp = rm.BN_A;
+        BigNat tmpOther = rm.BN_B;
+
+        tmp.lock();
+        tmpOther.lock();
+
+        tmpOther.clone(other);
+
+        short thisZeros = ctShiftRightByTrailingZeroes();
+        short otherZeros = other.ctShiftRightByTrailingZeroes();
+        short done = 0;
+        short count = 15;
+        while(count > 0) {
+            // Swap if necessary so other ≤ this
+            short thisLesser = this.ctIsLesser(tmpOther);
+            tmp.ctClone(this, done);
+            this.ctClone(tmpOther, (short) (thisLesser | done));
+            tmpOther.ctClone(tmp, done);
+            // Identity 4: gcd(u, v) = gcd(u, v-u) as u ≤ v and u, v are both odd
+            this.ctSubtract(other, done);
+            // this is now even
+            done |= this.ctIsZero();
+
+            // Identity 3: gcd(u, 2ʲ v) = gcd(u, v) as u is odd
+            this.ctShiftRightByTrailingZeroes();
+            count--;
+        }
+        this.ctClone(tmpOther);
+        this.ctShiftLeft((short) 0); // k = min(thisZeros, otherZeros)
+    }
 
     /**
      * Decides whether the arguments are co-prime or not.
