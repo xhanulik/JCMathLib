@@ -15,7 +15,7 @@ public class ShiftRightByTrailingZeroes {
 
         byte[] data1 = {0x00, 0x01};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.ctShiftRightByTrailingZeroes();
+        bn1.ctShiftRightByTrailingZeroes((short) 0);
 
         byte[] expectedResult = {0x00, 0x01};
         byte[] actualResult = new byte[2];
@@ -31,7 +31,7 @@ public class ShiftRightByTrailingZeroes {
 
         byte[] data1 = {0x00, 0x02};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.ctShiftRightByTrailingZeroes();
+        bn1.ctShiftRightByTrailingZeroes((short) 0);
 
         byte[] expectedResult = {0x00, 0x01};
         byte[] actualResult = new byte[2];
@@ -47,7 +47,7 @@ public class ShiftRightByTrailingZeroes {
 
         byte[] data1 = {0x01, 0x00};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.ctShiftRightByTrailingZeroes();
+        bn1.ctShiftRightByTrailingZeroes((short) 0);
 
         byte[] expectedResult = {0x00, 0x01};
         byte[] actualResult = new byte[2];
@@ -63,7 +63,7 @@ public class ShiftRightByTrailingZeroes {
 
         byte[] data1 = {(byte) 0x81, 0x29};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.ctShiftRightByTrailingZeroes();
+        bn1.ctShiftRightByTrailingZeroes((short) 0);
 
         byte[] expectedResult = {(byte) 0x81, 0x29};
         byte[] actualResult = new byte[2];
@@ -79,7 +79,7 @@ public class ShiftRightByTrailingZeroes {
 
         byte[] data1 = {(byte) 0x81, 0x28};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.ctShiftRightByTrailingZeroes();
+        bn1.ctShiftRightByTrailingZeroes((short) 0);
 
         byte[] expectedResult = {(byte) 0x10, 0x25};
         byte[] actualResult = new byte[2];

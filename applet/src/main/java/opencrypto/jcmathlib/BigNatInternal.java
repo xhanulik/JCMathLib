@@ -1,7 +1,6 @@
 package opencrypto.jcmathlib;
 
 
-import com.sun.org.apache.bcel.internal.Const;
 import javacard.framework.ISOException;
 import javacard.framework.Util;
 
@@ -552,7 +551,6 @@ public class BigNatInternal {
     }
 
     /**
-<<<<<<< HEAD
      * Copies a BigNat into this including its size. May require reallocation, which is not supported yet.
      *
      * @param other number to be cloned
@@ -831,8 +829,6 @@ public class BigNatInternal {
     }
 
     /**
-=======
->>>>>>> e71e493 (feat: add quadratic residuosity check)
      * Increment this BigNat.
      * @apiNote Does not increase size.
      */
@@ -1373,7 +1369,7 @@ public class BigNatInternal {
         Util.arrayFillNonAtomic(value, offset, bytes, (byte) 0);
     }
 
-    public void ctShiftRightBytes(short bytes) {
+    public void ctShiftRightBytes(short bytes, short blind) {
         if (bytes < 0) {
             throw new ArrayIndexOutOfBoundsException();
         }
@@ -1383,7 +1379,7 @@ public class BigNatInternal {
             short validIndexFrom = (short) (ConstantTime.ctGreaterOrEqual(index, bytes) & ConstantTime.ctGreaterOrEqual(indexFrom, offset));
             short validIndex = ConstantTime.ctGreaterOrEqual(index, offset);
             short mask = (short) (validIndexFrom & validIndex);
-            byte valueFrom = value[ConstantTime.ctSelect(mask, indexFrom, (short) 0)];
+            byte valueFrom = value[ConstantTime.ctSelect((short) (mask & ~blind), indexFrom, index)];
             value[index] = ConstantTime.ctSelect(mask, valueFrom, (byte) 0);
         }
     }
@@ -1405,15 +1401,15 @@ public class BigNatInternal {
     }
 
 
-    public void ctShiftRight(short bits) {
+    public void ctShiftRight(short bits, short blind) {
         if (bits < 0) {
             throw new ArrayIndexOutOfBoundsException();
         }
 
         short bytes = (short) (bits >>> 3); // bits / 8
         bits = (short) (bits - (bytes * 8));
-        ctShiftRightBytes(bytes);
-        ctShiftRightBits(bits);
+        ctShiftRightBytes(bytes, blind);
+        ctShiftRightBits(bits, (short) 0, blind);
     }
 
     /**
@@ -1903,7 +1899,7 @@ public class BigNatInternal {
         ctRemainderDivide(divisor, quotient, remainder, (short) 0x00);
     }
 
-    public short ctShiftRightByTrailingZeroes() {
+    public short ctShiftRightByTrailingZeroes(short blind) {
         byte firstNonZeroBit = 0x00;
         short result = 0;
         for (short index = (short) (value.length - 1); index >= 0; index--) {
@@ -1919,12 +1915,12 @@ public class BigNatInternal {
             byte seventh = (byte) (ConstantTime.ctEqual((byte) (0b01111111 & thisValue), (byte) 0b01000000) & 6);
             byte eighth = (byte) (ConstantTime.ctEqual((byte) (0b11111111 & thisValue), (byte) 0b10000000) & 7);
             short addition = ((short) (second + third + fourth + fifth + sixth + seventh + eighth));
-            result += ConstantTime.ctSelect((byte) (firstNonZeroBit & validIndex), (byte) 0, (byte) (addition + zero));
-            firstNonZeroBit = ConstantTime.ctSelect(
+            result += ConstantTime.ctSelect((byte) (firstNonZeroBit | ~validIndex), (byte) 0, (byte) (addition + zero));
+            firstNonZeroBit |= ConstantTime.ctSelect(
                     (byte) (ConstantTime.ctIsZero(firstNonZeroBit) & validIndex & (ctIsPositive(addition) | ctEqual((byte) (0b00000001 & thisValue), (byte) 0b00000001))),
                     (byte) 0xff, (byte) 0);
         }
-        ctShiftRight(result);
+        ctShiftRight(result, blind);
         return result;
     }
 

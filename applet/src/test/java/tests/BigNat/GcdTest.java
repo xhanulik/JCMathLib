@@ -11,14 +11,14 @@ public class GcdTest {
     public void a12_b4_4() {
         ResourceManager rm = new ResourceManager((short) 256);
         byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
-        BigNat a = new BigNat((short) 7, memoryType, rm);
-        BigNat b = new BigNat((short) 7, memoryType, rm);
+        BigNat a = new BigNat((short) 3, memoryType, rm);
+        BigNat b = new BigNat((short) 3, memoryType, rm);
 
         byte[] data1 = {12};
         a.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {4};
         b.fromByteArray(data2, (short) 0, (short) data2.length);
-        a.gcd(b);
+        a.ctGcd(b);
 
         Assertions.assertEquals(1, a.length());
         byte[] actualResult = new byte[1];
@@ -38,7 +38,7 @@ public class GcdTest {
         a.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {11};
         b.fromByteArray(data2, (short) 0, (short) data2.length);
-        a.gcd(b);
+        a.ctGcd(b);
 
         Assertions.assertEquals(1, a.length());
         byte[] actualResult = new byte[1];
@@ -58,7 +58,7 @@ public class GcdTest {
         a.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {5};
         b.fromByteArray(data2, (short) 0, (short) data2.length);
-        a.gcd(b);
+        a.ctGcd(b);
 
         Assertions.assertEquals(1, a.length());
         byte[] actualResult = new byte[1];
@@ -78,12 +78,32 @@ public class GcdTest {
         a.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {(byte) 150};
         b.fromByteArray(data2, (short) 0, (short) data2.length);
-        a.gcd(b);
+        a.ctGcd(b);
 
         Assertions.assertEquals(1, a.length());
         byte[] actualResult = new byte[1];
         a.copyToByteArray(actualResult, (short) 0);
         byte[] correct = {50};
+        Assertions.assertArrayEquals(correct, actualResult);
+    }
+
+    @Test
+    public void a20000_b18945_50() {
+        ResourceManager rm = new ResourceManager((short) 256);
+        byte memoryType = JCSystem.MEMORY_TYPE_TRANSIENT_RESET;
+        BigNat a = new BigNat((short) 7, memoryType, rm);
+        BigNat b = new BigNat((short) 7, memoryType, rm);
+
+        byte[] data1 = {0x4E, 0x20};
+        a.fromByteArray(data1, (short) 0, (short) data1.length);
+        byte[] data2 = {0x4A, 0x01};
+        b.fromByteArray(data2, (short) 0, (short) data2.length);
+        a.ctGcd(b);
+
+        Assertions.assertEquals(1, a.length());
+        byte[] actualResult = new byte[1];
+        a.copyToByteArray(actualResult, (short) 0);
+        byte[] correct = {5};
         Assertions.assertArrayEquals(correct, actualResult);
     }
 
@@ -98,7 +118,7 @@ public class GcdTest {
         a.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x49, (byte) 0x96, 0x02, (byte) 0xD2};
         b.fromByteArray(data2, (short) 0, (short) data2.length);
-        a.gcd(b);
+        a.ctGcd(b);
 
         Assertions.assertEquals(1, a.length());
         byte[] actualResult = new byte[1];

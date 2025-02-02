@@ -65,6 +65,26 @@ public class BigNat extends BigNatInternal {
         shrink();
     }
 
+    public void ctGcdMod(BigNat other) {
+        BigNat tmp = rm.BN_A;
+        BigNat tmpOther = rm.BN_B;
+
+        tmp.lock();
+        tmpOther.lock();
+
+        tmpOther.ctClone(other);
+        while (tmpOther.ctIsZero() != -1) {
+            tmp.ctClone(tmpOther);
+            ctMod(tmpOther);
+            tmpOther.ctClone(this);
+            ctClone(tmp);
+        }
+
+        tmp.unlock();
+        tmpOther.unlock();
+        ctShrink();
+    }
+
     public void ctGcd(BigNat other) {
         BigNat tmp = rm.BN_A;
         BigNat tmpOther = rm.BN_B;
@@ -74,27 +94,29 @@ public class BigNat extends BigNatInternal {
 
         tmpOther.clone(other);
 
-        short thisZeros = ctShiftRightByTrailingZeroes();
-        short otherZeros = other.ctShiftRightByTrailingZeroes();
+        short thisZeros = ctShiftRightByTrailingZeroes((short) 0);
+        short otherZeros = tmpOther.ctShiftRightByTrailingZeroes((short) 0);
         short done = 0;
-        short count = 15;
+        short count = 20;
         while(count > 0) {
             // Swap if necessary so other ≤ this
             short thisLesser = this.ctIsLesser(tmpOther);
             tmp.ctClone(this, done);
-            this.ctClone(tmpOther, (short) (thisLesser | done));
-            tmpOther.ctClone(tmp, done);
+            this.ctClone(tmpOther, (short) (~thisLesser | done));
+            tmpOther.ctClone(tmp, (short) (~thisLesser | done));
             // Identity 4: gcd(u, v) = gcd(u, v-u) as u ≤ v and u, v are both odd
-            this.ctSubtract(other, done);
+            this.ctSubtract(tmpOther, done);
             // this is now even
             done |= this.ctIsZero();
 
             // Identity 3: gcd(u, 2ʲ v) = gcd(u, v) as u is odd
-            this.ctShiftRightByTrailingZeroes();
+            this.ctShiftRightByTrailingZeroes(done);
             count--;
         }
         this.ctClone(tmpOther);
-        this.ctShiftLeft((short) 0); // k = min(thisZeros, otherZeros)
+        short min = ConstantTime.ctSelect((ConstantTime.ctLessThan(thisZeros, otherZeros)), thisZeros, otherZeros);
+        this.ctShiftLeft(min);
+        ctShrink();
     }
 
     /**
@@ -112,17 +134,17 @@ public class BigNat extends BigNatInternal {
         return result;
     }
 
-//    public short ctIsCoprime(BigNat a, BigNat b) {
-//        BigNat tmp = rm.BN_C;
-//
-//        tmp.lock();
-//        tmp.ctClone(a);
-//
-//        tmp.ctGcd(b);
-//        short result = tmp.ctEquals((byte) 1);
-//        tmp.unlock();
-//        return result;
-//    }
+    public short ctIsCoprime(BigNat other) {
+        BigNat tmp = rm.BN_C;
+
+        tmp.lock();
+        tmp.ctClone(this);
+
+        tmp.ctGcd(other);
+        short result = tmp.ctIsOne();
+        tmp.unlock();
+        return result;
+    }
 
     /**
      * Square computation supporting base greater than MAX_BIGNAT_LENGTH.
@@ -166,57 +188,57 @@ public class BigNat extends BigNatInternal {
      * Naive square computation supporting base greater than MAX_BIGNAT_LENGTH.
      * Constant-time implementation.
      */
-//    public void ctSq() {
-//        BigNat tmp = rm.BN_E;
-//        tmp.lock();
-//        tmp.setSize(length());
-//        tmp.ctCopy(this);
-//        super.ctMult(tmp);
-//    }
+    public void ctSqNaive() {
+        BigNat tmp = rm.BN_E;
+        tmp.lock();
+        tmp.setSize(length());
+        tmp.ctCopy(this);
+        super.ctMult(tmp);
+    }
 
     /**
-     * HW-suuported square computation supporting base greater than MAX_BIGNAT_LENGTH.
+     * HW-supported square computation supporting base greater than MAX_BIGNAT_LENGTH.
      * Constant-time implementation.
      */
-//    public void ctHWSq() {
-//        if (OperationSupport.getInstance().RSA_SQ != (short) 0xffff) {
-//            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSQ);
-//        }
-//
+    public void ctHWSq() {
+        if (OperationSupport.getInstance().RSA_SQ != (short) 0xffff) {
+            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSQ);
+        }
+
 //        if ((short) (rm.MAX_SQ_LENGTH - 1) < (short) (2 * length())) {
 //            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSQ);
 //        }
-//
-//        byte[] resultBuffer = rm.ARRAY_A;
-//        byte[] tmpBuffer = rm.ARRAY_B;
-//        short offset = (short) (rm.MAX_SQ_LENGTH - length());
-//
-//        rm.lock(resultBuffer);
-//        rm.lock(tmpBuffer);
-//        Util.arrayFillNonAtomic(resultBuffer, (short) 0, offset, (byte) 0x00);
-//        Util.arrayFillNonAtomic(tmpBuffer, (short) 0, offset, (byte) 0x00);
-//        ctCopyToByteArray(resultBuffer, offset);
-//        ctCopyToByteArray(tmpBuffer, offset);
-//        short len = rm.sqCiph.doFinal(resultBuffer, (short) 0, rm.MAX_SQ_LENGTH, resultBuffer, (short) 0); // possible CTO
-//        rm.sqCiph.doFinal(tmpBuffer, (short) 0, rm.MAX_SQ_LENGTH, tmpBuffer, (short) 0);
-//        BigNat tmp = rm.BN_E;
-//        tmp.lock();
-//        tmp.setSize(length());
-//
-//        short lenMax = ConstantTime.ctEqual(len, rm.MAX_SQ_LENGTH);
-//        short blind = (short) (~(~lenMax & OperationSupport.getInstance().RSA_PREPEND_ZEROS));
-//        CTUtil.ctArrayCopyNonAtomic(resultBuffer, (short) 0, resultBuffer, (short) (rm.MAX_SQ_LENGTH - len), len, blind);
-//        CTUtil.ctArrayFillNonAtomic(resultBuffer, (short) 0, (short) (rm.MAX_SQ_LENGTH - len), (byte) 0, blind);
-//
-//        short zeroPrefix = (short) (rm.MAX_SQ_LENGTH - (short) 2 * length());
-//        ctFromByteArray(resultBuffer, zeroPrefix, (short) (rm.MAX_SQ_LENGTH - zeroPrefix));
-//        rm.unlock(resultBuffer);
-//        ctShrink();
-//
-//        if ((~lenMax & ~OperationSupport.getInstance().RSA_PREPEND_ZEROS) == (short) 0xffff) {
-//            ISOException.throwIt(ReturnCodes.SW_ECPOINT_UNEXPECTED_KA_LEN);
-//        }
-//    }
+
+        byte[] resultBuffer = rm.ARRAY_A;
+        byte[] tmpBuffer = rm.ARRAY_B;
+        short offset = (short) (rm.MAX_SQ_LENGTH - length());
+
+        rm.lock(resultBuffer);
+        rm.lock(tmpBuffer);
+        Util.arrayFillNonAtomic(resultBuffer, (short) 0, offset, (byte) 0x00);
+        Util.arrayFillNonAtomic(tmpBuffer, (short) 0, offset, (byte) 0x00);
+        ctCopyToByteArray(resultBuffer, offset);
+        ctCopyToByteArray(tmpBuffer, offset);
+        short len = rm.sqCiph.doFinal(resultBuffer, (short) 0, rm.MAX_SQ_LENGTH, resultBuffer, (short) 0); // possible CTO
+        rm.sqCiph.doFinal(tmpBuffer, (short) 0, rm.MAX_SQ_LENGTH, tmpBuffer, (short) 0);
+        BigNat tmp = rm.BN_E;
+        tmp.lock();
+        tmp.setSize(length());
+
+        short lenMax = ConstantTime.ctEqual(len, rm.MAX_SQ_LENGTH);
+        short blind = (short) (~(~lenMax & OperationSupport.getInstance().RSA_PREPEND_ZEROS));
+        CTUtil.ctArrayCopyNonAtomic(resultBuffer, (short) 0, resultBuffer, (short) (rm.MAX_SQ_LENGTH - len), len, blind);
+        CTUtil.ctArrayFillNonAtomic(resultBuffer, (short) 0, (short) (rm.MAX_SQ_LENGTH - len), (byte) 0, blind);
+
+        short zeroPrefix = (short) (rm.MAX_SQ_LENGTH - (short) 2 * length());
+        ctFromByteArray(resultBuffer, zeroPrefix, (short) (rm.MAX_SQ_LENGTH - zeroPrefix));
+        rm.unlock(resultBuffer);
+        ctShrink();
+
+        if ((~lenMax & ~OperationSupport.getInstance().RSA_PREPEND_ZEROS) == (short) 0xffff) {
+            ISOException.throwIt(ReturnCodes.SW_ECPOINT_UNEXPECTED_KA_LEN);
+        }
+    }
 
     /**
      * Computes this * other and stores the result into this.
@@ -302,17 +324,7 @@ public class BigNat extends BigNatInternal {
     }
 
     public void ctMod(BigNat mod) {
-        BigNat tmpModulus = rm.BN_A;
-        BigNat tmp = rm.BN_B;
-
-        tmpModulus.lock();
-        tmp.lock();
-        tmpModulus.ctClone(mod);
-
-        ctMod(tmpModulus, tmp);
-
-        tmp.unlock();
-        tmpModulus.unlock();
+        remainderDivide(mod, null);
     }
 
     /**
