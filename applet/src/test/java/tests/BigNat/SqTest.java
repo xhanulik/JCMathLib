@@ -1,8 +1,6 @@
 package tests.BigNat;
 
-import javacard.framework.ISOException;
 import javacard.framework.JCSystem;
-import javacard.security.CryptoException;
 import opencrypto.jcmathlib.BigNat;
 import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;

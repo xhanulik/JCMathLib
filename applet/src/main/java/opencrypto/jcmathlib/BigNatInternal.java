@@ -887,6 +887,14 @@ public class BigNatInternal {
     public byte add(short other) {
         rm.BN_WORD.lock();
         rm.BN_WORD.setValue(other);
+        byte carry = add(rm.BN_WORD);
+        rm.BN_WORD.unlock();
+        return carry;
+    }
+
+    public byte ctAdd(short other) {
+        rm.BN_WORD.lock();
+        rm.BN_WORD.setValue(other);
         byte carry = ctAdd(rm.BN_WORD);
         rm.BN_WORD.unlock();
         return carry;
@@ -1098,6 +1106,13 @@ public class BigNatInternal {
     public void subtract(short other) {
         rm.BN_WORD.lock();
         rm.BN_WORD.setValue(other);
+        subtract(rm.BN_WORD);
+        rm.BN_WORD.unlock();
+    }
+
+    public void ctSubtract(short other) {
+        rm.BN_WORD.lock();
+        rm.BN_WORD.setValue(other);
         ctSubtract(rm.BN_WORD);
         rm.BN_WORD.unlock();
     }
@@ -1271,6 +1286,42 @@ public class BigNatInternal {
             short multiplier = (short) (other.value[otherIndex] & DIGIT_MASK);
             short tmpIndex = (short) (tmp.value.length - 1);
             for (short i = (short) (this.value.length - 1); i >= 0; i--) {
+                // check valid index in this
+                short thisValidRange = ConstantTime.ctGreaterOrEqual(thisStart, i);
+                short thisIndex = ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(thisStart, i), i, (short) 0);
+                short thisValue = (short) (value[thisIndex] & DIGIT_MASK);
+                thisValue = ConstantTime.ctSelect(thisValidRange, thisValue, (short) 0);
+                // check index in tmp, set bogus value if needed
+                short tmpValidRange = ConstantTime.ctIsNonNegative(tmpIndex);
+                short tmpValidIndex = ConstantTime.ctSelect(tmpValidRange, tmpIndex, (short) 0);
+                short tmpValue = tmp.value[tmpValidIndex];
+                tmpValue = ConstantTime.ctSelect((short) (thisValidRange & tmpValidRange), tmpValue, (short) 0);
+                // compute
+                over += (short) (thisValue + (short) (tmpValue & DIGIT_MASK) * multiplier);
+                // store byte
+                thisValue = (byte) (value[i] & DIGIT_MASK);
+                value[i] = ConstantTime.ctSelect(thisValidRange, (byte) (over & DIGIT_MASK), (byte) thisValue);
+                over = (short) ((over >> DIGIT_LEN) & DIGIT_MASK);
+                tmpIndex -= ConstantTime.ctSelect(thisValidRange, (short) 1, (short) 0);
+            }
+            thisStart--;
+        }
+        ctShrink();
+        tmp.unlock();
+    }
+
+    public void ctMultDirectOptimized(BigNatInternal other) {
+        BigNatInternal tmp = rm.BN_F;
+        tmp.lock();
+        tmp.ctClone(this);
+        setSizeToMax(true);
+
+        short over = 0;
+        short thisStart = (short) (this.value.length - 1);
+        for (short otherIndex = (short) (other.value.length - 1); otherIndex >= other.offset; otherIndex--) {
+            short multiplier = (short) (other.value[otherIndex] & DIGIT_MASK);
+            short tmpIndex = (short) (tmp.value.length - 1);
+            for (short i = (short) (this.value.length - 1); i >= this.offset; i--) {
                 // check valid index in this
                 short thisValidRange = ConstantTime.ctGreaterOrEqual(thisStart, i);
                 short thisIndex = ConstantTime.ctSelect(ConstantTime.ctGreaterOrEqual(thisStart, i), i, (short) 0);
