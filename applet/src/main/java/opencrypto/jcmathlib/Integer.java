@@ -319,11 +319,17 @@ public class Integer {
     }
 
     public short ctLesser(Integer other) {
+        // this.sign == 1 && other.sign == 0
         short thisNegativeOtherPositive = (short) (this.ctIsNegative() & other.ctIsPositive());
+        // this.sign == 0 && other.sign == 1
         short thisPositiveOtherNegative = (short) (this.ctIsPositive() & other.ctIsNegative());
+        // this.sign == 0 && other.sign == 0
         short bothPositive = (short) (this.ctIsPositive() & other.ctIsPositive());
+        // this.sign == 1 && other.sign==1
         short bothNegative = (short) (this.ctIsNegative() & other.ctIsNegative());
+        // only one actual comparison of the base
         short isLesser = this.magnitude.ctIsLesser(other.magnitude);
+        // combine results together
         short result = ConstantTime.ctSelect(thisNegativeOtherPositive, (short) 0xffff, (short) 0);
         result = ConstantTime.ctSelect(thisPositiveOtherNegative, (short) 0, result);
         result = ConstantTime.ctSelect(bothPositive, isLesser, result);
