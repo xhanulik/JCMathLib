@@ -388,38 +388,61 @@ public class Integer {
         short bothNegative = (short) (this.ctIsNegative() & other.ctIsNegative());
         short otherLesser = other.getMagnitude().ctIsLesser(this.getMagnitude());
         short thisLesser = this.getMagnitude().ctIsLesser(other.getMagnitude());
-        short equal = (short) (~otherLesser & ~thisLesser);
-
-        /* Both positive */
-        byte newSign = ConstantTime.ctSelect(bothPositive, (byte) 0, this.sign);
-        /* Both negative */
-        newSign = ConstantTime.ctSelect(bothNegative, (byte) 1,newSign);
-        this.magnitude.ctAdd(other.magnitude, (short) (~bothNegative | ~bothPositive));
-
-        /* this(+) is larger than other(-) */
+        short oppositeSignEqual = (short) ((thisPositiveOtherNegative | thisNegativeOtherPositive) & (~otherLesser & ~thisLesser));
         short thisPositiveLargerThanOtherNegative = (short) (thisPositiveOtherNegative & otherLesser);
-        newSign = ConstantTime.ctSelect(thisPositiveLargerThanOtherNegative, (byte) 0, newSign);
-        /* this(-) has larger magnitude than other(+) */
         short thisNegativeLargerThanOtherPositive = (short) (thisNegativeOtherPositive & otherLesser);
-        newSign = ConstantTime.ctSelect(thisNegativeLargerThanOtherPositive, (byte) 1, newSign);
-        this.magnitude.ctSubtract(other.magnitude, (short) (~thisNegativeLargerThanOtherPositive | ~thisPositiveLargerThanOtherNegative));
-
-        /* this(+) has smaller magnitude than other(-) */
         short thisPositiveSmallerThanOtherNegative = (short) (thisPositiveOtherNegative & thisLesser);
-        newSign = ConstantTime.ctSelect(thisPositiveSmallerThanOtherNegative, (byte) 1, newSign);
-        /* this(-) has smaller magnitude than other(+) */
-        short thisNegativeSmallerThanOtherPositive = (short) (thisPositiveOtherNegative & thisLesser);
-        newSign = ConstantTime.ctSelect(thisNegativeLargerThanOtherPositive, (byte) 1, newSign);
+        short thisNegativeSmallerThanOtherPositive = (short) (thisNegativeOtherPositive & thisLesser);
+
+        /* Set sign */
+        byte newSign = ConstantTime.ctSelect((byte) (bothPositive | thisPositiveLargerThanOtherNegative | thisNegativeSmallerThanOtherPositive | oppositeSignEqual), (byte) 0, this.sign);
+        newSign = ConstantTime.ctSelect((byte) (bothNegative | thisNegativeLargerThanOtherPositive | thisPositiveSmallerThanOtherNegative), (byte) 1,newSign);
+
+        /* Perform subtraction or addition according the signs*/
+        this.magnitude.ctAdd(other.magnitude, (short) (~bothNegative & ~bothPositive));
+        this.magnitude.ctSubtract(other.magnitude, (short) (~thisNegativeLargerThanOtherPositive & ~thisPositiveLargerThanOtherNegative & ~oppositeSignEqual));
+
+        /* Perform number switch according to signs */
         tmp.lock();
         tmp.ctClone(other.getMagnitude());
         tmp.ctSubtract(this.magnitude);
-        this.magnitude.ctCopy(tmp, (short) (~thisNegativeSmallerThanOtherPositive | ~thisPositiveSmallerThanOtherNegative));
+        this.magnitude.ctCopy(tmp, (short) (~thisNegativeSmallerThanOtherPositive & ~thisPositiveSmallerThanOtherNegative));
         tmp.unlock();
 
-        /* this has opposite sign than other, and the same magnitude */
-        short oppositeSignEqual = (short) ((thisPositiveOtherNegative | thisNegativeOtherPositive) & equal);
-        newSign = ConstantTime.ctSelect(oppositeSignEqual, (byte) 1, newSign);
-        this.ctZero((short) (~oppositeSignEqual));
+        setSign(newSign);
+    }
+
+    public void ctAddOptimized(Integer other) {
+        BigNat tmp = rm.BN_A;
+
+        short thisNegativeOtherPositive = (short) (this.ctIsNegative() & other.ctIsPositive()); // true
+        short thisPositiveOtherNegative = (short) (this.ctIsPositive() & other.ctIsNegative()); // false
+        short bothPositive = (short) (this.ctIsPositive() & other.ctIsPositive());
+        short bothNegative = (short) (this.ctIsNegative() & other.ctIsNegative());
+        short otherLesser = other.getMagnitude().ctIsLesser(this.getMagnitude());
+        short thisLesser = this.getMagnitude().ctIsLesser(other.getMagnitude());
+        short oppositeSignEqual = (short) ((thisPositiveOtherNegative | thisNegativeOtherPositive) & (~otherLesser & ~thisLesser));
+        short thisPositiveLargerThanOtherNegative = (short) (thisPositiveOtherNegative & otherLesser);
+        short thisNegativeLargerThanOtherPositive = (short) (thisNegativeOtherPositive & otherLesser);
+        short thisPositiveSmallerThanOtherNegative = (short) (thisPositiveOtherNegative & thisLesser);
+        short thisNegativeSmallerThanOtherPositive = (short) (thisNegativeOtherPositive & thisLesser);
+
+        /* Set sign */
+        byte newSign = ConstantTime.ctSelect((byte) (bothPositive | thisPositiveLargerThanOtherNegative | thisNegativeSmallerThanOtherPositive | oppositeSignEqual), (byte) 0, this.sign);
+        newSign = ConstantTime.ctSelect((byte) (bothNegative | thisNegativeLargerThanOtherPositive | thisPositiveSmallerThanOtherNegative), (byte) 1,newSign);
+
+        short opAdd = (short) (bothNegative | bothPositive);
+        short opSub = (short) (thisNegativeLargerThanOtherPositive | thisPositiveLargerThanOtherNegative | oppositeSignEqual);
+        short operation = (short) ((opAdd & 0xFFFF) | ((opSub ^ 0xFFFF) & 0xFFFF));
+        /* Remove one unneeded operation by compressing two ops into one cycle processing*/
+        this.magnitude.ctAddSubtract(other.magnitude, operation, (short) (~opAdd & ~opSub));
+
+        /* Perform number switch according to signs */
+        tmp.lock();
+        tmp.ctClone(other.getMagnitude());
+        tmp.ctSubtract(this.magnitude);
+        this.magnitude.ctCopy(tmp, (short) (~thisNegativeSmallerThanOtherPositive & ~thisPositiveSmallerThanOtherNegative));
+        tmp.unlock();
 
         setSign(newSign);
     }
@@ -430,13 +453,6 @@ public class Integer {
      * @param other other integer to substract
      */
     public void subtract(Integer other) {
-        other.negate(); // Potentially problematic - failure and exception in subsequent function will cause other to stay negated
-        this.add(other);
-        // Restore original sign for other
-        other.negate();
-    }
-
-    public void subtractAtomic(Integer other) {
         other.negate(); // Potentially problematic - failure and exception in subsequent function will cause other to stay negated
         this.add(other);
         // Restore original sign for other
@@ -532,7 +548,7 @@ public class Integer {
         this.magnitude.mod(other.getMagnitude());
     }
 
-//    public void ctModulo(Integer other) {
-//        this.magnitude.ctMod(other.getMagnitude());
-//    }
+    public void ctModulo(Integer other) {
+        this.magnitude.ctMod(other.getMagnitude());
+    }
 }

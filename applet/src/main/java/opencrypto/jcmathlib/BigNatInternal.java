@@ -1099,6 +1099,43 @@ public class BigNatInternal {
     }
 
     /**
+     * Perform addition or subtraction operation given the operation mask
+     * @param other number to be added or subtracted
+     * @param operation 0xffff for addition, 0x00 for subtraction
+     * @return carry bit if present
+     */
+    public byte ctAddSubtract(BigNatInternal other, short operation, short blind) {
+        short acc = 0;
+        short otherIndex = (short) (other.value.length - 1);
+
+        for (short thisIndex = (byte) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
+            // index must be in range of size of this number
+            short thisValidRange = ConstantTime.ctGreaterOrEqual(thisIndex, offset);
+
+            // index in other should be in bounds of other.value
+            short otherValidRange = (short) (ConstantTime.ctGreaterOrEqual(otherIndex, other.offset) & ConstantTime.ctIsNonNegative(otherIndex));
+            // prepare index for other - valid or bogus (just for some reading)
+            short newOtherIndex = (short) (otherValidRange & otherIndex);
+
+            // always read something from other
+            short otherBogusValue = (short) (other.value[newOtherIndex] & DIGIT_MASK);
+            // get value from other - if out of other bounds, use 0
+            short otherValue = (short) (otherValidRange & thisValidRange & otherBogusValue);
+            // compute new value
+            short thisValue = (short) (value[thisIndex] & DIGIT_MASK);
+
+            // combine addition and subtraction operation according to addition mask
+            acc += ConstantTime.ctSelect(operation, ConstantTime.ctSelect(thisValidRange, (short) (thisValue + otherValue), (short) 0), otherValue);
+            short tmp = ConstantTime.ctSelect(operation, (byte) (acc & DIGIT_MASK), (short) ((thisValue & DIGIT_MASK) - (acc & DIGIT_MASK)));
+            this.value[thisIndex] = (byte) (ConstantTime.ctSelect((short) (thisValidRange & ~blind), tmp, thisValue) & DIGIT_MASK);
+            acc = ConstantTime.ctSelect(thisValidRange, (short) ((acc >> DIGIT_LEN) & DIGIT_MASK), acc);
+            acc += ((tmp >> 15) & 1) & operation;
+        }
+        // output carry bit if present
+        return ConstantTime.ctSelect((byte) operation, (byte) (((byte) (((short) (acc | -acc) & (short) 0xFFFF) >>> 15) & 0x01) << 7), (byte) (acc & 0xff));
+    }
+
+    /**
      * Subtract short value to this BigNat
      *
      * @param other short value to subtract
@@ -1159,15 +1196,15 @@ public class BigNatInternal {
      * @param other BigNat to be subtracted from this
      */
     public byte ctSubtract(BigNatInternal other, short blind) {
-        ConstantTime.initializeLookUpTables();
         short acc = 0;
         byte otherIndex = (byte) (other.value.length - 1);
+
         for (byte thisIndex = (byte) (this.value.length - 1); thisIndex >= 0; thisIndex--, otherIndex--) {
             // compute only on valid this indexes
             byte validThisIndex = ConstantTime.ctGreaterOrEqualLookUp(thisIndex, (byte) offset);
 
             // check non-negative other index or set to 0
-            byte validOtherIndex = ConstantTime.ctIsNonNegativeLookUp(otherIndex);
+            byte validOtherIndex = (byte) (ConstantTime.ctGreaterOrEqual(otherIndex, (byte) other.offset) & ConstantTime.ctIsNonNegativeLookUp(otherIndex));
             byte newOtherIndex = (byte) (validOtherIndex & otherIndex);
 
             // add value to acc and subtract

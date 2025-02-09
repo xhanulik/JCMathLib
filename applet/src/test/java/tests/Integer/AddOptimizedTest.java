@@ -4,9 +4,8 @@ import opencrypto.jcmathlib.Integer;
 import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import tests.Util;
 
-public class AddTest {
+public class AddOptimizedTest {
 
     /*this.isPositive() && other.isPositive()*/
     @Test
@@ -17,7 +16,7 @@ public class AddTest {
         byte[] data2 = {0x03, 0x04};
         Integer i1 = new Integer((byte) 0, data1, rm);
         Integer i2 = new Integer((byte) 0, data2, rm);
-        i1.ctAdd(i2);
+        i1.ctAddOptimized(i2);
 
         byte[] expectedResult = {/*sign*/ 0, 0x01, 0x04, 0x06};
         byte[] actualResult = new byte[4];
@@ -34,7 +33,7 @@ public class AddTest {
         byte[] data2 = {0x03, 0x04};
         Integer i1 = new Integer((byte) 1, data1, rm);
         Integer i2 = new Integer((byte) 1, data2, rm);
-        i1.ctAdd(i2);
+        i1.ctAddOptimized(i2);
 
         byte[] expectedResult = {/*sign*/ 1, 0x01, 0x04, 0x06};
         byte[] actualResult = new byte[4];
@@ -51,7 +50,7 @@ public class AddTest {
         byte[] data2 = {0x03, 0x04};
         Integer i1 = new Integer((byte) 0, data1, rm);
         Integer i2 = new Integer((byte) 1, data2, rm);
-        i1.ctAdd(i2);
+        i1.ctAddOptimized(i2);
 
         byte[] expectedResult = {/*sign*/ 0, 0x05, 0x03, 0x03};
         byte[] actualResult = new byte[4];
@@ -68,7 +67,7 @@ public class AddTest {
         byte[] data2 = {0x03, 0x04};
         Integer i1 = new Integer((byte) 1, data1, rm);
         Integer i2 = new Integer((byte) 0, data2, rm);
-        i1.ctAdd(i2);
+        i1.ctAddOptimized(i2);
 
         byte[] expectedResult = {/*sign*/ 1, 0x05, 0x03, 0x03};
         byte[] actualResult = new byte[4];
@@ -85,7 +84,7 @@ public class AddTest {
         byte[] data2 = {0x06, 0x07, 0x08};
         Integer i1 = new Integer((byte) 0, data1, rm);
         Integer i2 = new Integer((byte) 1, data2, rm);
-        i1.ctAdd(i2);
+        i1.ctAddOptimized(i2);
 
         byte[] expectedResult = {/*sign*/ 1, 0x01, 0x01, 0x01};
         byte[] actualResult = new byte[4];
@@ -102,7 +101,7 @@ public class AddTest {
         byte[] data2 = {0x01, 0x06, 0x07};
         Integer i1 = new Integer((byte) 1, data1, rm);
         Integer i2 = new Integer((byte) 0, data2, rm);
-        i1.ctAdd(i2);
+        i1.ctAddOptimized(i2);
 
         byte[] expectedResult = {/*sign*/ 0, 0x01, 0x00, 0x00};
         byte[] actualResult = new byte[4];
@@ -118,7 +117,7 @@ public class AddTest {
         byte[] data2 = {0x01, 0x06, 0x07};
         Integer i1 = new Integer((byte) 1, data1, rm);
         Integer i2 = new Integer((byte) 0, data2, rm);
-        i1.ctAdd(i2);
+        i1.ctAddOptimized(i2);
 
         byte[] expectedResult = {/*sign*/ 0, 0x00, 0x00, 0x00};
         byte[] actualResult = new byte[4];
