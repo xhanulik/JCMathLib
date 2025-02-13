@@ -83,13 +83,6 @@ public class ECCurve {
         bBN.fromByteArray(b, (short) 0, (short) b.length);
         rBN.fromByteArray(r, (short) 0, (short) r.length);
     }
-
-    public void ctUpdateAfterReset() {
-        pBN.ctFromByteArray(p, (short) 0, (short) p.length);
-        aBN.ctFromByteArray(a, (short) 0, (short) a.length);
-        bBN.ctFromByteArray(b, (short) 0, (short) b.length);
-        rBN.ctFromByteArray(r, (short) 0, (short) r.length);
-    }
     
     /**
      * Creates a new keyPair based on this curve parameters. KeyPair object is reused if provided. Fresh keyPair value is generated.
@@ -97,7 +90,6 @@ public class ECCurve {
      * @return new or existing object with fresh key pair value
      */
     KeyPair newKeyPair(KeyPair keyPair) {
-        // TODO: leaking?
         ECPublicKey pubKey;
         ECPrivateKey privKey;
         if (keyPair == null) {
