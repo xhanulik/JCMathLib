@@ -976,4 +976,6 @@ public class BigNat extends BigNatInternal {
         z.unlock();
         t.unlock();
     }
+
+    public void ctModSqrt(BigNat p, short blind) {}
 }
