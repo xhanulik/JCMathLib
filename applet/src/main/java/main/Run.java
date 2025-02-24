@@ -3,7 +3,7 @@ package main;
 import com.licel.jcardsim.smartcardio.CardSimulator;
 import com.licel.jcardsim.utils.AIDUtil;
 import javacard.framework.AID;
-import opencrypto.jcmathlib.Example;
+import opencrypto.jcmathlib.DifFuzzApplet;
 import org.bouncycastle.util.encoders.Hex;
 import javax.smartcardio.CommandAPDU;
 
@@ -11,8 +11,8 @@ public class Run {
     public static void main(String[] args) throws Exception {
         CardSimulator simulator = new CardSimulator();
 
-        AID appletAID = AIDUtil.create("Example".getBytes());
-        simulator.installApplet(appletAID, Example.class);
+        AID appletAID = AIDUtil.create("DifFuzzApplet".getBytes());
+        simulator.installApplet(appletAID, DifFuzzApplet.class);
 
         simulator.selectApplet(appletAID);
 
