@@ -27,10 +27,17 @@ When citing our work, please use the following reference:
 
 ## Table of Contents
 
+- [Modification for DifFuzz Differential Fuzzing](#modification-for-diffuzz-differential-fuzzing)
 - [Features and Limitations](#features-and-limitations)
 - [Getting Started](#getting-started)
 - [Integration With Your Applet](#integration-with-your-applet)
 - [Community](#community)
+
+## Modification for DifFuzz Differential Fuzzing
+
+- scripts for setting up the fuzzing are `diffuzz_run_server.sh` and `diffuzz_run_fuzzing.sh`
+- fuzzing driver is located in `applet/src/main/java/DifFuzzDriver.java`
+- fuzzing applet is located in `applet/src/main/java/opencrypto/jcmathlib/DifFuzzApplet.java`
 
 ## Features and Limitations
 

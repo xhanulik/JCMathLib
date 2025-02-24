@@ -46,6 +46,7 @@ dependencies {
 
     implementation 'com.klinec:jcardsim:3.0.6.0'
     implementation 'org.bouncycastle:bcprov-jdk15on:1.58'
+    implementation files('../libs/kelinci.jar') // relative path for instrumentor
 
     testImplementation 'org.testng:testng:6.1.1'
     testImplementation 'org.slf4j:slf4j-api:1.7.33'
@@ -76,7 +77,7 @@ task dumpClassPath(dependsOn: ['idea']) {
 }
 
 application {
-    mainClass = 'main.Run'
+    mainClass = 'DifFuzzDriver'
 }
 
 test {
@@ -125,59 +126,7 @@ javacard {
         addImplicitJcardSim false
         addImplicitJcardSimJunit false
 
-        //noinspection GroovyAssignabilityCheck
-        cap {
-            packageName 'opencrypto.jcmathlib'
-            version project.version
-            aid '4a:43:4d:61:74:68:4c:69:62'
-            output 'unit_tests.cap'
-            sources 'src/main/java/opencrypto'
-
-            // JC310b43 supports compilation targeting for lower API versions.
-            // Here you can specify path to the SDK you want to use.
-            // Only JC304 and higher are supported for targeting.
-            // If JC310b43 is not used, targetsdk cannot be set.
-            targetsdk JC305
-
-            // Override java bytecode version if needed.
-            // javaversion '1.7'
-
-            //noinspection GroovyAssignabilityCheck
-            applet {
-                className 'opencrypto.jcmathlib.UnitTests'
-                aid '4a:43:4d:61:74:68:4c:69:62:55:54'
-            }
-
-            //noinspection GroovyAssignabilityCheck
-            // dependencies {
-            //     remote 'com.klinec:globalplatform:2.1.1'
-            // }
-        }
-
-        // When both cap configurations are present, task installJavaCard cannot be used
-        // cap {
-        //     packageName 'opencrypto.jcmathlib'
-        //     version project.version
-        //     aid '4a:43:4d:61:74:68:4c:69:62'
-        //     output 'example.cap'
-        //     sources 'src/main/java/opencrypto'
-
-        //     targetsdk JC304
-
-        //     // Override java bytecode version if needed.
-        //     // javaversion '1.7'
-
-        //     //noinspection GroovyAssignabilityCheck
-        //     applet {
-        //         className 'opencrypto.jcmathlib.Example'
-        //         aid '4a:43:4d:61:74:68:4c:69:62:45:43'
-        //     }
-
-        //     //noinspection GroovyAssignabilityCheck
-        //     // dependencies {
-        //     //     remote 'com.klinec:globalplatform:2.1.1'
-        //     // }
-        // }
+        // do not build any CAP file
     }
 }
 
