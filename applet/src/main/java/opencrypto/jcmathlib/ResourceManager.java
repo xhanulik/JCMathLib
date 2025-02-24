@@ -143,13 +143,13 @@ public class ResourceManager {
                 sqPub = (RSAPublicKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PUBLIC, MAX_SQ_BIT_LENGTH, false);
                 sqPub.setExponent(CONST_TWO, (short) 0, (short) CONST_TWO.length);
                 sqPub.setModulus(ARRAY_A, (short) 0, MAX_SQ_LENGTH);
-                sqCiph.init(sqPub, Cipher.MODE_ENCRYPT);
+                //sqCiph.init(sqPub, Cipher.MODE_ENCRYPT);
             } else {
                 modSqPriv = (RSAPrivateKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PRIVATE, MAX_EXP_BIT_LENGTH, false);
                 sqPriv = (RSAPrivateKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PRIVATE, MAX_SQ_BIT_LENGTH, false);
                 sqPriv.setExponent(CONST_TWO, (short) 0, (short) CONST_TWO.length);
                 sqPriv.setModulus(ARRAY_A, (short) 0, MAX_SQ_LENGTH);
-                sqCiph.init(sqPriv, Cipher.MODE_DECRYPT);
+                //sqCiph.init(sqPriv, Cipher.MODE_DECRYPT);
             }
         }
 
