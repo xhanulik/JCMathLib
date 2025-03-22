@@ -44,7 +44,7 @@ public class BigNat extends BigNatInternal {
         tmpOther.clone(other);
 
         // TODO: optimise?
-        while (!other.isZero()) {
+        while (!tmpOther.isZero()) {
             tmp.clone(tmpOther);
             mod(tmpOther);
             tmpOther.clone(this);
