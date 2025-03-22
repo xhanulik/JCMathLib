@@ -979,7 +979,7 @@ public class BigNatInternal {
         short partSize = (short) (this.value.length / INTERVAL_NUM);
         short length = 0;
         for (short i = 1; i <= INTERVAL_NUM; i++) {
-            if (offset < i * partSize) {
+            if (offset < (short) (i * partSize)) {
                 length += partSize;
             }
         }
@@ -1693,7 +1693,6 @@ public class BigNatInternal {
         }
 
         byte divisorShift = (byte) (size - divisor.size + divisorIndex - divisor.offset);
-        System.out.println("divisorShift = " + divisorShift);
         byte divisionRound = 0;
         short firstDivisorDigit = (short) (divisor.value[divisorIndex] & DIGIT_MASK); // first nonzero digit
         short divisorBitShift = (short) (ctHighestOneBit((short) (firstDivisorDigit + 1)) - 1); // in short from left -1
@@ -1705,11 +1704,8 @@ public class BigNatInternal {
         for (byte i = 0; i < MAX_DIV_CYCLES; i++) {
             // !isLesser branch condition
             short divisorShiftNegative = ConstantTime.ctIsNegative(divisorShift);
-            System.out.println((short) (ConstantTime.ctIsPositive(divisionRound) & (short) (divisionRound - 1)));
             short isLesserDivisor = ctIsLesser(divisor, divisorShift, (short) (ConstantTime.ctIsPositive(divisionRound) & (short) (divisionRound - 1)));
             short doSubtract = ((short) (~divisorShiftNegative & ~isLesserDivisor));
-            System.out.println("i = " + i + ": divisorShiftNegative = " + divisorShiftNegative + ", isLesserDivisor = " + isLesserDivisor + " doSubtract = " + doSubtract);
-
             // inside the branch
             short divisionRoundOffset = (short) (divisionRound + offset);
             tmpIndex = (short) (doSubtract & (short) (divisionRoundOffset - 1)); // ctSelect

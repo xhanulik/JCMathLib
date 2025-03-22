@@ -433,7 +433,7 @@ public class Integer {
 
         short opAdd = (short) (bothNegative | bothPositive);
         short opSub = (short) (thisNegativeLargerThanOtherPositive | thisPositiveLargerThanOtherNegative | oppositeSignEqual);
-        short operation = (short) ((opAdd & 0xFFFF) | ((opSub ^ 0xFFFF) & 0xFFFF));
+        short operation = (short) ((opAdd & (short) 0xFFFF) | ((opSub ^ (short) 0xFFFF) & (short) 0xFFFF));
         /* Remove one unneeded operation by compressing two ops into one cycle processing*/
         this.magnitude.ctAddSubtract(other.magnitude, operation, (short) (~opAdd & ~opSub));
 
