@@ -279,7 +279,7 @@ public class BigNatInternal {
     /**
      * Returns true if this is lesser than other shifted by a given number of digits.
      */
-    private boolean isLesser(BigNatInternal other, short shift, short start) {
+    public boolean isLesser(BigNatInternal other, short shift, short start) {
         short j = (short) (other.size + shift - size + start + other.offset);
 
         for (short i = (short) (start + other.offset); i < j; ++i) {
