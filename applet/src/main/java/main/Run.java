@@ -3,7 +3,7 @@ package main;
 import com.licel.jcardsim.smartcardio.CardSimulator;
 import com.licel.jcardsim.utils.AIDUtil;
 import javacard.framework.AID;
-import opencrypto.jcmathlib.UnitTests;
+import opencrypto.jcmathlib.ConstantTimeUnitTests;
 import org.bouncycastle.util.encoders.Hex;
 import javax.smartcardio.CommandAPDU;
 import javax.smartcardio.ResponseAPDU;
@@ -14,7 +14,7 @@ public class Run {
         CardSimulator simulator = new CardSimulator();
 
         AID appletAID = AIDUtil.create("Example".getBytes());
-        simulator.installApplet(appletAID, UnitTests.class);
+        simulator.installApplet(appletAID, ConstantTimeUnitTests.class);
 
         simulator.selectApplet(appletAID);
 

@@ -95,9 +95,9 @@ public class ConstantTimeUnitTests extends Applet {
     short memoryInfoOffset = 0;
 
     ResourceManager rm;
-    ECCurve curve;
-    ECPoint point1;
-    ECPoint point2;
+//    ECCurve curve;
+//    ECPoint point1;
+//    ECPoint point2;
 
     BigNat bn1;
     BigNat bn2;
@@ -123,14 +123,14 @@ public class ConstantTimeUnitTests extends Applet {
         memoryInfoOffset = snapshotAvailableMemory((short) 2, memoryInfo, memoryInfoOffset);
 
 
-        // Pre-allocate test objects (no new allocation for every tested operation)
-        curve = new ECCurve(SecP256r1.p, SecP256r1.a, SecP256r1.b, SecP256r1.G, SecP256r1.r, SecP256r1.k, rm);
-        memoryInfoOffset = snapshotAvailableMemory((short) 3, memoryInfo, memoryInfoOffset);
-
-        memoryInfoOffset = snapshotAvailableMemory((short) 5, memoryInfo, memoryInfoOffset);
-        point1 = new ECPoint(curve);
-        memoryInfoOffset = snapshotAvailableMemory((short) 6, memoryInfo, memoryInfoOffset);
-        point2 = new ECPoint(curve);
+//        // Pre-allocate test objects (no new allocation for every tested operation)
+//        curve = new ECCurve(SecP256r1.p, SecP256r1.a, SecP256r1.b, SecP256r1.G, SecP256r1.r, SecP256r1.k, rm);
+//        memoryInfoOffset = snapshotAvailableMemory((short) 3, memoryInfo, memoryInfoOffset);
+//
+//        memoryInfoOffset = snapshotAvailableMemory((short) 5, memoryInfo, memoryInfoOffset);
+//        point1 = new ECPoint(curve);
+//        memoryInfoOffset = snapshotAvailableMemory((short) 6, memoryInfo, memoryInfoOffset);
+//        point2 = new ECPoint(curve);
 
         // Testing BigNat objects used in tests
         memoryInfoOffset = snapshotAvailableMemory((short) 7, memoryInfo, memoryInfoOffset);
@@ -387,9 +387,9 @@ public class ConstantTimeUnitTests extends Applet {
     }
 
     void updateAfterReset() {
-        if (curve != null) {
-            curve.updateAfterReset();
-        }
+//        if (curve != null) {
+//            curve.updateAfterReset();
+//        }
         if (rm != null) {
             rm.refreshAfterReset();
             rm.unlockAll();
