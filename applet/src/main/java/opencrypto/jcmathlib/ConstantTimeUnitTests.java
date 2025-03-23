@@ -22,6 +22,13 @@ public class ConstantTimeUnitTests extends Applet {
     public final static byte INS_GET_ALLOCATOR_STATS = (byte) 0x07;
     public final static byte INS_GET_PROFILE_LOCKS = (byte) 0x08;
 
+    public final static byte INS_INT_STR = (byte) 0x09;
+    public final static byte INS_INT_ADD = (byte) 0x10;
+    public final static byte INS_INT_SUB = (byte) 0x11;
+    public final static byte INS_INT_MUL = (byte) 0x12;
+    public final static byte INS_INT_DIV = (byte) 0x13;
+    public final static byte INS_INT_MOD = (byte) 0x15;
+
     public final static byte INS_BN_TOARRAY = (byte) 0x20;
     public final static byte INS_BN_ADD = (byte) 0x21;
     public final static byte INS_BN_SUB = (byte) 0x22;
@@ -319,6 +326,26 @@ public class ConstantTimeUnitTests extends Applet {
                     break;
                 case INS_BN_NEG_MOD:
                     testBnNegMod(apdu, dataLen);
+                    break;
+
+                /*Integer tests*/
+                case INS_INT_STR:
+                    testIntStr(apdu, dataLen);
+                    break;
+                case INS_INT_ADD:
+                    testIntAdd(apdu, dataLen);
+                    break;
+                case INS_INT_SUB:
+                    testIntSub(apdu, dataLen);
+                    break;
+                case INS_INT_MUL:
+                    testIntMul(apdu, dataLen);
+                    break;
+                case INS_INT_DIV:
+                    testIntDiv(apdu, dataLen);
+                    break;
+                case INS_INT_MOD:
+                    testIntMod(apdu, dataLen);
                     break;
                 default:
                     ISOException.throwIt(ISO7816.SW_INS_NOT_SUPPORTED);
@@ -802,6 +829,77 @@ public class ConstantTimeUnitTests extends Applet {
         bn2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), (short) (dataLen - p1));
         bn1.modNegate(bn2);
         short len = bn1.copyToByteArray(apduBuffer, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, len);
+    }
+
+    void testIntStr(APDU apdu, short dataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+
+        int1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, dataLen);
+        short len = int1.ctToByteArray(apduBuffer, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, len);
+    }
+
+    void testIntAdd(APDU apdu, short ignoredDataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        int1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        int2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), p1);
+
+        int1.ctAdd(int2);
+        short len = int1.toByteArray(apduBuffer, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, len);
+    }
+
+    void testIntSub(APDU apdu, short ignoredDataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        int1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        int2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), p1);
+
+        int1.ctSubtract(int2);
+        short len = int1.toByteArray(apduBuffer, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, len);
+    }
+
+    void testIntMul(APDU apdu, short ignoredDataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        int1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        int2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), p1);
+
+        int1.ctMultiply(int2);
+        short len = int1.toByteArray(apduBuffer, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, len);
+    }
+
+    void testIntDiv(APDU apdu, short ignoredDataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        int1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        int2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), p1);
+
+        short size = int1.getSize();
+        int1.ctDivide(int2);
+        int1.setSize(size);
+
+        short len = int1.toByteArray(apduBuffer, (short) 0);
+        apdu.setOutgoingAndSend((short) 0, len);
+    }
+
+    void testIntMod(APDU apdu, short ignoredDataLen) {
+        byte[] apduBuffer = apdu.getBuffer();
+        short p1 = (short) (apduBuffer[ISO7816.OFFSET_P1] & 0x00FF);
+
+        int1.fromByteArray(apduBuffer, ISO7816.OFFSET_CDATA, p1);
+        int2.fromByteArray(apduBuffer, (short) (ISO7816.OFFSET_CDATA + p1), p1);
+
+        int1.ctModulo(int2);
+        short len = int1.toByteArray(apduBuffer, (short) 0);
         apdu.setOutgoingAndSend((short) 0, len);
     }
 }
