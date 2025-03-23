@@ -1140,12 +1140,6 @@ public class BigNatInternal {
      *
      * @param other short value to subtract
      */
-    public void subtract(short other) {
-        rm.BN_WORD.lock();
-        rm.BN_WORD.setValue(other);
-        subtract(rm.BN_WORD);
-        rm.BN_WORD.unlock();
-    }
 
     public void ctSubtract(short other) {
         rm.BN_WORD.lock();
@@ -1154,39 +1148,10 @@ public class BigNatInternal {
         rm.BN_WORD.unlock();
     }
 
-    public void subtract(BigNatInternal other) {
-        subtract(other, (short) 0, (short) 1);
-    }
-
     /**
      * Computes other * multiplier, shifts the results by shift and subtract it from this.
      * Multiplier must be in range [0; 2^8 - 1].
      */
-    public void subtract(BigNatInternal other, short shift, short multiplier) {
-        short acc = 0;
-        short i = (short) (size - 1 - shift + offset);
-        short j = (short) (other.size - 1 + other.offset);
-        for (; i >= offset && j >= other.offset; i--, j--) {
-            acc += (short) (multiplier * (other.value[j] & DIGIT_MASK));
-            short tmp = (short) ((value[i] & DIGIT_MASK) - (acc & DIGIT_MASK));
-
-            value[i] = (byte) (tmp & DIGIT_MASK);
-            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            if (tmp < 0) {
-                acc++;
-            }
-        }
-
-        // deal with carry as long as there are digits left in this
-        for (; i >= offset && acc != 0; --i) {
-            short tmp = (short) ((value[i] & DIGIT_MASK) - (acc & DIGIT_MASK));
-            value[i] = (byte) (tmp & DIGIT_MASK);
-            acc = (short) ((acc >> DIGIT_LEN) & DIGIT_MASK);
-            if (tmp < 0) {
-                acc++;
-            }
-        }
-    }
 
     /**
      * Subtract provided other BigNat from this BigNat.
@@ -1273,17 +1238,6 @@ public class BigNatInternal {
      * Multiplies this and other using software multiplications and stores results into this.
      * Original version, not time-constant.
      */
-    public void mult(BigNatInternal other) {
-        BigNatInternal tmp = rm.BN_F;
-        tmp.lock();
-        tmp.clone(this);
-        setSizeToMax(true);
-        for (short i = (short) (other.value.length - 1); i >= other.offset; i--) {
-            add(tmp, (short) (other.value.length - 1 - i), (short) (other.value[i] & DIGIT_MASK));
-        }
-        shrink();
-        tmp.unlock();
-    }
 
     /**
      * Multiplies this and other using software multiplications and stores results into this.
@@ -1389,21 +1343,6 @@ public class BigNatInternal {
      * @param bits number of bits to shift this by
      * @param carry XORed into the highest byte
      */
-    public void shiftRightBits(short bits, short carry) {
-        if (bits < 0 || bits > 7) {
-            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSHIFT);
-        }
-
-        short mask = (short) ((short) (1 << bits) - 1); // lowest `bits` bits set to 1
-        for (short i = offset; i < (short) value.length; i++) {
-            short current = (short) (value[i] & DIGIT_MASK);
-            short previous = current;
-            current >>= bits;
-            value[i] = (byte) (current | carry);
-            carry = (short) (previous & mask);
-            carry <<= (short) (8 - bits);
-        }
-    }
 
     public void ctShiftRightBits(short bits, short carry, short blind) {
         if (bits < 0 || bits > 7) {
@@ -1437,9 +1376,6 @@ public class BigNatInternal {
      *
      * @param bits number of bits to shift by
      */
-    public void shiftRightBits(short bits) {
-        shiftRightBits(bits, (short) 0);
-    }
     public void ctShiftRightBits(short bits) {
         ctShiftRightBits(bits, (short) 0);
     }
@@ -1449,13 +1385,6 @@ public class BigNatInternal {
      *
      * @param bytes number of bytes to shift by
      */
-    public void shiftRightBytes(short bytes) {
-        if (bytes < 0)
-            throw new ArrayIndexOutOfBoundsException();
-
-        Util.arrayCopyNonAtomic(value, offset, value, (short) (offset + bytes), size);
-        Util.arrayFillNonAtomic(value, offset, bytes, (byte) 0);
-    }
 
     public void ctShiftRightBytes(short bytes, short blind) {
         if (bytes < 0) {
@@ -1477,16 +1406,6 @@ public class BigNatInternal {
      *
      * @param bits number of bytes to shift by
      */
-    public void shiftRight(short bits) {
-        if (bits < 0) {
-            throw new ArrayIndexOutOfBoundsException();
-        }
-
-        short bytes = (short) (bits / 8);
-        bits = (short) (bits - (bytes * 8));
-        shiftRightBytes(bytes);
-        shiftRightBits(bits);
-    }
 
 
     public void ctShiftRight(short bits, short blind) {
@@ -1526,26 +1445,6 @@ public class BigNatInternal {
      * @param bits number of bits to shift by
      * @param carry ORed into the lowest byte
      */
-    protected void shiftLeftBits(short bits, short carry) {
-        if (bits < 0 || bits > 7) {
-            ISOException.throwIt(ReturnCodes.SW_BIGNAT_INVALIDSHIFT);
-        }
-
-        short mask = (short) ((-1 << (8 - bits)) & 0xff); // highest `bits` bits set to 1
-        for (short i = (short) (value.length - 1); i >= offset; --i) {
-            short current = (short) (value[i] & 0xff);
-            short previous = current;
-            current <<= bits;
-            value[i] = (byte) (current | carry);
-            carry = (short) (previous & mask);
-            carry >>>= (8 - bits);
-        }
-
-        if (carry != 0) {
-            setSize((short) (size + 1));
-            value[offset] = (byte) carry;
-        }
-    }
 
     public void ctShiftLeftBits(short bits, short carry) {
         if (bits < 0 || bits > 7) {
@@ -1582,9 +1481,6 @@ public class BigNatInternal {
      *
      * @param bits number of bits to shift by
      */
-    public void shiftLeftBits(short bits) {
-        shiftLeftBits(bits, (short) 0);
-    }
 
     public void ctShiftLeftBits(short bits) {
         ctShiftLeftBits(bits, (short) 0);
@@ -1614,65 +1510,6 @@ public class BigNatInternal {
      * @param divisor non-zero number
      * @param quotient may be null
      */
-    public void remainderDivide(BigNatInternal divisor, BigNatInternal quotient) {
-        if (quotient != null) {
-            quotient.setSizeToMax(true);
-        }
-
-        short divisorIndex = divisor.offset;
-        while (divisorIndex < (short) (divisor.value.length - 1) && divisor.value[divisorIndex] == 0) { // move to first nonzero digit
-            divisorIndex++;
-        }
-
-        short divisorShift = (short) (size - divisor.size + divisorIndex - divisor.offset);
-        short divisionRound = 0;
-        short firstDivisorDigit = (short) (divisor.value[divisorIndex] & DIGIT_MASK); // first nonzero digit
-        short divisorBitShift = (short) (highestOneBit((short) (firstDivisorDigit + 1)) - 1); // in short from left -1
-        byte secondDivisorDigit = divisorIndex < (short) (divisor.value.length - 1) ? divisor.value[(short) (divisorIndex + 1)] : 0;
-        byte thirdDivisorDigit = divisorIndex < (short) (divisor.value.length - 2) ? divisor.value[(short) (divisorIndex + 2)] : 0;
-
-        while (divisorShift >= 0) {
-            while (!isLesser(divisor, divisorShift, (short) (divisionRound > 0 ? divisionRound - 1 : 0))) {
-                short divisionRoundOffset = (short) (divisionRound + offset);
-                short dividentDigits = divisionRound == 0 ? 0 : (short) ((short) (value[(short) (divisionRoundOffset - 1)]) << DIGIT_LEN);
-                dividentDigits |= (short) (value[(short) (divisionRound + offset)] & DIGIT_MASK);
-
-                short divisorDigit;
-                if (dividentDigits < 0) {
-                    dividentDigits = (short) ((dividentDigits >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK);
-                    divisorDigit = (short) ((firstDivisorDigit >>> 1) & POSITIVE_DOUBLE_DIGIT_MASK);
-                } else {
-                    short dividentBitShift = (short) (highestOneBit(dividentDigits) - 1);
-                    short bitShift = dividentBitShift <= divisorBitShift ? dividentBitShift : divisorBitShift;
-
-                    dividentDigits = shiftBits(
-                            dividentDigits, divisionRound < (short) (size - 1) ? value[(short) (divisionRoundOffset + 1)] : 0,
-                            divisionRound < (short) (size - 2) ? value[(short) (divisionRoundOffset + 2)] : 0,
-                            bitShift
-                    );
-                    divisorDigit = shiftBits(firstDivisorDigit, secondDivisorDigit, thirdDivisorDigit, bitShift);
-                }
-
-                short multiple = (short) (dividentDigits / (short) (divisorDigit + 1));
-                if (multiple < 1) {
-                    multiple = 1;
-                }
-
-                subtract(divisor, divisorShift, multiple);
-
-                if (quotient != null) {
-                    short divisorShiftOffset = (short) (divisorShift - quotient.offset);
-                    short quotientDigit = (short) ((quotient.value[(short) (quotient.size - 1 - divisorShiftOffset)] & DIGIT_MASK) + multiple);
-                    quotient.value[(short) (quotient.size - 1 - divisorShiftOffset)] = (byte) quotientDigit;
-                }
-            }
-            divisionRound++;
-            divisorShift--;
-        }
-        if (quotient != null) {
-            quotient.shrink();
-        }
-    }
 
     /**
      *
@@ -1829,15 +1666,6 @@ public class BigNatInternal {
     /**
      * Get the index of the highest bit set to 1. Used in remainderDivide.
      */
-    public static short highestOneBit(short x) {
-        for (short i = 0; i < DOUBLE_DIGIT_LEN; ++i) {
-            if (x < 0) {
-                return i;
-            }
-            x <<= 1;
-        }
-        return DOUBLE_DIGIT_LEN;
-    }
 
     public static short ctHighestOneBit(short x) {
         short index = 0;

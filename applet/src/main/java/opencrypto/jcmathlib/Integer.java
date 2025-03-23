@@ -306,17 +306,6 @@ public class Integer {
      * @param other other integer to compare
      * @return true, if this is strictly smaller than other. False otherwise.
      */
-    public boolean lesser(Integer other) {
-        if (this.sign == 1 && other.sign == 0) {
-            return true;
-        } else if (this.sign == 0 && other.sign == 1) {
-            return false;
-        } else if ((this.sign == 0 && other.sign == 0)) {
-            return this.magnitude.isLesser(other.magnitude);
-        } else { //if ((this.sign == 1 && other.sign==1))
-            return (!this.magnitude.isLesser(other.magnitude));
-        }
-    }
 
     public short ctLesser(Integer other) {
         // this.sign == 1 && other.sign == 0
@@ -342,42 +331,6 @@ public class Integer {
      *
      * @param other other integer to add
      */
-    public void add(Integer other) {
-        BigNat tmp = rm.BN_A;
-
-        if (this.isPositive() && other.isPositive()) { //this and other are (+)
-            this.sign = 0;
-            this.magnitude.add(other.magnitude);
-        } else if (this.isNegative() && other.isNegative()) { //this and other are (-)
-            this.sign = 1;
-            this.magnitude.add(other.magnitude);
-        } else {
-            if (this.isPositive() && other.getMagnitude().isLesser(this.getMagnitude())) { //this(+) is larger than other(-)
-                this.sign = 0;
-                this.magnitude.subtract(other.magnitude, (short) 0, (short) 1);
-            } else if (this.isNegative() && other.getMagnitude().isLesser(this.getMagnitude())) {    //this(-) has  magnitude than other(+)
-                this.sign = 1;
-                this.magnitude.subtract(other.magnitude, (short) 0, (short) 1);
-            } else if (this.isPositive() && this.getMagnitude().isLesser(other.getMagnitude())) { //this(+) has smaller magnitude than other(-)
-                this.sign = 1;
-                tmp.lock();
-                tmp.clone(other.getMagnitude());
-                tmp.subtract(this.magnitude, (short) 0, (short) 1);
-                this.magnitude.copy(tmp);
-                tmp.unlock();
-            } else if (this.isNegative() && this.getMagnitude().isLesser(other.getMagnitude())) {  //this(-) has smaller magnitude than other(+)
-                this.sign = 0;
-                tmp.lock();
-                tmp.clone(other.getMagnitude());
-                tmp.subtract(this.magnitude, (short) 0, (short) 1);
-                this.magnitude.copy(tmp);
-                tmp.unlock();
-            } else if (this.getMagnitude().equals(other.getMagnitude())) {  //this has opposite sign than other, and the same magnitude
-                this.sign = 0;
-                this.zero();
-            }
-        }
-    }
 
     public void ctAdd(Integer other) {
         BigNat tmp = rm.BN_A;
@@ -452,12 +405,6 @@ public class Integer {
      *
      * @param other other integer to substract
      */
-    public void subtract(Integer other) {
-        other.negate(); // Potentially problematic - failure and exception in subsequent function will cause other to stay negated
-        this.add(other);
-        // Restore original sign for other
-        other.negate();
-    }
 
     public void ctSubtract(Integer other) {
         other.ctNegate();
@@ -470,23 +417,6 @@ public class Integer {
      *
      * @param other other integer to multiply
      */
-    public void multiply(Integer other) {
-        BigNat tmp = rm.BN_B;
-
-        if (this.isPositive() && other.isNegative()) {
-            this.setSign((byte) 1);
-        } else if (this.isNegative() && other.isPositive()) {
-            this.setSign((byte) 1);
-        } else {
-            this.setSign((byte) 0);
-        }
-
-        tmp.lock();
-        tmp.clone(this.magnitude);
-        tmp.mult(other.getMagnitude());
-        this.magnitude.copy(tmp);
-        tmp.unlock();
-    }
 
     public void ctMultiply(Integer other) {
         BigNat tmp = rm.BN_B;
@@ -508,22 +438,6 @@ public class Integer {
      *
      * @param other divisor
      */
-    public void divide(Integer other) {
-        BigNat tmp = rm.BN_A;
-
-        if (this.isPositive() && other.isNegative()) {
-            this.setSign((byte) 1);
-        } else if (this.isNegative() && other.isPositive()) {
-            this.setSign((byte) 1);
-        } else {
-            this.setSign((byte) 0);
-        }
-
-        tmp.lock();
-        tmp.clone(this.magnitude);
-        tmp.remainderDivide(other.getMagnitude(), this.magnitude);
-        tmp.unlock();
-    }
 
     public void ctDivide(Integer other) {
         BigNat tmp = rm.BN_A;
@@ -535,7 +449,7 @@ public class Integer {
 
         tmp.lock();
         tmp.ctClone(this.magnitude);
-        tmp.remainderDivide(other.getMagnitude(), this.magnitude);
+        tmp.ctRemainderDivideOptimized(other.getMagnitude(), this.magnitude);
         tmp.unlock();
     }
 
@@ -544,9 +458,6 @@ public class Integer {
      *
      * @param other modulus
      */
-    public void modulo(Integer other) {
-        this.magnitude.mod(other.getMagnitude());
-    }
 
     public void ctModulo(Integer other) {
         this.magnitude.ctMod(other.getMagnitude());
