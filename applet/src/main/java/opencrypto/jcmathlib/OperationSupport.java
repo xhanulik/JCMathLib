@@ -57,6 +57,7 @@ public class OperationSupport {
                 EC_HW_ADD = true;
                 EC_SW_DOUBLE = true;
                 EC_PRECISE_BITLENGTH = false;
+                RSA_SQ = false;
                 break;
             case JCOP21:
                 RSA_PUB = true;
