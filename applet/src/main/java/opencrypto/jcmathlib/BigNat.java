@@ -197,7 +197,7 @@ public class BigNat extends BigNatInternal {
     /**
      * Square this mod a modulus fixed with fixModSqMod method.
      */
-    private void modSqFixed() {
+    public void modSqFixed() {
         BigNat tmpMod = rm.BN_F;
         byte[] tmpBuffer = rm.ARRAY_A;
         short modLength;
@@ -297,7 +297,7 @@ public class BigNat extends BigNatInternal {
                 modLength = rm.MAX_EXP_LENGTH;
             } else {
                 modLength = mod.copyToByteArray(tmpBuffer, (short) 0);
-                rm.expPriv.setModulus(tmpBuffer, (short) 0, modLength);
+                 rm.expPriv.setModulus(tmpBuffer, (short) 0, modLength);
             }
             rm.expCiph.init(rm.expPriv, Cipher.MODE_DECRYPT);
         }
