@@ -6,6 +6,9 @@ import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Veronika Hanulikova
+ */
 public class ResizeTest {
     @Test
     public void resize_smallerLength() {
@@ -37,7 +40,7 @@ public class ResizeTest {
 
         byte[] data = {0x01, 0x02, 0x03, 0x01, 0x05, 0x06};
         bn.fromByteArray(data, (short) 0, (short) data.length);
-        bn.resize((short) (data.length + 3));
+        bn.ctResize((short) (data.length + 3));
         Assertions.assertEquals(data.length  + 3, bn.length());
 
         byte[] expectedResult = {0, 0, 0, 0x01, 0x02, 0x03, 0x01, 0x05, 0x06};
@@ -71,7 +74,7 @@ public class ResizeTest {
 
         byte[] data = {0x01, 0x02, 0x03};
         bn.fromByteArray(data, (short) 0, (short) 3);
-        bn.resize((short) 0);
+        bn.ctResize((short) 0);
         Assertions.assertEquals(0, bn.length());
         /* No exception */
         bn.copyToByteArray(new byte[] {}, (short) 0);

@@ -8,7 +8,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
+/**
+ * @author Veronika Hanulikova
+ */
 public class PrependZeroesTest {
+    // TODO: add test for blinding
     @Test
     public void toFullLength() {
         ResourceManager rm = new ResourceManager((short) 256);

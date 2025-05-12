@@ -7,6 +7,9 @@ import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Veronika Hanulikova
+ */
 public class ShiftLeftBitsTest {
     @Test
     public void shiftLeft_0() {
@@ -48,7 +51,7 @@ public class ShiftLeftBitsTest {
 
         byte[] data1 = {0x05, 0x08};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.shiftLeftBits((short) 5);
+        bn1.ctShiftLeftBits((short) 5);
 
         byte[] expectedResult = {(byte) 0xA1, (byte) 0x00};
         byte[] actualResult = new byte[2];
@@ -64,7 +67,7 @@ public class ShiftLeftBitsTest {
 
         byte[] data1 = {0x05, 0x08};
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
-        bn1.shiftLeftBits((short) 7);
+        bn1.ctShiftLeftBits((short) 7);
 
         byte[] expectedResult = {(byte) 0x02, (byte) 0x84, (byte) 0x00};
         byte[] actualResult = new byte[3];

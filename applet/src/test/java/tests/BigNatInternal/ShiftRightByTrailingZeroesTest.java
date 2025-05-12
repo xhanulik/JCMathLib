@@ -6,7 +6,10 @@ import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class ShiftRightByTrailingZeroes {
+/**
+ * @author Veronika Hanulikova
+ */
+public class ShiftRightByTrailingZeroesTest {
     @Test
     public void one() {
         ResourceManager rm = new ResourceManager((short) 256);

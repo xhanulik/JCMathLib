@@ -6,6 +6,9 @@ import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Veronika Hanulikova
+ */
 public class AddTest {
     @Test
     public void add_thisLonger() {
@@ -141,7 +144,7 @@ public class AddTest {
         byte carry = bn1.ctAdd(bn2);
 
         // test no overflow to higher byte
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         Assertions.assertEquals((byte) 128, carry);
         byte[] expectedResult = {0x00, 0x00, 0x08, (byte) 0xfe};
         byte[] actualResult = new byte[4];
@@ -183,7 +186,7 @@ public class AddTest {
         byte carry = bn1.ctAdd(bn2);
 
         // test no overflow to higher byte
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         Assertions.assertEquals((byte) 128, carry);
         byte[] expectedResult = {0x00, 0x00, 0x06};
         byte[] actualResult = new byte[3];
@@ -205,7 +208,7 @@ public class AddTest {
         byte carry = bn1.ctAdd(bn2);
 
         Assertions.assertEquals((byte) 128, carry);
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         Assertions.assertEquals((byte) 128, carry);
         byte[] expectedResult = {0x00, 0x00, 0x06};
         byte[] actualResult = new byte[3];
@@ -227,7 +230,7 @@ public class AddTest {
         byte carry = bn1.ctAdd(bn2);
 
         Assertions.assertEquals((byte) 0, carry);
-        bn1.resize((short) (bn1.length() + 3));
+        bn1.ctResize((short) (bn1.length() + 3));
         byte[] expectedResult = {0x00, 0x00, 0x00, 0x06};
         byte[] actualResult = new byte[4];
         bn1.copyToByteArray(actualResult, (short) 0);

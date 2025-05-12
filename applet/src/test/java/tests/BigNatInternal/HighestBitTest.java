@@ -4,7 +4,10 @@ import opencrypto.jcmathlib.BigNatInternal;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class HighestBit {
+/**
+ * @author Veronika Hanulikova
+ */
+public class HighestBitTest {
     @Test
     public void lastBit() {
         short result = BigNatInternal.ctHighestOneBit((short) 0b0000000000000001);

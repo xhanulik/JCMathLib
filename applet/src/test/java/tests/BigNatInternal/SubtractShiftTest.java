@@ -6,6 +6,9 @@ import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Veronika Hanulikova
+ */
 public class SubtractShiftTest {
     @Test
     public void subtract_otherLonger() {
@@ -20,7 +23,7 @@ public class SubtractShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         byte[] expectedResult = {0x00, 0x02, 0x01};
         byte[] actualResult = new byte[3];
         bn1.copyToByteArray(actualResult, (short) 0);
@@ -40,7 +43,7 @@ public class SubtractShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         byte[] expectedResult = {0x00, 0x01, (byte) 0xff};
         byte[] actualResult = new byte[3];
         bn1.copyToByteArray(actualResult, (short) 0);
@@ -60,7 +63,7 @@ public class SubtractShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         byte[] expectedResult = {0x00, 0x02, 0x01};
         byte[] actualResult = new byte[3];
         bn1.copyToByteArray(actualResult, (short) 0);
@@ -156,7 +159,7 @@ public class SubtractShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         bn1.ctSubtractShift(bn2, (byte) 0, (short) 1);
 
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         byte[] expectedResult = {0x00, 0x03, 0x02, 0x01};
         byte[] actualResult = new byte[4];
         bn1.copyToByteArray(actualResult, (short) 0);
@@ -307,7 +310,7 @@ public class SubtractShiftTest {
         bn1.fromByteArray(data1, (short) 0, (short) data1.length);
         byte[] data2 = {0x01};
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
-        bn1.subtract(bn2, (short) 7, (short) 1);
+        bn1.ctSubtractShift(bn2, (byte) 7, (short) 1);
 
         byte[] expectedResult = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01};
         byte[] actualResult = new byte[6];

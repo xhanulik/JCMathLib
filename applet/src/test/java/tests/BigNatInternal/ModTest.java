@@ -6,7 +6,9 @@ import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-
+/**
+ * @author Veronika Hanulikova
+ */
 public class ModTest {
     @Test
     public void mod_15_3() {

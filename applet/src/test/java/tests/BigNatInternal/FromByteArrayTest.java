@@ -2,11 +2,13 @@ package tests.BigNatInternal;
 
 import javacard.framework.JCSystem;
 import opencrypto.jcmathlib.BigNat;
-import opencrypto.jcmathlib.CTUtil;
 import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Veronika Hanulikova
+ */
 public class FromByteArrayTest {
 
     @Test

@@ -7,7 +7,10 @@ import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class RemainderDivideTestOptimized {
+/**
+ * @author Veronika Hanulikova
+ */
+public class RemainderDivideTestOptimizedTest {
 
     // Simple one byte divisions
     @Test

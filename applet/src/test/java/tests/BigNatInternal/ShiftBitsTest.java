@@ -4,7 +4,10 @@ import opencrypto.jcmathlib.BigNatInternal;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class ShiftBits {
+/**
+ * @author Veronika Hanulikova
+ */
+public class ShiftBitsTest {
     @Test
     public void noChange() {
         short result = BigNatInternal.ctShiftBits((short) 0b0000000000000001, (byte) 0b10000000, (byte) 0b00000000, (byte) 0);

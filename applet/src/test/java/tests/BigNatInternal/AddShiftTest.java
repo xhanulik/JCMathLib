@@ -6,6 +6,9 @@ import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Veronika Hanulikova
+ */
 public class AddShiftTest {
     @Test
     public void add_thisLonger() {
@@ -61,7 +64,7 @@ public class AddShiftTest {
         short carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
         Assertions.assertEquals(0, carry);
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         byte[] expectedResult = {0x00, 0x02, 0x01, 0x01};
         byte[] actualResult = new byte[4];
         bn1.copyToByteArray(actualResult, (short) 0);
@@ -122,7 +125,7 @@ public class AddShiftTest {
         byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
         // test no overflow to higher byte
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         Assertions.assertEquals((byte) 128, carry);
         byte[] expectedResult = {0x00, 0x00, 0x08, (byte) 0xfe};
         byte[] actualResult = new byte[4];
@@ -165,7 +168,7 @@ public class AddShiftTest {
 
         // test no overflow to higher byte
         Assertions.assertEquals((byte) 128, carry);
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         byte[] expectedResult = {0x00, 0x00, 0x06};
         byte[] actualResult = new byte[3];
         bn1.copyToByteArray(actualResult, (short) 0);
@@ -186,7 +189,7 @@ public class AddShiftTest {
         byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
         Assertions.assertEquals((byte) 128, carry);
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         byte[] expectedResult = {0x00, 0x00, 0x06};
         byte[] actualResult = new byte[3];
         bn1.copyToByteArray(actualResult, (short) 0);
@@ -207,7 +210,7 @@ public class AddShiftTest {
         byte carry = bn1.ctAddShift(bn2, (short) 0, (short) 1);
 
         Assertions.assertEquals((byte) 0, carry);
-        bn1.resize((short) (bn1.length() + 3));
+        bn1.ctResize((short) (bn1.length() + 3));
         byte[] expectedResult = {0x00, 0x00, 0x00, 0x06};
         byte[] actualResult = new byte[4];
         bn1.copyToByteArray(actualResult, (short) 0);
@@ -328,7 +331,7 @@ public class AddShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         byte carry = bn1.ctAddShift(bn2, (short) 3, (short) 1);
 
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         Assertions.assertEquals((byte) 0, carry);
         byte[] expectedResult = {0x00, 0x01, 0x01, 0x02};
         byte[] actualResult = new byte[4];
@@ -349,7 +352,7 @@ public class AddShiftTest {
         bn2.fromByteArray(data2, (short) 0, (short) data2.length);
         short carry = bn1.ctAddShift(bn2, (short) 1, (short) 1);
 
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         Assertions.assertEquals((byte) 128, carry);
         byte[] expectedResult = {0x00, 0x00, 0x11, (byte) 0xff};
         byte[] actualResult = new byte[4];

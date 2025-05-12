@@ -1,12 +1,14 @@
 package tests.BigNatInternal;
 
-import cz.muni.fi.crocs.rcard.client.Util;
 import javacard.framework.JCSystem;
 import opencrypto.jcmathlib.BigNat;
 import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Veronika Hanulikova
+ */
 public class EqualsTest {
     @Test
     public void equals_sameLength_sameMemory_true() {

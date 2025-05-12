@@ -6,6 +6,9 @@ import opencrypto.jcmathlib.ResourceManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Veronika Hanulikova
+ */
 public class AddSubtractTest {
 
     @Test
@@ -60,7 +63,7 @@ public class AddSubtractTest {
         bn1.ctAddSubtract(bn2, (short) 0x00, (short) 0x00);
 
         /* check for now overflow to higher bytes */
-        bn1.resize((short) (bn1.length() + 1));
+        bn1.ctResize((short) (bn1.length() + 1));
         byte[] expectedResult = {0x00, 0x02, 0x01};
         byte[] actualResult = new byte[3];
         bn1.copyToByteArray(actualResult, (short) 0);
