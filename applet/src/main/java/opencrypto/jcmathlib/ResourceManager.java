@@ -7,7 +7,7 @@ import javacard.security.*;
 import javacardx.crypto.Cipher;
 
 /**
- * @author Petr Svenda
+ * @author Petr Svenda, modified by Veronika Hanulikova
  */
 public class ResourceManager {
     public ObjectAllocator memAlloc;
@@ -113,11 +113,11 @@ public class ResourceManager {
 
         // Allocate BN constants always in EEPROM (only reading)
         TWO = new BigNat((short) 1, JCSystem.MEMORY_TYPE_PERSISTENT, this);
-        TWO.setValue((byte) 2);
+        TWO.ctSetValue((byte) 2);
         THREE = new BigNat((short) 1, JCSystem.MEMORY_TYPE_PERSISTENT, this);
-        THREE.setValue((byte) 3);
+        THREE.ctSetValue((byte) 3);
         ONE_COORD = new BigNat(MAX_COORD_SIZE, JCSystem.MEMORY_TYPE_PERSISTENT, this);
-        ONE_COORD.setValue((byte) 1);
+        ONE_COORD.ctSetValue((byte) 1);
         // ECC Helpers
         if (OperationSupport.getInstance().EC_HW_XY == (short) 0xffff) {
             // ecMultKA = KeyAgreement.getInstance(KeyAgreement.ALG_EC_SVDP_DH_PLAIN_XY, false);
@@ -178,7 +178,7 @@ public class ResourceManager {
 
         tmpMod.lock();
         lock(ARRAY_A);
-        tmpMod.setSize(MAX_EXP_LENGTH);
+        tmpMod.ctSetSize(MAX_EXP_LENGTH);
         if (OperationSupport.getInstance().RSA_PUB == (short) 0xffff) {
             if (OperationSupport.getInstance().RSA_KEY_REFRESH == (short) 0xffff) {
                 modSqPub = (RSAPublicKey) KeyBuilder.buildKey(KeyBuilder.TYPE_RSA_PUBLIC, MAX_EXP_BIT_LENGTH, false);
@@ -186,9 +186,9 @@ public class ResourceManager {
             modSqPub.setExponent(ResourceManager.CONST_TWO, (short) 0, (short) ResourceManager.CONST_TWO.length);
             if (OperationSupport.getInstance().RSA_RESIZE_MOD == (short) 0xffff) {
                 if (OperationSupport.getInstance().RSA_APPEND_MOD == (short) 0xffff) {
-                    mod.appendZeros(MAX_EXP_LENGTH, tmpBuffer, (short) 0);
+                    mod.ctAppendZeros(MAX_EXP_LENGTH, tmpBuffer, (short) 0);
                 } else {
-                    mod.prependZeros(MAX_EXP_LENGTH, tmpBuffer, (short) 0);
+                    mod.ctPrependZeros(MAX_EXP_LENGTH, tmpBuffer, (short) 0);
                 }
                 modSqPub.setModulus(tmpBuffer, (short) 0, MAX_EXP_LENGTH);
             } else {
@@ -203,9 +203,9 @@ public class ResourceManager {
             modSqPriv.setExponent(ResourceManager.CONST_TWO, (short) 0, (short) ResourceManager.CONST_TWO.length);
             if (OperationSupport.getInstance().RSA_RESIZE_MOD == (short) 0xffff) {
                 if (OperationSupport.getInstance().RSA_APPEND_MOD == (short) 0xffff) {
-                    mod.appendZeros(MAX_EXP_LENGTH, tmpBuffer, (short) 0);
+                    mod.ctAppendZeros(MAX_EXP_LENGTH, tmpBuffer, (short) 0);
                 } else {
-                    mod.prependZeros(MAX_EXP_LENGTH, tmpBuffer, (short) 0);
+                    mod.ctPrependZeros(MAX_EXP_LENGTH, tmpBuffer, (short) 0);
 
                 }
                 modSqPriv.setModulus(tmpBuffer, (short) 0, MAX_EXP_LENGTH);

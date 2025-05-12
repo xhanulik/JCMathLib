@@ -3,7 +3,7 @@ package opencrypto.jcmathlib;
 /**
  * OperationSupport class
  *
- * @author Antonin Dufka
+ * @author Antonin Dufka, modified by Veronika Hanulikova
  */
 public class OperationSupport {
     private static OperationSupport instance;
@@ -22,7 +22,7 @@ public class OperationSupport {
     public short DEFERRED_INITIALIZATION = falseValue;
 
     public short RSA_EXP = trueValue;
-    public short RSA_SQ = trueValue;
+    public short RSA_SQ = falseValue;
     public short RSA_PUB = falseValue;
     public short RSA_CHECK_ONE = falseValue;
     public short RSA_CHECK_EXP_ONE = falseValue;
@@ -65,6 +65,7 @@ public class OperationSupport {
                 RSA_EXTRA_MOD = trueValue;
                 RSA_APPEND_MOD = trueValue;
                 EC_SW_DOUBLE = trueValue;
+                RSA_SQ = trueValue;
                 // EC_GEN = falseValue; // required by Wei25519
                 // EC_HW_X_ECDSA = falseValue; // required by Wei25519
                 break;
@@ -72,27 +73,30 @@ public class OperationSupport {
                 RSA_PUB = trueValue;
                 RSA_EXTRA_MOD = trueValue;
                 RSA_APPEND_MOD = trueValue;
+                RSA_SQ = trueValue;
                 break;
             case GD70:
                 RSA_PUB = trueValue;
                 RSA_CHECK_ONE = trueValue;
                 RSA_EXTRA_MOD = trueValue;
                 RSA_APPEND_MOD = trueValue;
+                RSA_SQ = trueValue;
                 break;
             case JCOP3_P60:
                 DEFERRED_INITIALIZATION = trueValue;
                 RSA_PUB = trueValue;
                 EC_HW_XY = trueValue;
                 EC_HW_ADD = trueValue;
+                RSA_SQ = trueValue;
                 break;
             case JCOP4_P71:
                 DEFERRED_INITIALIZATION = trueValue;
                 EC_HW_XY = trueValue;
                 EC_HW_ADD = trueValue;
+                RSA_SQ = trueValue;
                 break;
             case SECORA:
                 MIN_RSA_BIT_LENGTH = 1024;
-                RSA_SQ = falseValue;
                 RSA_CHECK_EXP_ONE = trueValue;
                 RSA_PUB = trueValue;
                 RSA_EXTRA_MOD = trueValue;
